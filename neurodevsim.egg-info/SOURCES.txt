@@ -1,0 +1,10 @@
+AUTHORS.md
+LICENSE
+README.md
+setup.py
+neurodevsim/processing.py
+neurodevsim/simulator.py
+neurodevsim.egg-info/PKG-INFO
+neurodevsim.egg-info/SOURCES.txt
+neurodevsim.egg-info/dependency_links.txt
+neurodevsim.egg-info/top_level.txt

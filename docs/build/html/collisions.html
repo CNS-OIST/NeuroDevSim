@@ -1,0 +1,208 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Preventing and dealing with collisions &#8212; NeuroDevSim 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Preventing and dealing with collisions</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="preventing-and-dealing-with-collisions">
+<span id="collisions-label"></span><h1>Preventing and dealing with collisions<a class="headerlink" href="#preventing-and-dealing-with-collisions" title="Permalink to this headline">¶</a></h1>
+<p>The emphasis on interactions with the environment entails that for most models dealing with collisions is an important part of the code.</p>
+<div class="section" id="standard-behavior">
+<h2>Standard behavior<a class="headerlink" href="#standard-behavior" title="Permalink to this headline">¶</a></h2>
+<p>The robust approach is to let collisions happen and deal with the resulting <a class="reference internal" href="tutorial.html#collisionerror-label"><span class="std std-ref">CollisionError</span></a>. The code below from the <a class="reference internal" href="tutorial.html#tutorial-label"><span class="std std-ref">Beginner’s Tutorial</span></a> shows an example where  <em>new_pos</em> is varied randomly till no collision occurs:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># counts number of add_child trials</span>
+    <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span>
+        <span class="n">extension</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+        <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">extension</span> <span class="o">*</span> <span class="mf">5.</span> <span class="c1"># compute position of child end</span>
+        <span class="c1"># check for possible collisions</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">)</span> <span class="c1"># make a new front and store it</span>
+            <span class="o">...</span>
+        <span class="k">except</span> <span class="n">CollisionError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">continue</span> <span class="c1"># pick another new_pos, no attempt to correct the error</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">GridCompetitionError</span><span class="p">,</span> <span class="n">InsideParentError</span><span class="p">,</span> <span class="n">VolumeError</span><span class="p">):</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">continue</span> <span class="c1"># pick another new_pos, no attempt to correct the error</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Warning: failed extension for of&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">get_neuron_name</span><span class="p">(</span><span class="n">constellation</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Obivously this simple approach is not guaranteed to succeed, especially in crowded environments. It is always important to deal with failure of the method, in this example a warning is printed.</p>
+</div>
+<div class="section" id="getting-more-information-about-collisions">
+<h2>Getting more information about collisions<a class="headerlink" href="#getting-more-information-about-collisions" title="Permalink to this headline">¶</a></h2>
+<p>To deal more intelligently with collisions it is important to know which <code class="docutils literal notranslate"><span class="pre">Front</span></code> caused the collision, this information is available in the <a class="reference internal" href="tutorial.html#collisionerror-label"><span class="std std-ref">CollisionError</span></a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+        <span class="k">except</span> <span class="n">CollisionError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;collides with&quot;</span><span class="p">,</span><span class="n">error</span><span class="o">.</span><span class="n">collider</span><span class="p">,</span><span class="s2">&quot;with distance&quot;</span><span class="p">,</span><span class="n">error</span><span class="o">.</span><span class="n">distance</span><span class="p">)</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>Note that standard behavior is to return only the first <code class="docutils literal notranslate"><span class="pre">Front</span></code> identified as causing a collision, there may be other <code class="docutils literal notranslate"><span class="pre">Fronts</span></code> that also cause collisions and these may even be closer by. Usually collisions with older fronts will be detected first.</p>
+<p>It is possible to force a search for <strong>all</strong> colliding fronts before triggering an error:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="n">constellation</span><span class="o">.</span><span class="n">only_first_collision</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="o">...</span>
+        <span class="k">except</span> <span class="n">CollisionError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">error</span><span class="o">.</span><span class="n">only_first</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;collides with&quot;</span><span class="p">,</span><span class="n">error</span><span class="o">.</span><span class="n">collider</span><span class="p">,</span><span class="s2">&quot;with distance&quot;</span><span class="p">,</span><span class="n">error</span><span class="o">.</span><span class="n">distance</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;collides with:&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">collider</span><span class="p">)):</span>
+                    <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;  #&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">error</span><span class="o">.</span><span class="n">collider</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="s2">&quot;with distance&quot;</span><span class="p">,</span><span class="n">error</span><span class="o">.</span><span class="n">distance</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>The <em>constellation.only_first_collision</em> attribute is a boolean that is initialized to True. If this is set to False before the call to <code class="docutils literal notranslate"><span class="pre">add_child</span></code> the simulator will check for all collisions with proposed <em>new_front</em> before returning with <a class="reference internal" href="tutorial.html#collisionerror-label"><span class="std std-ref">CollisionError</span></a>. Note that coding this correctly is not simple:</p>
+<ol class="arabic">
+<li><p><em>constellation.only_first_collision</em> is local to each parallel processor and cannot be set globally. There are two strategies possible to using it:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>either set it at the begin of each <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> call as in the example above. This will affect all <code class="docutils literal notranslate"><span class="pre">add_child</span></code> calls and slow down the simulation.</p></li>
+<li><p>change it to False just before the <code class="docutils literal notranslate"><span class="pre">try</span></code> and <code class="docutils literal notranslate"><span class="pre">except</span></code> statements for a selected <code class="docutils literal notranslate"><span class="pre">add_child</span></code> call and reset to True afterwards, this will affect only that one <code class="docutils literal notranslate"><span class="pre">add_child</span></code> call.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>depending on the setting of <em>constellation.only_first_collision</em> <a class="reference internal" href="tutorial.html#collisionerror-label"><span class="std std-ref">CollisionError</span></a> returns either a <code class="docutils literal notranslate"><span class="pre">Front</span></code> or a <code class="docutils literal notranslate"><span class="pre">[Front,]</span></code> as collider, same for distance. The collider list is unsorted.</p></li>
+<li><p>because the setting of <em>constellation.only_first_collision</em> may be ambiguous <a class="reference internal" href="tutorial.html#collisionerror-label"><span class="std std-ref">CollisionError</span></a> contains its value used in its <em>first_only</em> attribute and will always print correct information.</p></li>
+</ol>
+<p>Based on the information provided by <a class="reference internal" href="tutorial.html#collisionerror-label"><span class="std std-ref">CollisionError</span></a> sophisticated collision resolution routines can be written.</p>
+</div>
+<div class="section" id="automatic-collision-resolution">
+<h2>Automatic collision resolution<a class="headerlink" href="#automatic-collision-resolution" title="Permalink to this headline">¶</a></h2>
+<p>Some fairly simple collision conditions can be very hard to solve properly by random search. An example is a dendrite or axon trying to grow past a much larger soma, biological growth cones will eventually succeed in making an arc around such a structure, but this requires a sophisticated simulation of chemical cues to work in NeuroDevSim. Instead, the <code class="docutils literal notranslate"><span class="pre">solve_collision</span></code> method provides a phenomenological solution that respects the original direction of growth. It is called as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solve_collision</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">error</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">solve_collision</span></code> returns a list of <code class="docutils literal notranslate"><span class="pre">Point</span></code> that were free at the time of the call. To generate the solution proposed the <code class="docutils literal notranslate"><span class="pre">add_branch</span></code> method should be used, which will create a series of a few fronts if possible:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="n">max_count</span><span class="p">:</span>
+        <span class="n">new_pos</span> <span class="o">=</span> <span class="o">...</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># success -&gt; disable this front</span>
+            <span class="k">return</span>
+        <span class="k">except</span> <span class="n">CollisionError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solve_collision</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">error</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">points</span><span class="p">:</span> <span class="c1"># one or more points was returned</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">new_fronts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_branch</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">points</span><span class="p">)</span>
+                    <span class="c1"># at least one new front made</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># success -&gt; disable this front</span>
+                    <span class="k">return</span>
+                <span class="k">except</span> <span class="n">CollisionError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+                    <span class="nb">print</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_neuron_name</span><span class="p">(</span><span class="n">constellation</span><span class="p">),</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;solve_collision collides with&quot;</span><span class="p">,</span><span class="n">error</span><span class="o">.</span><span class="n">collider</span><span class="p">)</span>
+                    <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">continue</span> <span class="c1"># generate another new_pos, no attempt to correct the error</span>
+                <span class="k">except</span> <span class="p">(</span><span class="n">GridCompetitionError</span><span class="p">,</span><span class="n">InsideParentError</span><span class="p">,</span><span class="n">VolumeError</span><span class="p">):</span>
+                    <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">continue</span> <span class="c1"># generate another new_pos, no attempt to correct the error</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">continue</span> <span class="c1"># generate another new_pos</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">GridCompetitionError</span><span class="p">,</span><span class="n">InsideParentError</span><span class="p">,</span><span class="n">VolumeError</span><span class="p">):</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">continue</span> <span class="c1"># generate another new_pos, no attempt to correct the error</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p>Note that <code class="docutils literal notranslate"><span class="pre">solve_collision</span></code> may fail and return an empty list. <code class="docutils literal notranslate"><span class="pre">add_branch</span></code> will try to instantiate fronts for every coordinate returned by <code class="docutils literal notranslate"><span class="pre">solve_collision</span></code> but this may fail. If at least one front can be made <code class="docutils literal notranslate"><span class="pre">add_branch</span></code> will return normally and the length of the <em>new_fronts</em> list returned gives the number of <code class="docutils literal notranslate"><span class="pre">Front</span></code> created, otherwise it will return with a new <a class="reference internal" href="tutorial.html#collisionerror-label"><span class="std std-ref">CollisionError</span></a>. The reason that <code class="docutils literal notranslate"><span class="pre">add_branch</span></code> may fail partially or completely is that other processors may be instantiating new <code class="docutils literal notranslate"><span class="pre">Front</span></code> at coordinates needed after <code class="docutils literal notranslate"><span class="pre">solve_collision</span></code> returns and before or while <code class="docutils literal notranslate"><span class="pre">add_branch</span></code> is called.</p>
+<p>Examples of the use of <code class="docutils literal notranslate"><span class="pre">solve_collision</span></code> can be found in the <a class="reference internal" href="examples.html#migrationnote-label"><span class="std std-ref">Migration notebook</span></a>.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Preventing and dealing with collisions</a><ul>
+<li><a class="reference internal" href="#standard-behavior">Standard behavior</a></li>
+<li><a class="reference internal" href="#getting-more-information-about-collisions">Getting more information about collisions</a></li>
+<li><a class="reference internal" href="#automatic-collision-resolution">Automatic collision resolution</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/collisions.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Preventing and dealing with collisions</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-2022, OIST.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,218 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Examples &#8212; NeuroDevSim 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Changes compared previous versions" href="versions.html" />
+    <link rel="prev" title="Advanced Tutorial" href="advanced.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="versions.html" title="Changes compared previous versions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="advanced.html" title="Advanced Tutorial"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Examples</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="examples">
+<span id="examplesnote-label"></span><h1>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h1>
+<p>The <em>Examples</em> directory contains <a class="reference external" href="http://jupyter.org/">jupyter notebooks</a> and a few python scripts demonstrating NeuroDevSim features. The notebooks save their databases in the <em>output</em> directory. For beginning NeuroDevSim users it is best to run them in the order shown below.</p>
+<div class="section" id="beginner-s-examples">
+<h2>Beginner’s Examples<a class="headerlink" href="#beginner-s-examples" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="errors-and-exceptions-notebook">
+<span id="errorsnote-label"></span><h3>Errors and Exceptions notebook<a class="headerlink" href="#errors-and-exceptions-notebook" title="Permalink to this headline">¶</a></h3>
+<p>This notebook demonstrates the use of <a class="reference external" href="https://docs.python.org/3/tutorial/errors.html">Python Errors and Exceptions</a> for users who are not familiar with these Python concepts. It also shows how to recover from a crashed simulation in a notebook.</p>
+</div>
+<div class="section" id="random-growth-notebook">
+<span id="randomnote-label"></span><h3>Random Growth notebook<a class="headerlink" href="#random-growth-notebook" title="Permalink to this headline">¶</a></h3>
+<p>The random branching model that is used in the <a class="reference internal" href="tutorial.html#randomf-label"><span class="std std-ref">More advanced growth</span></a> section of the Beginner’s tutorial and a small network of such neurons.</p>
+</div>
+<div class="section" id="interstitial-growth-notebook">
+<span id="interstitialnote-label"></span><h3>Interstitial Growth notebook<a class="headerlink" href="#interstitial-growth-notebook" title="Permalink to this headline">¶</a></h3>
+<p>Demonstrates growth of oblique dendrites after the apical dendrite has extended. This is implemented as conditional growth in fronts that remain <em>growing</em>.</p>
+</div>
+<div class="section" id="environment-notebook">
+<span id="environmentnote-label"></span><h3>Environment notebook<a class="headerlink" href="#environment-notebook" title="Permalink to this headline">¶</a></h3>
+<p>Demonstrates the use of  <em>get_fronts</em>, <em>CollisionError</em> or <em>Substrate</em> to interact with the environment during growth.</p>
+</div>
+</div>
+<div class="section" id="basic-examples">
+<h2>Basic Examples<a class="headerlink" href="#basic-examples" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="real-morphologies-notebook">
+<span id="realnote-label"></span><h3>Real Morphologies notebook<a class="headerlink" href="#real-morphologies-notebook" title="Permalink to this headline">¶</a></h3>
+<p>Contains models of a spinal motoneuron and a cortical layer 5 pyramidal neuron.</p>
+</div>
+<div class="section" id="retraction-notebook">
+<span id="retractnote-label"></span><h3>Retraction notebook<a class="headerlink" href="#retraction-notebook" title="Permalink to this headline">¶</a></h3>
+<p>Demonstrates retraction of single fronts or entire branches.</p>
+</div>
+<div class="section" id="synapses-notebook">
+<span id="synapsenote-label"></span><h3>Synapses notebook<a class="headerlink" href="#synapses-notebook" title="Permalink to this headline">¶</a></h3>
+<p>Several axons make synapses with a neuron. Includes also two models of <strong>branch retraction</strong> based either on number of synapses/branch or on summed synaptic activity in each branch and an illustration of the use of <em>color_scheme=3</em>.</p>
+</div>
+<div class="section" id="migration-notebook">
+<span id="migrationnote-label"></span><h3>Migration notebook<a class="headerlink" href="#migration-notebook" title="Permalink to this headline">¶</a></h3>
+<p>Shows increasingly complex simulations of somatic migration, including filipod guided migration and migration with a trailing axon using <em>solve_collision</em> and <em>add_branch</em> to deal with <strong>collisions</strong>. Also includes an illustration of the use of <em>color_scheme=3</em>.</p>
+</div>
+</div>
+<div class="section" id="advanced-examples">
+<h2>Advanced Examples<a class="headerlink" href="#advanced-examples" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="database-notebook">
+<span id="databasenote-label"></span><h3>Database notebook<a class="headerlink" href="#database-notebook" title="Permalink to this headline">¶</a></h3>
+<p>Storing additional attributes in the simulation database and retrieving or plotting the data.</p>
+</div>
+<div class="section" id="import-notebook">
+<span id="importnote-label"></span><h3>Import notebook<a class="headerlink" href="#import-notebook" title="Permalink to this headline">¶</a></h3>
+<p>Demonstrates the use of <em>import_simulation</em>.</p>
+</div>
+<div class="section" id="interactive-mode-notebook">
+<span id="interactivenote-label"></span><h3>Interactive Mode notebook<a class="headerlink" href="#interactive-mode-notebook" title="Permalink to this headline">¶</a></h3>
+<p>Demonstrates the use of the interactive mode and how to use it to debug a model with <em>import_simulation</em>.</p>
+</div>
+</div>
+<div class="section" id="python-scripts">
+<h2>Python scripts<a class="headerlink" href="#python-scripts" title="Permalink to this headline">¶</a></h2>
+<p>These can only be run in a terminal using <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">filename.py</span></code>. All plots and movies are stored in the <em>plots and movies</em> directory.</p>
+<div class="section" id="random-growth-py">
+<h3>random_growth.py<a class="headerlink" href="#random-growth-py" title="Permalink to this headline">¶</a></h3>
+<p>Identical to <em>Random_model</em> example from the <a class="reference internal" href="#randomnote-label"><span class="std std-ref">Random Growth notebook</span></a> with pdf file and movie output.</p>
+</div>
+<div class="section" id="random-network-py">
+<h3>random_network.py<a class="headerlink" href="#random-network-py" title="Permalink to this headline">¶</a></h3>
+<p>Identical to <em>Small_network</em> example from the <a class="reference internal" href="#randomnote-label"><span class="std std-ref">Random Growth notebook</span></a> with pdf file and movie output.</p>
+</div>
+<div class="section" id="plots-and-movies-py">
+<h3>plots_and_movies.py<a class="headerlink" href="#plots-and-movies-py" title="Permalink to this headline">¶</a></h3>
+<p>Illustrates the use of <em>nds_plot</em> to make pdf files and of <em>nds_movie</em> to make movies using the <code class="docutils literal notranslate"><span class="pre">color_scheme=3</span></code> option as described in <a class="reference internal" href="plots.html#plots-label"><span class="std std-ref">Plotting the simulation</span></a>.</p>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Examples</a><ul>
+<li><a class="reference internal" href="#beginner-s-examples">Beginner’s Examples</a><ul>
+<li><a class="reference internal" href="#errors-and-exceptions-notebook">Errors and Exceptions notebook</a></li>
+<li><a class="reference internal" href="#random-growth-notebook">Random Growth notebook</a></li>
+<li><a class="reference internal" href="#interstitial-growth-notebook">Interstitial Growth notebook</a></li>
+<li><a class="reference internal" href="#environment-notebook">Environment notebook</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#basic-examples">Basic Examples</a><ul>
+<li><a class="reference internal" href="#real-morphologies-notebook">Real Morphologies notebook</a></li>
+<li><a class="reference internal" href="#retraction-notebook">Retraction notebook</a></li>
+<li><a class="reference internal" href="#synapses-notebook">Synapses notebook</a></li>
+<li><a class="reference internal" href="#migration-notebook">Migration notebook</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#advanced-examples">Advanced Examples</a><ul>
+<li><a class="reference internal" href="#database-notebook">Database notebook</a></li>
+<li><a class="reference internal" href="#import-notebook">Import notebook</a></li>
+<li><a class="reference internal" href="#interactive-mode-notebook">Interactive Mode notebook</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#python-scripts">Python scripts</a><ul>
+<li><a class="reference internal" href="#random-growth-py">random_growth.py</a></li>
+<li><a class="reference internal" href="#random-network-py">random_network.py</a></li>
+<li><a class="reference internal" href="#plots-and-movies-py">plots_and_movies.py</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="advanced.html"
+                          title="previous chapter">Advanced Tutorial</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="versions.html"
+                          title="next chapter">Changes compared previous versions</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/examples.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="versions.html" title="Changes compared previous versions"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="advanced.html" title="Advanced Tutorial"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Examples</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-2022, OIST.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,258 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Front status flags &#8212; NeuroDevSim 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="docutils literal notranslate"><span class="pre">Front</span></code> status flags</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="front-status-flags">
+<span id="flags-label"></span><h1><code class="docutils literal notranslate"><span class="pre">Front</span></code> status flags<a class="headerlink" href="#front-status-flags" title="Permalink to this headline">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">Front</span></code> status flags are important in scheduling <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> calls and controlling model behavior. Some flags report on front status and can only be read, others can be changed by the user and some can be freely used. All flag methods are documented in <a class="reference internal" href="simulator.html#simulator-label"><span class="std std-ref">simulator module</span></a>. NeuroDevSim tries to keep the control of scheduling simple with the use of the <code class="docutils literal notranslate"><span class="pre">enable(constellation)</span></code> and <code class="docutils literal notranslate"><span class="pre">disable(constellation)</span></code> methods that directly changes status flags, but in some instances finer control is needed.</p>
+<div class="section" id="status-flags-scheduling-manage-front">
+<h2>Status flags scheduling <code class="docutils literal notranslate"><span class="pre">manage_front</span></code><a class="headerlink" href="#status-flags-scheduling-manage-front" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">manage_front</span></code> is called only for <code class="docutils literal notranslate"><span class="pre">Front</span></code> that are <em>active</em>, but the order in which fronts are called depends on the <em>growing</em> and <em>migrating</em> status flags and, if either is set to True, on the position of <code class="docutils literal notranslate"><span class="pre">Front</span></code> in the simulation volume. Correct setting of these flags is important to reudce the likelyhood of <a class="reference internal" href="tutorial.html#gridcompetitionerror-label"><span class="std std-ref">GridCompetitionError</span></a>. The <em>active</em>, <em>growing</em> and <em>migrating</em> flags can be set by the user or changed through the <code class="docutils literal notranslate"><span class="pre">enable</span></code> and <code class="docutils literal notranslate"><span class="pre">disable</span></code> methods:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 40%" />
+<col style="width: 26%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Flag query</p></th>
+<th class="head"><p>Set to True</p></th>
+<th class="head"><p>Set to False</p></th>
+<th class="head"><p>Active if True</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">is_active()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">enable(constellation)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">disable(constellation)</span></code></p></td>
+<td><p>yes</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">is_growing()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">set_growing()</span></code>
+<code class="docutils literal notranslate"><span class="pre">enable(constellation,growing=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">clear_growing()</span></code>
+<code class="docutils literal notranslate"><span class="pre">disable(constellation)</span></code></p></td>
+<td><p>yes</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">is_migrating()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">set_migrating()</span></code>
+<code class="docutils literal notranslate"><span class="pre">enable(constellation,migrating=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">clear_migrating()</span></code>
+<code class="docutils literal notranslate"><span class="pre">disable(constellation)</span></code></p></td>
+<td><p>yes</p></td>
+</tr>
+</tbody>
+</table>
+<p>Note that <em>active</em> changes to True if either <em>growing</em> or <em>migrating</em> are set to True, but the reverse does not apply. All new <code class="docutils literal notranslate"><span class="pre">Front</span></code> created by <code class="docutils literal notranslate"><span class="pre">Admin_agent.add_neurons</span></code> or <code class="docutils literal notranslate"><span class="pre">Front.add_child</span></code> are <em>active</em> and <em>growing</em>. For fronts created by <code class="docutils literal notranslate"><span class="pre">Front.add_branch</span></code> only the last of the series made is <em>active</em> and <em>growing</em> unless the optional parameter <em>enable_all</em> is set to True. Somata created by <code class="docutils literal notranslate"><span class="pre">Admin_agent.add_neurons</span></code> can also be <em>migrating</em> if the optional parameter is set to True.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><code class="docutils literal notranslate"><span class="pre">enable</span></code> and <code class="docutils literal notranslate"><span class="pre">disable</span></code> can be called for any front. Only <em>self</em> or <em>new_front</em> created by <code class="docutils literal notranslate"><span class="pre">add_child</span></code> or <code class="docutils literal notranslate"><span class="pre">add_branch</span></code> can call <code class="docutils literal notranslate"><span class="pre">set_growing()</span></code>, <code class="docutils literal notranslate"><span class="pre">clear_growing()</span></code>, <code class="docutils literal notranslate"><span class="pre">set_migrating()</span></code> and <code class="docutils literal notranslate"><span class="pre">clear_migrating()</span></code>. Calling these methods on other fronts will change the status flags but may not affect their behavior.</p>
+</div>
+<p>As mentioned, using <code class="docutils literal notranslate"><span class="pre">disable(constellation)</span></code> to stop growth of <em>self</em> is usually sufficient to control scheduling, but sometimes more fine-grained control is required:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">)</span> <span class="c1"># make a new front and store it</span>
+        <span class="c1"># make front stop growing but keep it active</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_growing</span><span class="p">()</span>
+        <span class="k">return</span> <span class="c1"># completed this call</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>In the code example above, <em>self</em> is kept <em>active</em> but is not expected to call <code class="docutils literal notranslate"><span class="pre">add_child</span></code> again. This could be useful if <em>self</em> should be able to react to some future condition as it will keep calling <code class="docutils literal notranslate"><span class="pre">manage_front</span></code>. If for some reason it should grow again at a later cycle, it is safer to call <em>self.set_growing()</em> first and wait till the next cycle to call <code class="docutils literal notranslate"><span class="pre">add_child</span></code>.</p>
+<p>In the following code example a parent front is not only enabled again but set to <em>growing</em> after retraction of a child:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">parent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parent</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+    <span class="n">parent</span><span class="o">.</span><span class="n">enable</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">growing</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">retract</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># retract self</span>
+    <span class="k">return</span> <span class="c1"># do not do anything else with self</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>The same effect can be obtained using <code class="docutils literal notranslate"><span class="pre">self.enable_parent(constellation,growing=True)</span></code>.</p>
+<p>Finally, a reminder: only keep fronts <em>active</em> if needed. Fronts calling <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> without it executing any code before <code class="docutils literal notranslate"><span class="pre">return</span></code> can slow down simulations significantly. It is possible to <code class="docutils literal notranslate"><span class="pre">disable</span></code> fronts transiently using the optional parameters <em>till_cycle</em>, <em>till_cycle_g</em> or <em>till_cycle_m</em>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">till_cycle_g</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>this will disable <em>self</em> till cycle 100. On cycle 100 it becomes <em>active</em> again with <em>is_growing()</em> True.</p>
+</div>
+<div class="section" id="read-only-status-flags">
+<span id="readflags-label"></span><h2>Read-only status flags<a class="headerlink" href="#read-only-status-flags" title="Permalink to this headline">¶</a></h2>
+<p>The following status flags are set by NeuroDevSim methods and inform on status of <code class="docutils literal notranslate"><span class="pre">Front</span></code>:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 41%" />
+<col style="width: 38%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Flag query</p></th>
+<th class="head"><p>Set by method</p></th>
+<th class="head"><p>Meaning of True</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">is_cylinder()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">add_neurons</span></code>, <code class="docutils literal notranslate"><span class="pre">add_child</span></code>, <code class="docutils literal notranslate"><span class="pre">add_branch</span></code></p></td>
+<td><p>shape is cylindrical, False for a sphere</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">has_moved()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">migrate_soma</span></code></p></td>
+<td><p>soma migrated at previous or current
+cycle</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">has_migrated()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">migrate_soma</span></code></p></td>
+<td><p>soma migrated at some cycle</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">is_retracted()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">retract</span></code>, <code class="docutils literal notranslate"><span class="pre">retract_branch</span></code></p></td>
+<td><p>front has been retracted</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">has_child_retracted</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">retract</span></code>, <code class="docutils literal notranslate"><span class="pre">retract_branch</span></code></p></td>
+<td><p>a child of this front was retracted at some
+cycle, is reset to False after new child
+is made</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">is_arc()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">add_branch</span></code></p></td>
+<td><p>front is part of an arc made by
+<code class="docutils literal notranslate"><span class="pre">arc_around</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p>These status flags can be read for any <code class="docutils literal notranslate"><span class="pre">Front</span></code> but notice that <code class="docutils literal notranslate"><span class="pre">has_moved()</span></code> and <code class="docutils literal notranslate"><span class="pre">has_migrated()</span></code> can change value during the present cycle and for fronts other than <em>self</em> the timing of this change cannot be predicted.</p>
+</div>
+<div class="section" id="user-availabe-status-flags">
+<h2>User availabe status flags<a class="headerlink" href="#user-availabe-status-flags" title="Permalink to this headline">¶</a></h2>
+<p>The following status flags can be used as boolean variables by the user instead of making a <em>c_bool</em> additional attribute:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 31%" />
+<col style="width: 33%" />
+<col style="width: 37%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Flag query</p></th>
+<th class="head"><p>Set to True</p></th>
+<th class="head"><p>Set to False</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">is_status1()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">set_status1()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">clear_status1()</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">is_status2()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">set_status2()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">clear_status2()</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">is_status3()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">set_status3()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">clear_status3()</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p>These status flags can be read and set/cleared for any <code class="docutils literal notranslate"><span class="pre">Front</span></code>. However, if setting or clearing on a front other than <em>self</em> <strong>be sure that only one front can do this</strong> during a given cycle to avoid competition. See <a class="reference internal" href="tutorial.html#attributes-label"><span class="std std-ref">Changing attributes of Front or Substrate</span></a> for more information.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">Front</span></code> status flags</a><ul>
+<li><a class="reference internal" href="#status-flags-scheduling-manage-front">Status flags scheduling <code class="docutils literal notranslate"><span class="pre">manage_front</span></code></a></li>
+<li><a class="reference internal" href="#read-only-status-flags">Read-only status flags</a></li>
+<li><a class="reference internal" href="#user-availabe-status-flags">User availabe status flags</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/flags.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="docutils literal notranslate"><span class="pre">Front</span></code> status flags</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-2022, OIST.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+  </body>
+</html>

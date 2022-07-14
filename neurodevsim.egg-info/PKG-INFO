@@ -1,0 +1,15 @@
+Metadata-Version: 2.1
+Name: neurodevsim
+Version: 1.0.0
+Summary: Neural Development Simulator
+Home-page: https://github.com/CNS-OIST/NeuroDevSim
+Author: Erik De Schutter
+Author-email: erik@oist.jp
+License: GNU General Public License Version 3.0
+Platform: any
+Requires-Python: >=3.6
+License-File: LICENSE
+License-File: AUTHORS.md
+
+UNKNOWN
+

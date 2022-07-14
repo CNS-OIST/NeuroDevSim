@@ -1,0 +1,166 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modeling soma migration &#8212; NeuroDevSim 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Modeling soma migration</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="modeling-soma-migration">
+<span id="migration-label"></span><h1>Modeling soma migration<a class="headerlink" href="#modeling-soma-migration" title="Permalink to this headline">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">migrate_soma</span></code> allows somata to move through the simulation volume, simulating their migration before they arrive at their final location and grow dendritic trees. Migrating somata cannot have children except for very specific ones. Examples of all migration modes can be found in the <a class="reference internal" href="examples.html#migrationnote-label"><span class="std std-ref">Migration notebook</span></a>.</p>
+<div class="section" id="simple-migration">
+<h2>Simple migration<a class="headerlink" href="#simple-migration" title="Permalink to this headline">¶</a></h2>
+<p>No soma children are allowed for simple migration. A new coordinate <em>new_pos</em> is provided for the soma to migrate to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mig_dir</span> <span class="o">=</span> <span class="c1"># compute a direction to migrate to</span>
+        <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">orig</span> <span class="o">+</span> <span class="n">mig_dir</span> <span class="o">*</span> <span class="n">mig_step</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">migrate_soma</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span><span class="n">GridCompetitionError</span><span class="p">,</span><span class="n">VolumeError</span><span class="p">):</span>
+        <span class="c1"># deal with error</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>This will move the soma to a new location:</p>
+<a class="reference internal image-reference" href="_images/migration.png"><img alt="_images/migration.png" class="align-center" src="_images/migration.png" style="width: 400px;" /></a>
+<p>Note that because somata are spherical, <em>self.orig</em> should be used in the computation of <em>new_pos</em>. As for front extension, migration can only occur if the prospective location is free and within the simulation volume. If this is not the case, repectively <a class="reference internal" href="tutorial.html#collisionerror-label"><span class="std std-ref">CollisionError</span></a> or <a class="reference internal" href="tutorial.html#volumeerror-label"><span class="std std-ref">VolumeError</span></a> will be triggered.</p>
+<p>Similarly, <code class="docutils literal notranslate"><span class="pre">migrate_soma</span></code> can trigger a <a class="reference internal" href="tutorial.html#gridcompetitionerror-label"><span class="std std-ref">GridCompetitionError</span></a>. To make this much less likely, it is important to make sure that <code class="docutils literal notranslate"><span class="pre">self.is_migrating()</span> <span class="pre">==</span> <span class="pre">True</span></code>. In most cases the <em>migrating</em> flag will already be set when the soma is created:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">admin</span><span class="o">.</span><span class="n">add_neurons</span><span class="p">(</span><span class="n">MigrationFront</span><span class="p">,</span><span class="s2">&quot;neuron&quot;</span><span class="p">,</span><span class="mi">1</span><span class="p">,[[</span><span class="mi">10</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">20</span><span class="p">],[</span><span class="mi">10</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">20</span><span class="p">]],</span><span class="mf">5.</span><span class="p">,</span><span class="n">migrating</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If migration should be activated only later in the simulation, the proper <a class="reference internal" href="flags.html#flags-label"><span class="std std-ref">Front status flags</span></a> should be set in the cycle with, for example, <code class="docutils literal notranslate"><span class="pre">set_migrating()</span></code> before the first call to <code class="docutils literal notranslate"><span class="pre">migrate_soma</span></code>.</p>
+<p>In addition, <code class="docutils literal notranslate"><span class="pre">migrate_soma</span></code> can trigger specific <em>BadChildError</em> or <em>ActiveChildError</em> if inappropriate children are present or <em>NotSomaError</em> if <em>self</em> is not a soma.</p>
+</div>
+<div class="section" id="filipodium-migration">
+<h2>Filipodium migration<a class="headerlink" href="#filipodium-migration" title="Permalink to this headline">¶</a></h2>
+<p>In reality, cell bodies rarely migrate by themselves. Instead they usually extend processes that can sample the environment and follow one of these to migrate along. This sequence can be mimicked using the filipodium migration option:</p>
+<a class="reference internal image-reference" href="_images/fili_migration.png"><img alt="_images/fili_migration.png" class="align-center" src="_images/fili_migration.png" style="width: 400px;" /></a>
+<p>As one can see in the figure, the soma first extends a filipod front as its only child and that front extends another filipod front. Now the soma can migrate to the location of its filipod child, which is removed. Note that the order of cycles 3a and 3b is actually random, so at the time of soma migration the filipod extension may already have occurred. Cycles similar to 3a and b can now be repeated endlessly until the soma arrives at its location. The corresponding code for migration is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">migrate_soma</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="kc">None</span><span class="p">,</span><span class="n">filipod</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span><span class="n">GridCompetitionError</span><span class="p">,</span><span class="n">VolumeError</span><span class="p">):</span>
+        <span class="c1"># deal with error</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>For this to work properly the soma can have only a single child with <em>swc_type</em> 12 (filipodium). Note that no <em>new_pos</em> is given because instead the coordinates of the filipod child will be used to move the soma to a location where it touches the filipod <em>end</em> coordinate. The filipod child is removed and will have its <code class="docutils literal notranslate"><span class="pre">is_retracted()</span></code> flag set and its <em>death</em> value in the database will be updated to the current cycle. To have continuous migration, additional filipod children must have already been grown, as in the figure above. The filipod that originally was the grandchild of the soma, will become its child after the migration event. An example of full code simulating all these events can be found in the <a class="reference internal" href="examples.html#migrationnote-label"><span class="std std-ref">Migration notebook</span></a>. If no filipod grandchild exists, the soma will have to grow a new filipodium before <code class="docutils literal notranslate"><span class="pre">migrate_soma</span></code> can be called again with the <code class="docutils literal notranslate"><span class="pre">filipod=True</span></code> option.</p>
+<p>Note that a longer filipod with more fronts can be grown than in the example. The filipod can also, transiently, contain branch points but one of the branches needs to be retracted before the soma reaches the branch point as only a single filipod soma child is allowed. Filipodium migration can be combined with trailing axon migration, in which case the soma will have two children.</p>
+<p>Filipod growth for a migrating soma uses <em>soma.radius</em> instead of <em>filipod.radius</em> for collision detection in <code class="docutils literal notranslate"><span class="pre">add_child</span></code> to make sure that there is enough space for future migration.</p>
+</div>
+<div class="section" id="trailing-axon-migration">
+<h2>Trailing axon migration<a class="headerlink" href="#trailing-axon-migration" title="Permalink to this headline">¶</a></h2>
+<p>Some somata leave an axon behind when they migrate. This can also be simulated by using the trailing axon migration option:</p>
+<a class="reference internal image-reference" href="_images/axon_migration.png"><img alt="_images/axon_migration.png" class="align-center" src="_images/axon_migration.png" style="width: 400px;" /></a>
+<p>To enable this mode the soma must have extended a first axon front (<em>swc_type</em> 2) as its only child. Once an axon child is present, additional trailing axon fronts can be made during migration:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mig_dir</span> <span class="o">=</span> <span class="c1"># compute a direction to migrate to</span>
+        <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">orig</span> <span class="o">+</span> <span class="n">mig_dir</span> <span class="o">*</span> <span class="n">mig_step</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">migrate_soma</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">trailing_axon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span><span class="n">GridCompetitionError</span><span class="p">,</span><span class="n">VolumeError</span><span class="p">):</span>
+        <span class="c1"># deal with error</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>This will insert a new trailing axon front (<em>swc_type</em> 2) between the original axon front and the soma. This new trailing axon front will become a child of the soma and the original axon front becomes its grandchild. These paternity changes are entered into the database. An example of full code simulating all these events can be found in the <a class="reference internal" href="examples.html#migrationnote-label"><span class="std std-ref">Migration notebook</span></a>. In the example above the first axon front is made inactive, but nothing prevents it from growing also further, extending the axon away from the migrating soma.</p>
+<p>Trailing axon migration can be combined with Filipodium migration, in which case the soma will have two children.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Modeling soma migration</a><ul>
+<li><a class="reference internal" href="#simple-migration">Simple migration</a></li>
+<li><a class="reference internal" href="#filipodium-migration">Filipodium migration</a></li>
+<li><a class="reference internal" href="#trailing-axon-migration">Trailing axon migration</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/migration.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Modeling soma migration</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-2022, OIST.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+  </body>
+</html>

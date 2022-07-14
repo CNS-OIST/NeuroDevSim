@@ -1,0 +1,1094 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Basic Tutorial &#8212; NeuroDevSim 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Advanced Tutorial" href="advanced.html" />
+    <link rel="prev" title="simulator module" href="simulator.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="advanced.html" title="Advanced Tutorial"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="simulator.html" title="simulator module"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Basic Tutorial</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="basic-tutorial">
+<h1>Basic Tutorial<a class="headerlink" href="#basic-tutorial" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<div class="section" id="modeling-growth">
+<h2>Modeling growth<a class="headerlink" href="#modeling-growth" title="Permalink to this headline">¶</a></h2>
+<p>Growth is simulated in NeuroDevSim by creating new fronts that will become the child of the front calling <code class="docutils literal notranslate"><span class="pre">self.manage_front</span></code>. This tutorial section focuses on implementing specific kinds of phenomenological growth, it assumes that the reader understands the coding style introduced in <a class="reference internal" href="tutorial.html#started-label"><span class="std std-ref">Getting started</span></a>.</p>
+<div class="section" id="front-extension">
+<span id="extension-label"></span><h3>Front extension<a class="headerlink" href="#front-extension" title="Permalink to this headline">¶</a></h3>
+<p>Front extension is done by the <code class="docutils literal notranslate"><span class="pre">add_child</span></code> method. It is the simplest way to grow a neuron. It just requires a coordinate <em>new_pos</em> for the new front:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span>
+        <span class="n">new_dir</span> <span class="o">=</span> <span class="o">...</span> <span class="c1"># do something to get a Point with a new direction</span>
+        <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">new_dir</span> <span class="c1"># compute position of child end</span>
+        <span class="c1"># check for possible collisions</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">)</span> <span class="c1"># make a new front</span>
+            <span class="c1"># make old front inactive: stops growing -&gt; will not call this method again</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+            <span class="k">return</span> <span class="c1"># done for this cycle</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span> <span class="n">GridCompetitionError</span><span class="p">,</span> <span class="n">InsideParentError</span><span class="p">,</span> <span class="n">VolumeError</span><span class="p">):</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">continue</span> <span class="c1"># pick another new_pos, no attempt to correct the error</span>
+</pre></div>
+</div>
+<p>The <em>new_front</em> will be a cylinder with <code class="docutils literal notranslate"><span class="pre">new_front.orig</span> <span class="pre">==</span> <span class="pre">self.end</span></code> and <code class="docutils literal notranslate"><span class="pre">new_front.end</span> <span class="pre">==</span> <span class="pre">new_pos</span></code>. By default, the new front gets the same <em>radius</em>, <em>branch_name</em> and <em>swc_type</em> values as <em>self</em>, but these can easily be changed in the <code class="docutils literal notranslate"><span class="pre">add_child</span></code> call:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span><span class="n">swc_type</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">branch_name</span><span class="o">=</span><span class="s2">&quot;axon1&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This section deals with successful growth, see <a class="reference internal" href="collisions.html#collisions-label"><span class="std std-ref">Preventing and dealing with collisions</span></a> for more advanced handling of <a class="reference internal" href="tutorial.html#collisionerror-label"><span class="std std-ref">CollisionError</span></a>.</p>
+<p>The art of front extension is determining the new direction for growth. The easiest approach is to use the <code class="docutils literal notranslate"><span class="pre">unit_heading_sample</span></code> method that mimics biological growth: growth cones tend to continue along their current path, called heading, with some randomness. The <code class="docutils literal notranslate"><span class="pre">unit_heading_sample</span></code> returns a Point vector (relative to [0, 0, 0]) that on average falls within a cone centered around the heading of the current front <em>self</em>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">new_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The figure below shows different colored directions obtained by 20 calls of <code class="docutils literal notranslate"><span class="pre">unit_heading_sample</span></code> for the red front.</p>
+<a class="reference internal image-reference" href="_images/heading_sample.png"><img alt="_images/heading_sample.png" class="align-center" src="_images/heading_sample.png" style="width: 300px;" /></a>
+<p>The size of the cone can be controlled with the <em>width</em> optional parameter, which sets the standard deviation of the Gaussian distribution around zero angle. The default value for <em>width</em> is 55 degrees, based on cat spinal cord motor neurons, and often a smaller cone is desirable:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">new_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="_images/heading_sample20.png"><img alt="_images/heading_sample20.png" class="align-center" src="_images/heading_sample20.png" style="width: 300px;" /></a>
+<p>As implicit in the name, <code class="docutils literal notranslate"><span class="pre">unit_heading_sample</span></code> returns a vector that is 1 µm long. Usually one will want to make longer fronts. In general, <strong>fronts should be longer than their radius</strong> to avoid spurious collision errors. A simple multiplication of <em>new_dir</em> achieves this goal:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">new_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+    <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">new_dir</span> <span class="o">*</span> <span class="mf">10.</span> <span class="c1"># compute position of child end</span>
+</pre></div>
+</div>
+<p>In the figures above, the different front lengths were 40 µm.</p>
+<p>As mentioned in <a class="reference internal" href="intro.html#fronts-label"><span class="std std-ref">Fronts</span></a>, front extension will often be determined by combining several influencing factors. Each of these factors can be represented by a vector and the resulting new direction will be the sum of those vectors. For example, the following code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pia</span> <span class="o">=</span> <span class="mi">199</span> <span class="c1"># z coordinate of the pia, an attractive boundary</span>
+<span class="o">...</span>
+    <span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+        <span class="o">...</span>
+        <span class="c1"># 1) black arrow: grow in the same direction as self: get the vector direction of self</span>
+        <span class="n">heading_dir</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">orig</span><span class="p">)</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span> <span class="c1"># norm returns unit length vector</span>
+        <span class="c1"># 2) light grey arrow: repulsed by another neuron: this requires two steps</span>
+        <span class="c1">#  2a) get a list of positions of all fronts belonging to other nearby neurons, uses the default what=&quot;other&quot; option of get_fronts</span>
+        <span class="n">other_fronts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fronts</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">max_distance</span><span class="o">=</span><span class="mf">20.</span><span class="p">)</span>
+        <span class="c1">#  2b) get a direction to the nearest front</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">other_fronts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># safe coding!</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="n">other_fronts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># closest front</span>
+            <span class="n">dir_to_other</span> <span class="o">=</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">mid</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">)</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span> <span class="c1"># use mid point on other front</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dir_to_other</span> <span class="o">=</span> <span class="n">Point</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">)</span>  <span class="c1"># no direction</span>
+        <span class="c1"># 3) dark grey arrow: attracted by a gradient: we use the numerically most efficient solution</span>
+        <span class="n">dir_to_pia</span> <span class="o">=</span> <span class="n">Point</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="n">pia</span><span class="p">)</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span> <span class="c1"># vertical direction</span>
+        <span class="c1"># now combine by scaling and summing these 3 vectors, repulsion is a subtraction</span>
+        <span class="n">new_dir</span> <span class="o">=</span> <span class="n">heading_dir</span> <span class="o">*</span> <span class="mf">2.0</span>  <span class="o">-</span> <span class="n">dir_to_other</span> <span class="o">+</span> <span class="n">dir_to_pia</span> <span class="o">*</span> <span class="mf">2.0</span>
+        <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">new_dir</span>  <span class="c1"># increment from current positon</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p>represents the vector addition in the figure below.</p>
+<img alt="_images/front_extension.png" class="align-center" src="_images/front_extension.png" />
+</div>
+<div class="section" id="terminal-branching">
+<span id="tbranching-label"></span><h3>Terminal branching<a class="headerlink" href="#terminal-branching" title="Permalink to this headline">¶</a></h3>
+<p>Terminal branching occurs at the growth tips, another form of branching that happens in older parts of the neuron is described in <a class="reference internal" href="growth.html#ibranching-label"><span class="std std-ref">Interstitial branching</span></a>. Terminal branching is in its simplest form very similar to <a class="reference internal" href="growth.html#extension-label"><span class="std std-ref">Front extension</span></a> but more than one front is created:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="o">...</span>  <span class="c1"># generate a list of points for new_front.end</span>
+    <span class="n">rad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">taper</span><span class="p">(</span><span class="mf">0.8</span><span class="p">)</span> <span class="c1"># decrease radius</span>
+    <span class="n">num_branch</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># count number of branches</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">points</span><span class="p">:</span> <span class="c1"># make 2 branches</span>
+        <span class="o">...</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="n">rad</span><span class="p">)</span> <span class="c1"># make a new front</span>
+            <span class="n">num_branch</span> <span class="o">+=</span> <span class="mi">1</span> <span class="c1"># success</span>
+            <span class="k">if</span> <span class="n">num_branch</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="c1"># enough branches made</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+                <span class="k">return</span> <span class="c1"># completed this call</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span> <span class="n">GridCompetitionError</span><span class="p">,</span> <span class="n">InsideParentError</span><span class="p">,</span> <span class="n">VolumeError</span><span class="p">):</span>
+            <span class="k">continue</span> <span class="c1"># pick another point, no attempt to correct the error</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>Note that the radius of the new fronts was decreased by <code class="docutils literal notranslate"><span class="pre">0.8</span> <span class="pre">*</span> <span class="pre">self.radius</span></code> using the <code class="docutils literal notranslate"><span class="pre">taper</span></code> method. The order of the new fronts is automatically increased by one after each branching event.</p>
+<p>Directions for the new branches are chosen with a similar procedure as described in <a class="reference internal" href="growth.html#extension-label"><span class="std std-ref">Front extension</span></a> but using the <code class="docutils literal notranslate"><span class="pre">unit_branching_sample</span></code> method. <code class="docutils literal notranslate"><span class="pre">unit_branching_sample</span></code> returns a given number of directions that have an angle relative to the heading of the calling front (if it is cylinder) and a minimal separation between each possible pair. This results a biological branching pattern, the directions are again obtained from normal distributions based on cat spinal cord motor neurons:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_branching_sample</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="c1"># generate more points than needed</span>
+</pre></div>
+</div>
+<p>An example of default <code class="docutils literal notranslate"><span class="pre">unit_branching_sample</span></code>:</p>
+<a class="reference internal image-reference" href="_images/branching_sample.png"><img alt="_images/branching_sample.png" class="align-center" src="_images/branching_sample.png" style="width: 300px;" /></a>
+<p><code class="docutils literal notranslate"><span class="pre">unit_branching_sample</span></code> can generate a maximum of 20 separated directions. The mean and width of both the branching angle and the separation angle can be changed by the user, see <a class="reference internal" href="simulator.html#simulator-label"><span class="std std-ref">simulator module</span></a>.</p>
+<p>Another requirement is to decide when to branch. The simplest approach is to draw a random number:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.05</span><span class="p">:</span>  <span class="c1"># branch</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_branching_sample</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+        <span class="o">...</span>
+    <span class="k">else</span><span class="p">:</span>  <span class="c1"># just extend the front</span>
+        <span class="n">new_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p>This can be made fancier by making the branching probability order-dependent:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">order</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="n">bif_prob</span> <span class="o">=</span> <span class="mf">0.03</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c1"># minimal order for non-somatic front is 1</span>
+        <span class="n">bif_prob</span> <span class="o">=</span> <span class="mf">0.6</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">order</span> <span class="o">*</span> <span class="mf">2.</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">bif_prob</span><span class="p">:</span>  <span class="c1"># branch</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_branching_sample</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+        <span class="o">...</span>
+    <span class="k">else</span><span class="p">:</span>  <span class="c1"># just extend the front</span>
+        <span class="n">new_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p>Another approach is to make branching dependent on the environment, for example which cortical layer the front occupies.</p>
+</div>
+<div class="section" id="branch-termination">
+<h3>Branch termination<a class="headerlink" href="#branch-termination" title="Permalink to this headline">¶</a></h3>
+<p>Growth of a dendritic or axonal branch can be terminated by disabling the front at its tip:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># make inactive and stop growth</span>
+    <span class="k">return</span>
+</pre></div>
+</div>
+<p>Obviously a decision is required on when to terminate growth. This is usually done based on random numbers:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.02</span><span class="p">:</span>  <span class="c1"># terminate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># make inactive and stop growth</span>
+        <span class="k">return</span>
+</pre></div>
+</div>
+<p>Another termination condition can be cumulative distance from the soma <em>path_length</em>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_length</span> <span class="o">&gt;</span> <span class="mf">500.</span><span class="p">:</span>  <span class="c1"># terminate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># make inactive and stop growth</span>
+        <span class="k">return</span>
+</pre></div>
+</div>
+<p>or use <em>self.order</em>, <em>constellation.cycle</em>, etc. An unsolvable <a class="reference internal" href="tutorial.html#collisionerror-label"><span class="std std-ref">CollisionError</span></a> may also be a reason to terminate growth.</p>
+</div>
+<div class="section" id="interstitial-branching">
+<span id="ibranching-label"></span><h3>Interstitial branching<a class="headerlink" href="#interstitial-branching" title="Permalink to this headline">¶</a></h3>
+<p>Interstitial branching is the process where a branch sprouts from a neuron segment that is not a growth cone, this happens more frequently in axons than in dendrites. Simulating interstitial branching is similar to terminal branching but requires careful handling of <em>active</em> and <em>growing</em> status of the parent front. The first step is to <strong>not</strong> <code class="docutils literal notranslate"><span class="pre">disable</span></code> the future parent front after it completes its initial front extension:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">swc_type</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span> <span class="c1"># apical dendrite: can sprout obliques later</span>
+        <span class="o">...</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="n">rad</span><span class="p">)</span> <span class="c1"># make a new front and store it</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_length</span> <span class="o">&lt;</span> <span class="mf">50.</span><span class="p">):</span> <span class="c1"># close to soma, no interstitial growth</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+            <span class="c1"># other new_front are not disabled</span>
+            <span class="k">return</span> <span class="c1"># done for this cycle</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span> <span class="n">GridCompetitionError</span><span class="p">,</span> <span class="n">InsideParentError</span><span class="p">,</span> <span class="n">VolumeError</span><span class="p">):</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p>In the example code above, taken from the <a class="reference internal" href="examples.html#interstitialnote-label"><span class="std std-ref">Interstitial Growth notebook</span></a>, this is done conditionally: only apical dendrite fronts that are some distance from the soma are not disabled.</p>
+<p>The interstitial growth itself is handled similarly to front extension but needs to be made a rare event as it should happen for only a few fronts:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">swc_type</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span> <span class="c1"># apical dendrite: can sprout obliques later</span>
+        <span class="o">...</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.0025</span><span class="p">:</span> <span class="c1"># make oblique dendrite</span>
+            <span class="o">...</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="n">rad</span><span class="p">,</span><span class="n">swc_type</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># stop interstitial growth</span>
+                <span class="k">return</span> <span class="c1"># done for this cycle</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span> <span class="n">GridCompetitionError</span><span class="p">,</span> <span class="n">InsideParentError</span><span class="p">,</span> <span class="n">VolumeError</span><span class="p">):</span>
+            <span class="o">...</span>
+</pre></div>
+</div>
+<p>Obviously the code needs to distinguish between front extension and interstitial growth, this can be done by tracking <em>self.num_children</em>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">swc_type</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span> <span class="c1"># apical dendrite: can sprout obliques later</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_children</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># initial extension of apical dendrite</span>
+            <span class="c1"># front extension code</span>
+            <span class="o">...</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># interstitial branching code</span>
+            <span class="o">...</span>
+</pre></div>
+</div>
+<p>It is easy to generate a growth direction for the oblique dendrite that is close to perpendicular to the apical one by requesting a mean angle of 90 degrees for <code class="docutils literal notranslate"><span class="pre">unit_heading_sample</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">rnd_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span><span class="n">width</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span> <span class="c1"># close to perpendicular</span>
+<span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">rnd_dir</span> <span class="o">*</span> <span class="mf">4.0</span>
+</pre></div>
+</div>
+<p>It may also be desirable to prevent sprouting of additional oblique dendrites within a given distance of the new one:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">swc_type</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span> <span class="c1"># apical dendrite: can sprout obliques later</span>
+        <span class="o">...</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.0025</span><span class="p">:</span> <span class="c1"># make oblique dendrite</span>
+            <span class="o">...</span>
+            <span class="n">rnd_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span><span class="n">width</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span> <span class="c1"># close to perpendicular</span>
+            <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">rnd_dir</span> <span class="o">*</span> <span class="mf">4.0</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="n">rad</span><span class="p">,</span><span class="n">swc_type</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span> <span class="c1"># make a new front and store it</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># stop interstitial growth</span>
+                 <span class="c1"># stop interstitial branching within 10 µm distance</span>
+                <span class="n">neighbors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_neighbors</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="mf">10.</span><span class="p">,</span><span class="n">branch_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">front</span> <span class="ow">in</span> <span class="n">neighbors</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">front</span><span class="o">.</span><span class="n">is_active</span><span class="p">():</span>
+                        <span class="n">front</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># stop interstitial growth</span>
+                <span class="k">return</span> <span class="c1"># done for this cycle</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span> <span class="n">GridCompetitionError</span><span class="p">,</span> <span class="n">InsideParentError</span><span class="p">,</span> <span class="n">VolumeError</span><span class="p">):</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">get_neighbors</span></code> will return a list of fronts that is within a 10 µm path_length distance of self, in both somatopetal and somatofugal directions.</p>
+<p>Finally, if oblique growth should occur only at much later developmental stages, it is more efficient to <code class="docutils literal notranslate"><span class="pre">disable</span></code> the future parent till the cycle in which oblique growth can start:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">swc_type</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span> <span class="c1"># apical dendrite: can sprout obliques later</span>
+        <span class="o">...</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="n">rad</span><span class="p">)</span> <span class="c1"># make a new front and store it</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_length</span> <span class="o">&lt;</span> <span class="mf">50.</span><span class="p">):</span> <span class="c1"># close to soma, only extension</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># no interstitial growth</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">till_cycle_g</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span> <span class="c1"># delayed interstitial growth</span>
+            <span class="k">return</span> <span class="c1"># done for this cycle</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span> <span class="n">GridCompetitionError</span><span class="p">,</span> <span class="n">InsideParentError</span><span class="p">,</span> <span class="n">VolumeError</span><span class="p">):</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p>The <em>till_cycle_g</em> optional parameter disables till the given cycle, at which time the front is made <em>active</em> again and set to <em>growing</em>. Similar code can be used to interrupt any type of growth.</p>
+</div>
+</div>
+<div class="section" id="modeling-neuron-pruning">
+<span id="retraction-label"></span><h2>Modeling neuron pruning<a class="headerlink" href="#modeling-neuron-pruning" title="Permalink to this headline">¶</a></h2>
+<p>In development, pruning of neuronal structures can be as important as growth. This is supported by the <a class="reference internal" href="tutorial.html#retract-label"><span class="std std-ref">retract method</span></a> and <a class="reference internal" href="tutorial.html#retractbranch-label"><span class="std std-ref">retract_branch method</span></a>. Either can be called from <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> and will result in the retraction of one or more fronts at the end of the cycle, after all <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> calls have completed. Data about the deleted fronts will still be present in the simulation database with their <em>dead</em> value set to the cycle when the retraction method was called. Examples can be found in the <a class="reference internal" href="examples.html#retractnote-label"><span class="std std-ref">Retraction notebook</span></a>.</p>
+<p>The simplest one to use is the <a class="reference internal" href="tutorial.html#retractbranch-label"><span class="std std-ref">retract_branch method</span></a>. It is called for one of the children of <em>self</em> and will remove that <em>child</em> and all its descendants:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">retract_branch</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">child</span><span class="p">)</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p><em>child</em> should be a child of <em>self</em>.</p>
+<p>Whether such an approach is sufficiently realistic depends on the implicit duration of a cycle. If it is very long, like days, then complete retraction of a neuronal branch may be biologically feasible in this period. But if it is on the order of hours or less, this is no longer realistic. Then it may be better to delete fronts gradually over consecutive cycles, using the <a class="reference internal" href="tutorial.html#retract-label"><span class="std std-ref">retract method</span></a>. This can only be called on <em>self</em>, with the condition that <em>self</em> has no children:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">retract</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># remove self from the simulation</span>
+    <span class="k">return</span> <span class="c1"># do not try to do anything else with self</span>
+</pre></div>
+</div>
+<p>If the <em>parent</em> is also to be retracted and while is not currently active, it should be activated:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">enable_parent</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># enable parent</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">retract</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># retract self</span>
+    <span class="k">return</span> <span class="c1"># do not do anything else with self</span>
+</pre></div>
+</div>
+<p>If instead, all to be retracted fronts are active anyway then  <code class="docutils literal notranslate"><span class="pre">self.has_child_retracted()</span></code> may be useful to detect that a child was retracted, see <a class="reference internal" href="flags.html#readflags-label"><span class="std std-ref">Read-only status flags</span></a>. Alternatively, one can just check for <code class="docutils literal notranslate"><span class="pre">self.num_children==0</span></code>.</p>
+<p>The <a class="reference internal" href="tutorial.html#retract-label"><span class="std std-ref">retract method</span></a> can also be used to remove a single front of a growing process that got stuck. But unless the <em>parent</em> is activated, growth will stop. To continue growth the <em>parent</em> of <em>self</em> should be enabled and set for growth, this can be done with a single method call:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">enable_parent</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">growing</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># enable parent and flag for growth</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">retract</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># retract self</span>
+    <span class="k">return</span> <span class="c1"># do not do anything else with self</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="environment-cues">
+<span id="environment-label"></span><h2>Environment cues<a class="headerlink" href="#environment-cues" title="Permalink to this headline">¶</a></h2>
+<p>Querying the environment for cues that affect <code class="docutils literal notranslate"><span class="pre">Front</span></code> growth is an important component of a simulation. During a <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> call, the following data can be obtained:</p>
+<ul class="simple">
+<li><p>Location of all nearby <code class="docutils literal notranslate"><span class="pre">Front</span></code> of the same <code class="docutils literal notranslate"><span class="pre">Neuron</span></code>: <code class="docutils literal notranslate"><span class="pre">get_fronts</span></code> method, useful to model self-repulsion between dendrites.</p></li>
+<li><p>Location of all nearby <code class="docutils literal notranslate"><span class="pre">Front</span></code> of other <code class="docutils literal notranslate"><span class="pre">Neuron</span></code>: <code class="docutils literal notranslate"><span class="pre">get_fronts</span></code> method, useful to model attraction or repulsion by other neuron dendrites or axons.</p></li>
+<li><p>Location or local concentration of <code class="docutils literal notranslate"><span class="pre">Substrate</span></code>: <code class="docutils literal notranslate"><span class="pre">get_substrates</span></code> method, simulates chemical attraction independent of <code class="docutils literal notranslate"><span class="pre">Front</span></code> structures.</p></li>
+<li><p>a <a class="reference internal" href="tutorial.html#collisionerror-label"><span class="std std-ref">CollisionError</span></a>: contains information about the colliding <code class="docutils literal notranslate"><span class="pre">Front</span></code>, see <a class="reference internal" href="collisions.html#collisions-label"><span class="std std-ref">Preventing and dealing with collisions</span></a>.</p></li>
+</ul>
+<div class="section" id="get-fronts-method">
+<h3><code class="docutils literal notranslate"><span class="pre">get_fronts</span></code> method<a class="headerlink" href="#get-fronts-method" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">get_fronts</span></code> is a <code class="docutils literal notranslate"><span class="pre">Front</span></code> method, usually called by <em>self</em>. It returns a list of tuples: (<code class="docutils literal notranslate"><span class="pre">Front</span></code>, <em>distance</em>), where <em>distance</em> is the shortest distance between <em>self</em> (or the calling front) and <code class="docutils literal notranslate"><span class="pre">Front</span></code>. By default, this list will be sorted with nearest fronts first and only fronts within a range of 100 µm will be searched. With optional parameter <code class="docutils literal notranslate"><span class="pre">returnID=True</span></code> (<code class="docutils literal notranslate"><span class="pre">ID</span></code>, <em>distance</em>) tuples will be returned instead.</p>
+<p>The main parameter for <code class="docutils literal notranslate"><span class="pre">get_fronts</span></code> is the optional <em>what</em>, a string that determines which fronts will be returned:</p>
+<ul class="simple">
+<li><p>‘self’: get fronts belonging to same neuron as self, excluding all up to second order ancestors and descendents.</p></li>
+<li><p>‘self+’: get all fronts within <em>max_distance</em> belonging to self.</p></li>
+<li><p>‘name’: get fronts belonging to neurons with a <em>name</em> (wildcard), not including same neuron as self.</p></li>
+<li><p>‘other’: get fronts that do not belong to self (default).</p></li>
+<li><p>‘type’: get fronts belonging to a type of neuron specified in <em>name</em>, not including same neuron as self.</p></li>
+</ul>
+<p>See <a class="reference internal" href="simulator.html#simulator-label"><span class="std std-ref">simulator module</span></a> for complete documentation of the <code class="docutils literal notranslate"><span class="pre">get_fronts</span></code> method.</p>
+<p>A simple example of self-repulsion, only by nearby fronts within 20 µm:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="n">others</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fronts</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">what</span><span class="o">=</span><span class="s2">&quot;self&quot;</span><span class="p">,</span><span class="n">max_distance</span><span class="o">=</span><span class="mf">20.</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">others</span><span class="p">:</span> <span class="c1"># nearby fronts of same neuron found, excluding parent and children</span>
+        <span class="n">nearest</span> <span class="o">=</span> <span class="n">goals</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># get nearest front of same neuron</span>
+        <span class="n">dir_to_repel</span> <span class="o">=</span> <span class="n">nearest</span><span class="o">.</span><span class="n">mid</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="c1"># compute direction to nearest front</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c1"># no repelling fronts found</span>
+        <span class="n">dir_to_repel</span> <span class="o">=</span> <span class="n">Point</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">)</span> <span class="c1"># no repulsion</span>
+    <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mf">20.</span><span class="p">)</span> <span class="o">*</span> <span class="mf">5.</span> <span class="o">-</span> <span class="n">dir_to_repel</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span> <span class="o">*</span> <span class="mf">2.</span>
+</pre></div>
+</div>
+<p>A realistic self-repulsion model has of course to deal with all nearby fronts, not just the nearest one, which may not be trivial.</p>
+<p>An example of attraction to a named neuron, from the <a class="reference internal" href="examples.html#environmentnote-label"><span class="std std-ref">Environment notebook</span></a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="n">goals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fronts</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">what</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;attract_neuron&quot;</span><span class="p">)</span>
+    <span class="c1"># use first of the list</span>
+    <span class="k">if</span> <span class="n">goals</span><span class="p">:</span>
+        <span class="n">goal_front</span> <span class="o">=</span> <span class="n">goals</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># get nearest atract_neuron front</span>
+        <span class="n">dir_to_goal</span> <span class="o">=</span> <span class="n">goal_front</span><span class="o">.</span><span class="n">end</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="c1"># compute direction to nearest front</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c1"># deal with absence of attractor</span>
+        <span class="n">dir_to_goal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mf">10.</span><span class="p">)</span>
+    <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">dir_to_goal</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span> <span class="o">*</span> <span class="mf">5.0</span>
+</pre></div>
+</div>
+<p>The run-time of <code class="docutils literal notranslate"><span class="pre">get_fronts</span></code> scales with the number of neurons and fronts in the simulation and may become quite slow for very large simulations. Therefore, an alternative faster search method is implemented if only nearby fronts are desired, this method will be automatically used if optional parameter <code class="docutils literal notranslate"><span class="pre">max_distance</span> <span class="pre">&lt;=</span> <span class="pre">Admin_agent.grid_step</span></code>.</p>
+</div>
+<div class="section" id="inside-versus-outside-of-a-front">
+<h3>Inside versus outside of a front<a class="headerlink" href="#inside-versus-outside-of-a-front" title="Permalink to this headline">¶</a></h3>
+<p>The code examples above computed a direction to one of the <code class="docutils literal notranslate"><span class="pre">Front</span></code> coordinates, which is inside the target front. This is fine for repulsion, but if the goal is to grow close to the target front, for example to make a synapse, points on the surface of the front are more relevant. This can be obtained with the <code class="docutils literal notranslate"><span class="pre">surface_point_to</span></code> method that returns a point on the surface of the calling front in the direction of a given other point:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="c1"># find a front to grow toward</span>
+    <span class="n">goals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fronts</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">what</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;axons&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">goals</span><span class="p">:</span>
+        <span class="n">nearest</span> <span class="o">=</span> <span class="n">goals</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># get nearest axon front</span>
+        <span class="n">goal</span> <span class="o">=</span> <span class="n">nearest</span><span class="o">.</span><span class="n">surface_point_to</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="c1"># point on surface of nearest towards front calling manage_front</span>
+        <span class="n">direction</span> <span class="o">=</span> <span class="n">goal</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="c1"># direction to goal on nearest</span>
+        <span class="n">distance</span> <span class="o">=</span> <span class="n">direction</span><span class="o">.</span><span class="n">length</span><span class="p">()</span> <span class="c1"># distance to goal</span>
+</pre></div>
+</div>
+<p>By default <em>surface_point_to</em> returns a point halfway along the length of a cylindrical front (for a sphere it is the nearest surface point). This can be changed either to a random location (optional parameter <code class="docutils literal notranslate"><span class="pre">mid=False</span></code>) or to a specific location along the length (e.g. for first third, optional parameter <code class="docutils literal notranslate"><span class="pre">pos=0.33</span></code>).</p>
+<p>Finally, it is also possible to request a point some distance away from the front surface using the <em>offset</em> optional parameter. This may be helpful to prevent a collision with the target <em>nearest</em>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">goal</span> <span class="o">=</span> <span class="n">nearest</span><span class="o">.</span><span class="n">surface_point_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">offset</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">goal</span><span class="p">)</span> <span class="c1"># make a new front ending close to nearest</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="chemical-cue-using-substrate">
+<span id="substratecue-label"></span><h3>Chemical cue using <code class="docutils literal notranslate"><span class="pre">Substrate</span></code><a class="headerlink" href="#chemical-cue-using-substrate" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference internal" href="substrate.html#substrate-label"><span class="std std-ref">Substrate</span></a> implements modeling of chemical cues that can be placed anywhere in the simulation volume. They can be found with the <code class="docutils literal notranslate"><span class="pre">get_substrates</span></code> method, always based on the name of the <code class="docutils literal notranslate"><span class="pre">Substrate</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">substrates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_substrates</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="s2">&quot;attractor&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">substrates</span><span class="p">:</span>
+        <span class="n">closest</span> <span class="o">=</span> <span class="n">substrates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">cdistance</span> <span class="o">=</span> <span class="n">substrates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p>Similar to <code class="docutils literal notranslate"><span class="pre">get_fronts</span></code>, this method returns a list of (<code class="docutils literal notranslate"><span class="pre">Front</span></code>, <em>distance</em>) or (<code class="docutils literal notranslate"><span class="pre">ID</span></code>, <em>distance</em>) tuples.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Substrate</span></code> can be used in two different ways, both are illustrated in the <a class="reference internal" href="examples.html#environmentnote-label"><span class="std std-ref">Environment notebook</span></a>.</p>
+<p>The simplest is to use it as a <strong>deterministic</strong> cue and compute the direction to it:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dir_to_sub</span> <span class="o">=</span> <span class="n">closest</span><span class="o">.</span><span class="n">orig</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="c1"># compute direction to attractor</span>
+<span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">dir_to_sub</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span> <span class="o">*</span> <span class="mf">5.0</span>
+</pre></div>
+</div>
+<p>A bit more sophisticated is to include a dependence on distance:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">cdistance</span> <span class="o">&lt;=</span> <span class="mf">2.</span><span class="p">:</span> <span class="c1"># go directly</span>
+    <span class="n">new_pos</span> <span class="o">=</span> <span class="n">closest</span><span class="o">.</span><span class="n">orig</span>
+<span class="k">elif</span> <span class="n">cdistance</span> <span class="o">&lt;=</span> <span class="mf">5.</span><span class="p">:</span> <span class="c1"># approach directly in small steps</span>
+    <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">dir_to_sub</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span> <span class="o">*</span> <span class="mf">2.0</span>
+<span class="k">else</span><span class="p">:</span> <span class="c1"># noisy approach</span>
+    <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">unit_sample_on_sphere</span><span class="p">()</span> <span class="o">*</span> <span class="mf">2.0</span> <span class="o">+</span> <span class="n">dir_to_sub</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span> <span class="o">*</span> <span class="mf">2.0</span>
+</pre></div>
+</div>
+<p>The above code assumes that <code class="docutils literal notranslate"><span class="pre">get_substrates</span></code> is called every cycle, a faster alternative is to store the <code class="docutils literal notranslate"><span class="pre">ID</span></code> as illustrated in the <a class="reference internal" href="examples.html#environmentnote-label"><span class="std std-ref">Environment notebook</span></a> but then <em>cdistance</em> has to be computed every cycle.</p>
+<p>A completely different approach to using <code class="docutils literal notranslate"><span class="pre">Substrate</span></code> is <strong>stochastic</strong>, this assumes that <a class="reference internal" href="substrate.html#substrate-label"><span class="std std-ref">Substrate</span></a> was initiated with the relevant parameters. This approach uses the <code class="docutils literal notranslate"><span class="pre">diff_gradient_to</span></code> method to compute a stochastic number of substrate molecules at a given <code class="docutils literal notranslate"><span class="pre">Point</span></code> and the direction towards the substrate at this point:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">substrates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_substrates</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="s2">&quot;attractor&quot;</span><span class="p">)</span>
+    <span class="c1"># nmols is stochastic integer number of molecules, sdir is a Point vector towards substrate</span>
+    <span class="n">n_mols</span><span class="p">,</span><span class="n">sdir</span> <span class="o">=</span> <span class="n">diff_gradient_to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">,</span><span class="n">substrates</span><span class="p">,</span><span class="n">constellation</span><span class="o">.</span><span class="n">cycle</span><span class="p">)</span>
+    <span class="c1"># stronger signal produces less noisy direction vector</span>
+    <span class="n">dir_to_attractor</span> <span class="o">=</span> <span class="n">sdir</span> <span class="o">*</span> <span class="n">n_mols</span> <span class="o">+</span> <span class="n">rnd_dir</span> <span class="o">*</span> <span class="mf">1.5</span>
+    <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">dir_to_attractor</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span> <span class="o">*</span> <span class="mf">3.</span>
+</pre></div>
+</div>
+<p>Depending on how <a class="reference internal" href="substrate.html#substrate-label"><span class="std std-ref">Substrate</span></a> was initiated, the stochastic number of molecules is either computed for a continuously producing point source in infinite medium (<code class="docutils literal notranslate"><span class="pre">substrate.rate</span> <span class="pre">&gt;</span> <span class="pre">0.</span></code>) or for an instantaneous point source in infinite medium (<code class="docutils literal notranslate"><span class="pre">substrate.rate</span> <span class="pre">=</span> <span class="pre">0.</span></code>). Note that these calculations make strong simplifying assumptions and may therefore not be very realistic, especially in small crowded environments or with multiple locations of the substrate. An example of the stochastic number of molecules returned at different locations by <em>diff_gradient_to</em> for the steady state of a continuously producing source in the upper right corner is shown in the figure:</p>
+<a class="reference internal image-reference" href="_images/diff_n_mols.png"><img alt="_images/diff_n_mols.png" class="align-center" src="_images/diff_n_mols.png" style="width: 500px;" /></a>
+<p>The steady state was obtained by passing -1 instead of the <em>cycle</em>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">n_mols</span><span class="p">,</span><span class="n">sdir</span> <span class="o">=</span> <span class="n">diff_gradient_to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">,</span><span class="n">substrates</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that the entire <em>substrates</em> list is passed to <em>diff_gradient_to</em>. If this list contains multiple substrate sources, by default <em>diff_gradient_to</em> will pick the nearest one, but there is also an option to compute an average location (optional parameter <code class="docutils literal notranslate"><span class="pre">what=&quot;average&quot;</span></code>). Note that <em>diff_gradient_to</em> always expects a list, but this can also be just a list of substrates (e.g. <code class="docutils literal notranslate"><span class="pre">[Sub1,Sub2]</span></code> or <code class="docutils literal notranslate"><span class="pre">[Sub1]</span></code>) instead of the list of tuples returned by <code class="docutils literal notranslate"><span class="pre">get_substrates</span></code>. The level of stochasticity can be controlled by the optional <em>size</em> parameter that controls the size of the sampling box.</p>
+</div>
+</div>
+<div class="section" id="preventing-and-dealing-with-collisions">
+<span id="collisions-label"></span><h2>Preventing and dealing with collisions<a class="headerlink" href="#preventing-and-dealing-with-collisions" title="Permalink to this headline">¶</a></h2>
+<p>The emphasis on interactions with the environment entails that for most models dealing with collisions is an important part of the code.</p>
+<div class="section" id="standard-behavior">
+<h3>Standard behavior<a class="headerlink" href="#standard-behavior" title="Permalink to this headline">¶</a></h3>
+<p>The robust approach is to let collisions happen and deal with the resulting <a class="reference internal" href="tutorial.html#collisionerror-label"><span class="std std-ref">CollisionError</span></a>. The code below from the <a class="reference internal" href="tutorial.html#tutorial-label"><span class="std std-ref">Beginner’s Tutorial</span></a> shows an example where  <em>new_pos</em> is varied randomly till no collision occurs:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># counts number of add_child trials</span>
+    <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span>
+        <span class="n">extension</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+        <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">extension</span> <span class="o">*</span> <span class="mf">5.</span> <span class="c1"># compute position of child end</span>
+        <span class="c1"># check for possible collisions</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">)</span> <span class="c1"># make a new front and store it</span>
+            <span class="o">...</span>
+        <span class="k">except</span> <span class="n">CollisionError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">continue</span> <span class="c1"># pick another new_pos, no attempt to correct the error</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">GridCompetitionError</span><span class="p">,</span> <span class="n">InsideParentError</span><span class="p">,</span> <span class="n">VolumeError</span><span class="p">):</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">continue</span> <span class="c1"># pick another new_pos, no attempt to correct the error</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Warning: failed extension for of&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">get_neuron_name</span><span class="p">(</span><span class="n">constellation</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Obivously this simple approach is not guaranteed to succeed, especially in crowded environments. It is always important to deal with failure of the method, in this example a warning is printed.</p>
+</div>
+<div class="section" id="getting-more-information-about-collisions">
+<h3>Getting more information about collisions<a class="headerlink" href="#getting-more-information-about-collisions" title="Permalink to this headline">¶</a></h3>
+<p>To deal more intelligently with collisions it is important to know which <code class="docutils literal notranslate"><span class="pre">Front</span></code> caused the collision, this information is available in the <a class="reference internal" href="tutorial.html#collisionerror-label"><span class="std std-ref">CollisionError</span></a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+        <span class="k">except</span> <span class="n">CollisionError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;collides with&quot;</span><span class="p">,</span><span class="n">error</span><span class="o">.</span><span class="n">collider</span><span class="p">,</span><span class="s2">&quot;with distance&quot;</span><span class="p">,</span><span class="n">error</span><span class="o">.</span><span class="n">distance</span><span class="p">)</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>Note that standard behavior is to return only the first <code class="docutils literal notranslate"><span class="pre">Front</span></code> identified as causing a collision, there may be other <code class="docutils literal notranslate"><span class="pre">Fronts</span></code> that also cause collisions and these may even be closer by. Usually collisions with older fronts will be detected first.</p>
+<p>It is possible to force a search for <strong>all</strong> colliding fronts before triggering an error:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="n">constellation</span><span class="o">.</span><span class="n">only_first_collision</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="o">...</span>
+        <span class="k">except</span> <span class="n">CollisionError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">error</span><span class="o">.</span><span class="n">only_first</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;collides with&quot;</span><span class="p">,</span><span class="n">error</span><span class="o">.</span><span class="n">collider</span><span class="p">,</span><span class="s2">&quot;with distance&quot;</span><span class="p">,</span><span class="n">error</span><span class="o">.</span><span class="n">distance</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;collides with:&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">collider</span><span class="p">)):</span>
+                    <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;  #&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">error</span><span class="o">.</span><span class="n">collider</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="s2">&quot;with distance&quot;</span><span class="p">,</span><span class="n">error</span><span class="o">.</span><span class="n">distance</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>The <em>constellation.only_first_collision</em> attribute is a boolean that is initialized to True. If this is set to False before the call to <code class="docutils literal notranslate"><span class="pre">add_child</span></code> the simulator will check for all collisions with proposed <em>new_front</em> before returning with <a class="reference internal" href="tutorial.html#collisionerror-label"><span class="std std-ref">CollisionError</span></a>. Note that coding this correctly is not simple:</p>
+<ol class="arabic">
+<li><p><em>constellation.only_first_collision</em> is local to each parallel processor and cannot be set globally. There are two strategies possible to using it:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>either set it at the begin of each <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> call as in the example above. This will affect all <code class="docutils literal notranslate"><span class="pre">add_child</span></code> calls and slow down the simulation.</p></li>
+<li><p>change it to False just before the <code class="docutils literal notranslate"><span class="pre">try</span></code> and <code class="docutils literal notranslate"><span class="pre">except</span></code> statements for a selected <code class="docutils literal notranslate"><span class="pre">add_child</span></code> call and reset to True afterwards, this will affect only that one <code class="docutils literal notranslate"><span class="pre">add_child</span></code> call.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>depending on the setting of <em>constellation.only_first_collision</em> <a class="reference internal" href="tutorial.html#collisionerror-label"><span class="std std-ref">CollisionError</span></a> returns either a <code class="docutils literal notranslate"><span class="pre">Front</span></code> or a <code class="docutils literal notranslate"><span class="pre">[Front,]</span></code> as collider, same for distance. The collider list is unsorted.</p></li>
+<li><p>because the setting of <em>constellation.only_first_collision</em> may be ambiguous <a class="reference internal" href="tutorial.html#collisionerror-label"><span class="std std-ref">CollisionError</span></a> contains its value used in its <em>first_only</em> attribute and will always print correct information.</p></li>
+</ol>
+<p>Based on the information provided by <a class="reference internal" href="tutorial.html#collisionerror-label"><span class="std std-ref">CollisionError</span></a> sophisticated collision resolution routines can be written.</p>
+</div>
+<div class="section" id="automatic-collision-resolution">
+<h3>Automatic collision resolution<a class="headerlink" href="#automatic-collision-resolution" title="Permalink to this headline">¶</a></h3>
+<p>Some fairly simple collision conditions can be very hard to solve properly by random search. An example is a dendrite or axon trying to grow past a much larger soma, biological growth cones will eventually succeed in making an arc around such a structure, but this requires a sophisticated simulation of chemical cues to work in NeuroDevSim. Instead, the <code class="docutils literal notranslate"><span class="pre">solve_collision</span></code> method provides a phenomenological solution that respects the original direction of growth. It is called as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solve_collision</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">error</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">solve_collision</span></code> returns a list of <code class="docutils literal notranslate"><span class="pre">Point</span></code> that were free at the time of the call. To generate the solution proposed the <code class="docutils literal notranslate"><span class="pre">add_branch</span></code> method should be used, which will create a series of a few fronts if possible:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="n">max_count</span><span class="p">:</span>
+        <span class="n">new_pos</span> <span class="o">=</span> <span class="o">...</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># success -&gt; disable this front</span>
+            <span class="k">return</span>
+        <span class="k">except</span> <span class="n">CollisionError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solve_collision</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">error</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">points</span><span class="p">:</span> <span class="c1"># one or more points was returned</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">new_fronts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_branch</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">points</span><span class="p">)</span>
+                    <span class="c1"># at least one new front made</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># success -&gt; disable this front</span>
+                    <span class="k">return</span>
+                <span class="k">except</span> <span class="n">CollisionError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+                    <span class="nb">print</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_neuron_name</span><span class="p">(</span><span class="n">constellation</span><span class="p">),</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;solve_collision collides with&quot;</span><span class="p">,</span><span class="n">error</span><span class="o">.</span><span class="n">collider</span><span class="p">)</span>
+                    <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">continue</span> <span class="c1"># generate another new_pos, no attempt to correct the error</span>
+                <span class="k">except</span> <span class="p">(</span><span class="n">GridCompetitionError</span><span class="p">,</span><span class="n">InsideParentError</span><span class="p">,</span><span class="n">VolumeError</span><span class="p">):</span>
+                    <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">continue</span> <span class="c1"># generate another new_pos, no attempt to correct the error</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">continue</span> <span class="c1"># generate another new_pos</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">GridCompetitionError</span><span class="p">,</span><span class="n">InsideParentError</span><span class="p">,</span><span class="n">VolumeError</span><span class="p">):</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">continue</span> <span class="c1"># generate another new_pos, no attempt to correct the error</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p>Note that <code class="docutils literal notranslate"><span class="pre">solve_collision</span></code> may fail and return an empty list. <code class="docutils literal notranslate"><span class="pre">add_branch</span></code> will try to instantiate fronts for every coordinate returned by <code class="docutils literal notranslate"><span class="pre">solve_collision</span></code> but this may fail. If at least one front can be made <code class="docutils literal notranslate"><span class="pre">add_branch</span></code> will return normally and the length of the <em>new_fronts</em> list returned gives the number of <code class="docutils literal notranslate"><span class="pre">Front</span></code> created, otherwise it will return with a new <a class="reference internal" href="tutorial.html#collisionerror-label"><span class="std std-ref">CollisionError</span></a>. The reason that <code class="docutils literal notranslate"><span class="pre">add_branch</span></code> may fail partially or completely is that other processors may be instantiating new <code class="docutils literal notranslate"><span class="pre">Front</span></code> at coordinates needed after <code class="docutils literal notranslate"><span class="pre">solve_collision</span></code> returns and before or while <code class="docutils literal notranslate"><span class="pre">add_branch</span></code> is called.</p>
+<p>Examples of the use of <code class="docutils literal notranslate"><span class="pre">solve_collision</span></code> can be found in the <a class="reference internal" href="examples.html#migrationnote-label"><span class="std std-ref">Migration notebook</span></a>.</p>
+</div>
+</div>
+<div class="section" id="modeling-soma-migration">
+<span id="migration-label"></span><h2>Modeling soma migration<a class="headerlink" href="#modeling-soma-migration" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">migrate_soma</span></code> allows somata to move through the simulation volume, simulating their migration before they arrive at their final location and grow dendritic trees. Migrating somata cannot have children except for very specific ones. Examples of all migration modes can be found in the <a class="reference internal" href="examples.html#migrationnote-label"><span class="std std-ref">Migration notebook</span></a>.</p>
+<div class="section" id="simple-migration">
+<h3>Simple migration<a class="headerlink" href="#simple-migration" title="Permalink to this headline">¶</a></h3>
+<p>No soma children are allowed for simple migration. A new coordinate <em>new_pos</em> is provided for the soma to migrate to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mig_dir</span> <span class="o">=</span> <span class="c1"># compute a direction to migrate to</span>
+        <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">orig</span> <span class="o">+</span> <span class="n">mig_dir</span> <span class="o">*</span> <span class="n">mig_step</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">migrate_soma</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span><span class="n">GridCompetitionError</span><span class="p">,</span><span class="n">VolumeError</span><span class="p">):</span>
+        <span class="c1"># deal with error</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>This will move the soma to a new location:</p>
+<a class="reference internal image-reference" href="_images/migration.png"><img alt="_images/migration.png" class="align-center" src="_images/migration.png" style="width: 400px;" /></a>
+<p>Note that because somata are spherical, <em>self.orig</em> should be used in the computation of <em>new_pos</em>. As for front extension, migration can only occur if the prospective location is free and within the simulation volume. If this is not the case, repectively <a class="reference internal" href="tutorial.html#collisionerror-label"><span class="std std-ref">CollisionError</span></a> or <a class="reference internal" href="tutorial.html#volumeerror-label"><span class="std std-ref">VolumeError</span></a> will be triggered.</p>
+<p>Similarly, <code class="docutils literal notranslate"><span class="pre">migrate_soma</span></code> can trigger a <a class="reference internal" href="tutorial.html#gridcompetitionerror-label"><span class="std std-ref">GridCompetitionError</span></a>. To make this much less likely, it is important to make sure that <code class="docutils literal notranslate"><span class="pre">self.is_migrating()</span> <span class="pre">==</span> <span class="pre">True</span></code>. In most cases the <em>migrating</em> flag will already be set when the soma is created:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">admin</span><span class="o">.</span><span class="n">add_neurons</span><span class="p">(</span><span class="n">MigrationFront</span><span class="p">,</span><span class="s2">&quot;neuron&quot;</span><span class="p">,</span><span class="mi">1</span><span class="p">,[[</span><span class="mi">10</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">20</span><span class="p">],[</span><span class="mi">10</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">20</span><span class="p">]],</span><span class="mf">5.</span><span class="p">,</span><span class="n">migrating</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If migration should be activated only later in the simulation, the proper <a class="reference internal" href="flags.html#flags-label"><span class="std std-ref">Front status flags</span></a> should be set in the cycle with, for example, <code class="docutils literal notranslate"><span class="pre">set_migrating()</span></code> before the first call to <code class="docutils literal notranslate"><span class="pre">migrate_soma</span></code>.</p>
+<p>In addition, <code class="docutils literal notranslate"><span class="pre">migrate_soma</span></code> can trigger specific <em>BadChildError</em> or <em>ActiveChildError</em> if inappropriate children are present or <em>NotSomaError</em> if <em>self</em> is not a soma.</p>
+</div>
+<div class="section" id="filipodium-migration">
+<h3>Filipodium migration<a class="headerlink" href="#filipodium-migration" title="Permalink to this headline">¶</a></h3>
+<p>In reality, cell bodies rarely migrate by themselves. Instead they usually extend processes that can sample the environment and follow one of these to migrate along. This sequence can be mimicked using the filipodium migration option:</p>
+<a class="reference internal image-reference" href="_images/fili_migration.png"><img alt="_images/fili_migration.png" class="align-center" src="_images/fili_migration.png" style="width: 400px;" /></a>
+<p>As one can see in the figure, the soma first extends a filipod front as its only child and that front extends another filipod front. Now the soma can migrate to the location of its filipod child, which is removed. Note that the order of cycles 3a and 3b is actually random, so at the time of soma migration the filipod extension may already have occurred. Cycles similar to 3a and b can now be repeated endlessly until the soma arrives at its location. The corresponding code for migration is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">migrate_soma</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="kc">None</span><span class="p">,</span><span class="n">filipod</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span><span class="n">GridCompetitionError</span><span class="p">,</span><span class="n">VolumeError</span><span class="p">):</span>
+        <span class="c1"># deal with error</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>For this to work properly the soma can have only a single child with <em>swc_type</em> 12 (filipodium). Note that no <em>new_pos</em> is given because instead the coordinates of the filipod child will be used to move the soma to a location where it touches the filipod <em>end</em> coordinate. The filipod child is removed and will have its <code class="docutils literal notranslate"><span class="pre">is_retracted()</span></code> flag set and its <em>death</em> value in the database will be updated to the current cycle. To have continuous migration, additional filipod children must have already been grown, as in the figure above. The filipod that originally was the grandchild of the soma, will become its child after the migration event. An example of full code simulating all these events can be found in the <a class="reference internal" href="examples.html#migrationnote-label"><span class="std std-ref">Migration notebook</span></a>. If no filipod grandchild exists, the soma will have to grow a new filipodium before <code class="docutils literal notranslate"><span class="pre">migrate_soma</span></code> can be called again with the <code class="docutils literal notranslate"><span class="pre">filipod=True</span></code> option.</p>
+<p>Note that a longer filipod with more fronts can be grown than in the example. The filipod can also, transiently, contain branch points but one of the branches needs to be retracted before the soma reaches the branch point as only a single filipod soma child is allowed. Filipodium migration can be combined with trailing axon migration, in which case the soma will have two children.</p>
+<p>Filipod growth for a migrating soma uses <em>soma.radius</em> instead of <em>filipod.radius</em> for collision detection in <code class="docutils literal notranslate"><span class="pre">add_child</span></code> to make sure that there is enough space for future migration.</p>
+</div>
+<div class="section" id="trailing-axon-migration">
+<h3>Trailing axon migration<a class="headerlink" href="#trailing-axon-migration" title="Permalink to this headline">¶</a></h3>
+<p>Some somata leave an axon behind when they migrate. This can also be simulated by using the trailing axon migration option:</p>
+<a class="reference internal image-reference" href="_images/axon_migration.png"><img alt="_images/axon_migration.png" class="align-center" src="_images/axon_migration.png" style="width: 400px;" /></a>
+<p>To enable this mode the soma must have extended a first axon front (<em>swc_type</em> 2) as its only child. Once an axon child is present, additional trailing axon fronts can be made during migration:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mig_dir</span> <span class="o">=</span> <span class="c1"># compute a direction to migrate to</span>
+        <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">orig</span> <span class="o">+</span> <span class="n">mig_dir</span> <span class="o">*</span> <span class="n">mig_step</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">migrate_soma</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">trailing_axon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span><span class="n">GridCompetitionError</span><span class="p">,</span><span class="n">VolumeError</span><span class="p">):</span>
+        <span class="c1"># deal with error</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>This will insert a new trailing axon front (<em>swc_type</em> 2) between the original axon front and the soma. This new trailing axon front will become a child of the soma and the original axon front becomes its grandchild. These paternity changes are entered into the database. An example of full code simulating all these events can be found in the <a class="reference internal" href="examples.html#migrationnote-label"><span class="std std-ref">Migration notebook</span></a>. In the example above the first axon front is made inactive, but nothing prevents it from growing also further, extending the axon away from the migrating soma.</p>
+<p>Trailing axon migration can be combined with Filipodium migration, in which case the soma will have two children.</p>
+</div>
+</div>
+<div class="section" id="neurons">
+<span id="neurons-label"></span><h2>Neurons<a class="headerlink" href="#neurons" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Neuron</span></code> is a class that contains information about all fronts belonging to the same neuron. It is automatically instantiated for each soma that is created by <code class="docutils literal notranslate"><span class="pre">Admin_agent.add_neurons</span></code> and keeps track of the number of fronts, retracted fronts and synapses (for <code class="docutils literal notranslate"><span class="pre">SynFront</span></code> only):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">neuron</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_neuron</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_neuron_name</span><span class="p">(</span><span class="n">constellation</span><span class="p">),</span><span class="s2">&quot;has&quot;</span><span class="p">,</span><span class="n">neuron</span><span class="o">.</span><span class="n">num_fronts</span><span class="p">,</span><span class="s2">&quot;fronts&quot;</span><span class="p">)</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p><em>num_fronts</em> and other similar <code class="docutils literal notranslate"><span class="pre">Neuron</span></code> attributes are updated at the end of each cycle, so the code above reports the number of fronts at the end of the previous cycle.</p>
+<p>Neurons also contain two modifiable attributes that control synaptic input at <a class="reference internal" href="synapses.html#synapses-label"><span class="std std-ref">Synapses</span></a>: <em>firing_rate</em> and <em>CV_ISI</em>. The first is the mean firing rate (over the duration of a cycle) and the second its variance, expressed as the coefficient of variation of the interspike intervals. These can be modified at any time with specific methods:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">neuron</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_neuron</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+    <span class="n">neuron</span><span class="o">.</span><span class="n">set_firing_rate</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="mf">5.</span><span class="p">)</span> <span class="c1"># increase firing_rate from default 1.</span>
+    <span class="n">neuron</span><span class="o">.</span><span class="n">set_CV_ISI</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="mf">1.</span><span class="p">)</span> <span class="c1"># increase CV_ISI from default 0.</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_neuron_name</span><span class="p">(</span><span class="n">constellation</span><span class="p">),</span><span class="s2">&quot;: firing rate&quot;</span><span class="p">,</span><span class="n">neuron</span><span class="o">.</span><span class="n">firing_rate</span><span class="p">,</span><span class="s2">&quot;with CV&quot;</span><span class="p">,</span><span class="n">neuron</span><span class="o">.</span><span class="n">CV_ISI</span><span class="p">)</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>Changing <em>firing_rate</em> or <em>CV_ISI</em> has effects only for the synaptic input as shown in <a class="reference internal" href="synapses.html#syn-input-label"><span class="std std-ref">Using syn_input</span></a>. Note that only the initial value of zero <em>firing_rate</em> and <em>CV_ISI</em> is automatically stored in the database, to store updated values <code class="docutils literal notranslate"><span class="pre">admin.attrib_to_db</span></code> should be used as described in <a class="reference internal" href="storage.html#storage-label"><span class="std std-ref">Storing additional attributes</span></a>.</p>
+</div>
+<div class="section" id="synapses">
+<span id="synapses-label"></span><h2>Synapses<a class="headerlink" href="#synapses" title="Permalink to this headline">¶</a></h2>
+<p>Growth based synapses are possible when fronts are derived from the <a class="reference internal" href="simulator.html#synfront-label"><span class="std std-ref">SynFront subclass</span></a>. A <code class="docutils literal notranslate"><span class="pre">Synapse</span></code> can be purely structural but can also be used as an input signal. The use of synapses is extensively demonstrated in the  <a class="reference internal" href="examples.html#synapsenote-label"><span class="std std-ref">Synapses notebook</span></a>.</p>
+<div class="section" id="making-synapses">
+<h3>Making synapses<a class="headerlink" href="#making-synapses" title="Permalink to this headline">¶</a></h3>
+<p>A synapse can be made between any two non-migrating fronts that are not more than 5 µm apart. In making the synapse the user defines which front is presynaptic, the other is postsynaptic. At present, there can be only one synapse per front.</p>
+<p>To make a synapse use the <code class="docutils literal notranslate"><span class="pre">SynFront.add_synapse</span></code> method with a known <em>other_front</em>. The weight determines whether it is excitatory (positive float) or inhibitory (negative float):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="c1"># make excitatory synapse from presynaptic asynfront1 to postsynaptic other_front1</span>
+    <span class="n">asynfront1</span><span class="o">.</span><span class="n">add_synapse</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">other_front1</span><span class="p">,</span><span class="mf">1.</span><span class="p">)</span>
+    <span class="c1"># make inhibitory synapse from postsynaptic asynfront2 to presynaptic other_front2</span>
+    <span class="n">asynfront2</span><span class="o">.</span><span class="n">add_synapse</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">other_front2</span><span class="p">,</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span><span class="n">presynaptic</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>The presence of a synapse can be detected with the <code class="docutils literal notranslate"><span class="pre">self.has_synapse()</span></code> method and its properties by <code class="docutils literal notranslate"><span class="pre">self.get_synapse(constellation)</span></code>, <code class="docutils literal notranslate"><span class="pre">self.is_presynaptic(constellation)</span></code> or <code class="docutils literal notranslate"><span class="pre">self.is_postsynaptic(constellation)</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_synapse</span><span class="p">():</span>
+        <span class="n">synapse</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_synapse</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_presynaptic</span><span class="p">():</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;is presynaptic to&quot;</span><span class="p">,</span><span class="n">constellation</span><span class="o">.</span><span class="n">front_by_id</span><span class="p">(</span><span class="n">synapse</span><span class="o">.</span><span class="n">post_syn</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;has postsynaptic to&quot;</span><span class="p">,</span><span class="n">constellation</span><span class="o">.</span><span class="n">front_by_id</span><span class="p">(</span><span class="n">synapse</span><span class="o">.</span><span class="n">pre_syn</span><span class="p">))</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>Note that synapses store the identity of the presynaptic (<em>pre_syn</em> attribute) and postsynaptic (<em>pos_syn</em> attribute) fronts as <code class="docutils literal notranslate"><span class="pre">ID</span></code>.</p>
+</div>
+<div class="section" id="using-syn-input">
+<span id="syn-input-label"></span><h3>Using <em>syn_input</em><a class="headerlink" href="#using-syn-input" title="Permalink to this headline">¶</a></h3>
+<p>Each postsynaptic <code class="docutils literal notranslate"><span class="pre">SynFront</span></code> will update its its <em>syn_input</em> before the start of each cycle and this can be used as an input signal  in <code class="docutils literal notranslate"><span class="pre">manage_front</span></code>. Note that the synaptic input is an average over the entire previous cycle.</p>
+<p>The sign of <em>syn_input</em> is determined by whether the synapse is excitatory (positive <em>weight</em>) or inhibitory (negative <em>weight</em>):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_synapse</span><span class="p">():</span>
+        <span class="n">synapse</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_synapse</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">synapse</span><span class="o">.</span><span class="n">weight</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;has an excitatory synapse&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">synapse</span><span class="o">.</span><span class="n">weight</span> <span class="o">&lt;</span> <span class="mf">0.</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;has an inhibitory synapse&quot;</span><span class="p">)</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>The value of <em>syn_input</em> combines presynaptic properties, <em>firing_rate</em> and <em>CV_ISI</em>, with synaptic <em>weight</em>. In the absence of stochasticity (<code class="docutils literal notranslate"><span class="pre">CV_ISI</span> <span class="pre">==</span> <span class="pre">0.</span></code>) it reflects an average over time: <code class="docutils literal notranslate"><span class="pre">syn_input</span> <span class="pre">=</span> <span class="pre">firing_rate</span> <span class="pre">*</span> <span class="pre">weight</span></code>. If <code class="docutils literal notranslate"><span class="pre">CV_ISI</span> <span class="pre">&gt;</span> <span class="pre">0.</span></code> <em>syn_input</em> is stochastic and drawn from a normal distribution with mean <em>syn_input</em> computed as shown before. The presynaptic <em>firing_rate</em> and <em>CV_ISI</em> are set for the <a class="reference internal" href="neurons.html#neurons-label"><span class="std std-ref">Neurons</span></a>.</p>
+<p>The weight of the synapse can be changed to simulate synaptic plasticity:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_postsynaptic</span><span class="p">():</span>
+        <span class="n">synapse</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_synapse</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+        <span class="n">synapse</span><span class="o">.</span><span class="n">set_weight</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="mf">5.</span><span class="p">)</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>By correlating presynaptic firing rate with postsynaptic responses correlation based synaptic plasticity rules can be implemented. Note, however, that these operate on a slow developmental time scale, it is not possible to simulate <a class="reference external" href="https://en.wikipedia.org/wiki/Spike-timing-dependent_plasticity">spike-timing dependent plasticity</a> in NeuroDevSim!</p>
+<p>Note that only the initial value of <em>weight</em> is automatically stored in the database, to store updated values of <em>weight</em> <code class="docutils literal notranslate"><span class="pre">admin.attrib_to_db</span></code> should be used as described in <a class="reference internal" href="storage.html#storage-label"><span class="std std-ref">Storing additional attributes</span></a>. Similarly, <code class="docutils literal notranslate"><span class="pre">admin.attrib_to_db</span></code> can be used to store <em>syn_input</em> values.</p>
+</div>
+</div>
+<div class="section" id="substrate">
+<span id="substrate-label"></span><h2>Substrate<a class="headerlink" href="#substrate" title="Permalink to this headline">¶</a></h2>
+<p>Substrate is a class that implements chemical cues at different locations. It is the only class in NeuroDevSim that can be directly initiated with syntax <code class="docutils literal notranslate"><span class="pre">Substrate(name,location,creation_cycle,amount)</span></code>. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sub</span> <span class="o">=</span> <span class="n">Substrate</span><span class="p">(</span><span class="s2">&quot;attractor&quot;</span><span class="p">,</span><span class="n">Point</span><span class="p">(</span><span class="mf">10.</span><span class="p">,</span><span class="mf">10.</span><span class="p">,</span><span class="mf">10.</span><span class="p">),</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>creates a substrate named <em>attractor</em> at coordinate (10.,10.,10.) which will exist from the beginning of the simulation (cycle 0) and consists of a single molecule. Such a simple substrate is sufficient for a <strong>deterministic</strong> <a class="reference internal" href="environment.html#substratecue-label"><span class="std std-ref">Chemical cue using Substrate</span></a>.</p>
+<p>However, before it can be used it should be added to the simulation. This can be done in two different ways: in the main code or by a <code class="docutils literal notranslate"><span class="pre">Front</span></code> during its <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> call. The first case uses <code class="docutils literal notranslate"><span class="pre">Admin_agent.add_substrate</span></code> as shown in the <a class="reference internal" href="examples.html#environmentnote-label"><span class="std std-ref">Environment notebook</span></a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="o">...</span>
+    <span class="c1"># add substrate information, in this case a single random point</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="mi">20</span> <span class="o">+</span> <span class="mi">60</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="mi">20</span> <span class="o">+</span> <span class="mi">60</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span>
+    <span class="c1"># instantiate a substrate</span>
+    <span class="n">sub</span> <span class="o">=</span> <span class="n">Substrate</span><span class="p">(</span><span class="s2">&quot;attractor&quot;</span><span class="p">,</span><span class="n">Point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="mf">99.</span><span class="p">),</span><span class="o">...</span><span class="p">)</span>
+    <span class="c1"># add it to the simulation volume</span>
+    <span class="n">admin</span><span class="o">.</span><span class="n">add_substrate</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Alternatively, it can be produced by a <code class="docutils literal notranslate"><span class="pre">Front</span></code> that uses <code class="docutils literal notranslate"><span class="pre">constellation.add_substrate</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">sub</span> <span class="o">=</span> <span class="n">Substrate</span><span class="p">(</span><span class="s2">&quot;attractor&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">mid</span><span class="p">(),</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">constellation</span><span class="o">.</span><span class="n">add_substrate</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>though this is not enforced, the assumption is that the substrate is produced close to the front, in this case at its center.</p>
+<p>Either <code class="docutils literal notranslate"><span class="pre">add_substrate</span></code> can be called with a single <code class="docutils literal notranslate"><span class="pre">Substrate</span></code> or a list of <code class="docutils literal notranslate"><span class="pre">Susbstrate</span></code> as parameter. Multiple instantiations of <code class="docutils literal notranslate"><span class="pre">Substrate</span></code> with the same name at different locations can be created and added. Once registered by <code class="docutils literal notranslate"><span class="pre">add_substrate</span></code>, all substrate of a given name can be found with the <code class="docutils literal notranslate"><span class="pre">get_substrates</span></code> as described in the <a class="reference internal" href="environment.html#substratecue-label"><span class="std std-ref">Chemical cue using Substrate</span></a>.</p>
+<p>In addition to the simple definitions used till now, additional parameters can be supplied which allow for <strong>stochastic</strong> use of <code class="docutils literal notranslate"><span class="pre">Substrate</span></code> with the <code class="docutils literal notranslate"><span class="pre">diff_gradient_to</span></code> method described in <a class="reference internal" href="environment.html#substratecue-label"><span class="std std-ref">Chemical cue using Substrate</span></a> and illustrated in <a class="reference internal" href="examples.html#environmentnote-label"><span class="std std-ref">Environment notebook</span></a>. For this stochastic approach a diffusion constant <em>diff_c</em> in µm^2/cycle needs to provided:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sub</span> <span class="o">=</span> <span class="n">Substrate</span><span class="p">(</span><span class="s2">&quot;attractor&quot;</span><span class="p">,</span><span class="n">Point</span><span class="p">(</span><span class="mf">10.</span><span class="p">,</span><span class="mf">10.</span><span class="p">,</span><span class="mf">10.</span><span class="p">),</span><span class="n">constellation</span><span class="o">.</span><span class="n">cycle</span><span class="p">,</span><span class="mi">1000000000</span><span class="p">,</span><span class="n">diff_c</span><span class="o">=</span><span class="mf">30.</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This will place a point source of 1,000,000,000 molecules of attractor at the given location on the given cycle, which will then start to diffuse away. The computed gradient will evolve as the <em>cycle</em> parameter passed to <code class="docutils literal notranslate"><span class="pre">diff_gradient_to</span></code> increases.</p>
+<p>An alternative is to use a continuously producing point source. In that case the <em>amount</em> is ignored and, instead, an optional <em>rate</em> parameter is provided:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sub</span> <span class="o">=</span> <span class="n">Substrate</span><span class="p">(</span><span class="s2">&quot;attractor&quot;</span><span class="p">,</span><span class="n">Point</span><span class="p">(</span><span class="mf">10.</span><span class="p">,</span><span class="mf">10.</span><span class="p">,</span><span class="mf">10.</span><span class="p">),</span><span class="n">constellation</span><span class="o">.</span><span class="n">cycle</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">rate</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span><span class="n">diff_c</span><span class="o">=</span><span class="mf">30.</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For the continuously producing point source, stochastic concentratons can be queried by <code class="docutils literal notranslate"><span class="pre">diff_gradient_to</span></code> either some cycles after the start or using a steady state gradient, see <a class="reference internal" href="environment.html#substratecue-label"><span class="std std-ref">Chemical cue using Substrate</span></a>.</p>
+</div>
+<div class="section" id="swc-types-used-in-neurodevsim">
+<span id="swc-label"></span><h2>SWC types used in NeuroDevSim<a class="headerlink" href="#swc-types-used-in-neurodevsim" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">Front.swc_type</span></code> refers to entries in a column of the SWC file format, which was defined in <a class="reference external" href="https://www.ncbi.nlm.nih.gov/pubmed/9821633">Cannon et al. 1998</a>. NeuroDevSim uses standard values defined in this paper and on <a class="reference external" href="http://NeuroMorpho.org">NeuroMorpho.org</a>, but also adds several custom defined SWC types:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 35%" />
+<col style="width: 54%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>type</p></th>
+<th class="head"><p>structure</p></th>
+<th class="head"><p>comment</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>undefined</p></td>
+<td><p>defined in Cannon et al.</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p>soma</p></td>
+<td><p>defined in Cannon et al.</p></td>
+</tr>
+<tr class="row-even"><td><p>2</p></td>
+<td><p>axon</p></td>
+<td><p>defined in Cannon et al.</p></td>
+</tr>
+<tr class="row-odd"><td><p>3</p></td>
+<td><p>(basal) dendrite</p></td>
+<td><p>defined in Cannon et al.</p></td>
+</tr>
+<tr class="row-even"><td><p>4</p></td>
+<td><p>apical dendrite</p></td>
+<td><p>defined in Cannon et al.</p></td>
+</tr>
+<tr class="row-odd"><td><p>5</p></td>
+<td><p>custom</p></td>
+<td><p>defined in Cannon et al.</p></td>
+</tr>
+<tr class="row-even"><td><p>6</p></td>
+<td><p>neurite</p></td>
+<td><p>defined by NeuroMorpho.org</p></td>
+</tr>
+<tr class="row-odd"><td><p>7</p></td>
+<td><p>glial process</p></td>
+<td><p>defined by NeuroMorpho.org</p></td>
+</tr>
+<tr class="row-even"><td><p>8</p></td>
+<td><p>oblique dendrite</p></td>
+<td><p>NeuroDevSim definition</p></td>
+</tr>
+<tr class="row-odd"><td><p>9</p></td>
+<td><p>tuft dendrite</p></td>
+<td><p>NeuroDevSim definition</p></td>
+</tr>
+<tr class="row-even"><td><p>10</p></td>
+<td><p>smooth dendrite</p></td>
+<td><p>NeuroDevSim definition</p></td>
+</tr>
+<tr class="row-odd"><td><p>11</p></td>
+<td><p>spiny dendrite</p></td>
+<td><p>NeuroDevSim definition</p></td>
+</tr>
+<tr class="row-even"><td><p>12</p></td>
+<td><p>filipodium</p></td>
+<td><p>NeuroDevSim definition</p></td>
+</tr>
+<tr class="row-odd"><td><p>13</p></td>
+<td><p>spine</p></td>
+<td><p>NeuroDevSim definition</p></td>
+</tr>
+<tr class="row-even"><td><p>14</p></td>
+<td><p>synaptic bouton</p></td>
+<td><p>NeuroDevSim definition</p></td>
+</tr>
+<tr class="row-odd"><td><p>15-19</p></td>
+<td><p>reserved</p></td>
+<td><p>NeuroDevSim definition</p></td>
+</tr>
+</tbody>
+</table>
+<p>Note that some of these definitions are required for NeuroDevSim to work properly. Somata automatically get <code class="docutils literal notranslate"><span class="pre">swc_type=1</span></code>, while some of <a class="reference internal" href="migration.html#migration-label"><span class="std std-ref">Modeling soma migration</span></a> depends on proper use of axon (2) and filipodium (12) swc_types.</p>
+</div>
+<div class="section" id="plotting-the-simulation">
+<span id="plots-label"></span><h2>Plotting the simulation<a class="headerlink" href="#plotting-the-simulation" title="Permalink to this headline">¶</a></h2>
+<p>NeuroDevSim can plot during simulations when run in jupyter notebooks by setting <cite>plot=True</cite> during <cite>Admin_agent</cite> initialization. Results can also be plotted afterwards from the stored database using the <cite>nds_plot</cite> or <cite>nds_movie</cite> commands. All these methods have common settings that are explained here.</p>
+<div class="section" id="color-settings">
+<h3>Color settings<a class="headerlink" href="#color-settings" title="Permalink to this headline">¶</a></h3>
+<p>There are several parameters that control how structures in the simulation are colored, selecting from 13 standard colors. By default all somata are black and each neuron has a different color, but because of the small number of colors available several neurons will have the same color in networks with many neurons. The following settings control how colors are used in <cite>Admin_agent</cite>, <cite>nds_plot</cite> and <cite>nds_movie</cite>:</p>
+<p><strong>color_scheme :</strong> integer : has 4 possible settings:</p>
+<ul class="simple">
+<li><p>0 : default, all neurons have different colors, limited by number of colors available. Colors are asigned in order of soma creation.</p></li>
+<li><p>1 : color determined by <em>neuron_types</em>. All neurons of the same type have the same color, different types have different colors, limited by number of colors available. Useful in network simulations with many different neuron types.</p></li>
+<li><p>2 : color determined by <em>branch_name</em>. Fronts with different branch_names have different colors, limited by number of colors available. Useful when simulating a single neuron.</p></li>
+<li><p>3 : a continuous color scale is used (matplotlib ‘rainbow’) to color a scalar attribute. Additional information must be provided in <strong>color_data</strong>. All fronts that do not have the selected attribute are colored black. An example can be found in the <a class="reference internal" href="examples.html#synapsenote-label"><span class="std std-ref">Synapses notebook</span></a>.</p></li>
+</ul>
+<p><strong>color_data :</strong> list with 3 entries : used only for <cite>color_scheme==3</cite>:</p>
+<ul class="simple">
+<li><p>attribute : string : the front attribute to be used for color selection.</p></li>
+<li><p>min value : float : mimimum value used for color scale (purple color).</p></li>
+<li><p>max value : float : maximum value used for color scale (red color).</p></li>
+</ul>
+<p><strong>soma_black :</strong> boolean : every soma is always colored black (default), used for <em>color_scheme</em> 0-2.</p>
+<p>In addition, <cite>nds_plot</cite> and <cite>nds_movie</cite> also have a <cite>color_scheme==-1</cite> setting. This allows the user to specify a specific color for each neuron in the simulation in a text file, which is defined in <strong>neuron_color</strong>. The easiest way to do this is to first call the <cite>nds_get_color_dict</cite> method on the database, this will output a text file containing for each neuron a line with its name and the color selected for <cite>color_scheme==0</cite> (optionally <cite>color_scheme==1</cite>). The user can then edit this text file, being careful to specify colors correctly as shown in the table below, and then run <cite>nds_plot</cite> or <cite>nds_movie</cite> with <cite>color_scheme==-1</cite>.</p>
+<p><strong>neuron_color :</strong> string : name of text file containing dictionary info by neuron name that specifies color to use for <cite>color_scheme==-1</cite> in <cite>nds_plot</cite> or <cite>nds_movie</cite>. Use <cite>nds_get_color_dict</cite> on the database to obtain a valid text file and then edit it.</p>
+<div class="section" id="available-colors-and-their-names">
+<h4>Available colors and their names<a class="headerlink" href="#available-colors-and-their-names" title="Permalink to this headline">¶</a></h4>
+<p>These color names should be used in the <strong>neuron_color</strong> text file.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 37%" />
+<col style="width: 63%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>color</p></th>
+<th class="head"><p>name used</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>black</p></td>
+<td><p>‘k’</p></td>
+</tr>
+<tr class="row-odd"><td><p>blue</p></td>
+<td><p>‘tab:blue’</p></td>
+</tr>
+<tr class="row-even"><td><p>brown</p></td>
+<td><p>‘tab:brown’</p></td>
+</tr>
+<tr class="row-odd"><td><p>cyan</p></td>
+<td><p>‘tab:cyan’</p></td>
+</tr>
+<tr class="row-even"><td><p>gray</p></td>
+<td><p>‘tab:gray’</p></td>
+</tr>
+<tr class="row-odd"><td><p>green</p></td>
+<td><p>‘tab:green’</p></td>
+</tr>
+<tr class="row-even"><td><p>magenta</p></td>
+<td><p>‘m’</p></td>
+</tr>
+<tr class="row-odd"><td><p>olive</p></td>
+<td><p>‘tab:olive’</p></td>
+</tr>
+<tr class="row-even"><td><p>orange</p></td>
+<td><p>‘tab:orange’</p></td>
+</tr>
+<tr class="row-odd"><td><p>pink</p></td>
+<td><p>‘tab:pink’</p></td>
+</tr>
+<tr class="row-even"><td><p>purple</p></td>
+<td><p>‘tab:purple’</p></td>
+</tr>
+<tr class="row-odd"><td><p>red</p></td>
+<td><p>‘tab:red’</p></td>
+</tr>
+<tr class="row-even"><td><p>yellow</p></td>
+<td><p>‘y’</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="view-settings">
+<h3>View settings<a class="headerlink" href="#view-settings" title="Permalink to this headline">¶</a></h3>
+<p>Properly setting orientation of the camera with <strong>azim</strong> and <strong>elev</strong> can improve visibility of relevant phenomena and in complex simulations it can also be helpful to zoom in with <strong>box</strong>. Finally visibility of small structures can be enhanced with <strong>radius_scale</strong> or <strong>sphere_scale</strong>.</p>
+<p><strong>azim :</strong> float : azimuth in degrees of camera, default -60.</p>
+<p><strong>box :</strong> list [[left, front, bottom], [right, back, top]]: subvolume to plot, allows to zoom in, default full <em>sim_volume.</em></p>
+<p><strong>elev :</strong> float : elevation in degrees of camera, default 30.</p>
+<p><strong>radius_scale :</strong> float : change thickness of cylindrical fronts, default 1. size equals 2 * radius.</p>
+<p><strong>sphere_scale :</strong> float : change size of spherical fronts, default 1. size equals radius.</p>
+</div>
+<div class="section" id="axes-settings">
+<h3>Axes settings<a class="headerlink" href="#axes-settings" title="Permalink to this headline">¶</a></h3>
+<p>One can suppress axes with <strong>no_axis</strong> or change relative scaling of axes with <strong>scale_axis</strong>. The latter can be quite important as Matplotlib plots by default a cubic volume, so if not all axes have identical length the default setting will create a distorted plot with some axes compressed. This may, however, squeeze the axis ticks to unlegible text and in that case it is better to turn them off with <strong>axis_ticks</strong>.</p>
+<p><strong>axis_ticks :</strong> boolean : show axis ticks, default True.</p>
+<p><strong>no_axis :</strong> boolean : suppress drawing of axes, default False.</p>
+<p><strong>scale_axis :</strong> boolean or list of 3 floats : list as [1.0,1.0,1.0] decrease one or more values to change relative scaling of axes, value for largest axis should be close to 1.0; default False. Examples in <a class="reference internal" href="examples.html#realnote-label"><span class="std std-ref">Real Morphologies notebook</span></a>.</p>
+</div>
+</div>
+<div class="section" id="efficient-tricks">
+<h2>Efficient tricks<a class="headerlink" href="#efficient-tricks" title="Permalink to this headline">¶</a></h2>
+<p>This section contains some tricks that did not fit in other parts of the documentation.</p>
+<div class="section" id="fronts-belonging-to-same-neuron">
+<h3>Fronts belonging to same neuron<a class="headerlink" href="#fronts-belonging-to-same-neuron" title="Permalink to this headline">¶</a></h3>
+<p>The fastest way to check whether two fronts belong to the same neuron is to use the <code class="docutils literal notranslate"><span class="pre">get_soma</span></code> method on both and compare the results:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">soma1</span> <span class="o">=</span> <span class="n">front1</span><span class="o">.</span><span class="n">get_soma</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+    <span class="n">soma2</span> <span class="o">=</span> <span class="n">front2</span><span class="o">.</span><span class="n">get_soma</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">soma1</span> <span class="o">==</span> <span class="n">soma2</span><span class="p">:</span> <span class="c1"># same neuron</span>
+        <span class="o">...</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c1"># different neuron</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p>The soma <code class="docutils literal notranslate"><span class="pre">ID</span></code>, call <code class="docutils literal notranslate"><span class="pre">get_soma(constellation,returnID=True)</span></code>, is the best attribute to store if one needs to store information about another neuron.</p>
+<p>To check neuron identity the <code class="docutils literal notranslate"><span class="pre">get_neuron</span></code> method should be used, to check neuron type use <code class="docutils literal notranslate"><span class="pre">get_neuron_type</span></code>.</p>
+</div>
+<div class="section" id="has-a-front-grown">
+<h3>Has a front grown?<a class="headerlink" href="#has-a-front-grown" title="Permalink to this headline">¶</a></h3>
+<p>There is no status flag similar to <code class="docutils literal notranslate"><span class="pre">Front.has_moved()</span></code> or <code class="docutils literal notranslate"><span class="pre">Front.has_migrated()</span></code> to check for growth because this can be achieved using the <em>num_children</em> attribute:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_children</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># self has grown</span>
+        <span class="o">...</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c1"># self has not grown</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p><em>num_children</em> is always up to date and can be accessed much faster than the result of <code class="docutils literal notranslate"><span class="pre">Front.get_children(constellation)</span></code>.</p>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Basic Tutorial</a><ul>
+<li><a class="reference internal" href="#modeling-growth">Modeling growth</a><ul>
+<li><a class="reference internal" href="#front-extension">Front extension</a></li>
+<li><a class="reference internal" href="#terminal-branching">Terminal branching</a></li>
+<li><a class="reference internal" href="#branch-termination">Branch termination</a></li>
+<li><a class="reference internal" href="#interstitial-branching">Interstitial branching</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#modeling-neuron-pruning">Modeling neuron pruning</a></li>
+<li><a class="reference internal" href="#environment-cues">Environment cues</a><ul>
+<li><a class="reference internal" href="#get-fronts-method"><code class="docutils literal notranslate"><span class="pre">get_fronts</span></code> method</a></li>
+<li><a class="reference internal" href="#inside-versus-outside-of-a-front">Inside versus outside of a front</a></li>
+<li><a class="reference internal" href="#chemical-cue-using-substrate">Chemical cue using <code class="docutils literal notranslate"><span class="pre">Substrate</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#preventing-and-dealing-with-collisions">Preventing and dealing with collisions</a><ul>
+<li><a class="reference internal" href="#standard-behavior">Standard behavior</a></li>
+<li><a class="reference internal" href="#getting-more-information-about-collisions">Getting more information about collisions</a></li>
+<li><a class="reference internal" href="#automatic-collision-resolution">Automatic collision resolution</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#modeling-soma-migration">Modeling soma migration</a><ul>
+<li><a class="reference internal" href="#simple-migration">Simple migration</a></li>
+<li><a class="reference internal" href="#filipodium-migration">Filipodium migration</a></li>
+<li><a class="reference internal" href="#trailing-axon-migration">Trailing axon migration</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#neurons">Neurons</a></li>
+<li><a class="reference internal" href="#synapses">Synapses</a><ul>
+<li><a class="reference internal" href="#making-synapses">Making synapses</a></li>
+<li><a class="reference internal" href="#using-syn-input">Using <em>syn_input</em></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#substrate">Substrate</a></li>
+<li><a class="reference internal" href="#swc-types-used-in-neurodevsim">SWC types used in NeuroDevSim</a></li>
+<li><a class="reference internal" href="#plotting-the-simulation">Plotting the simulation</a><ul>
+<li><a class="reference internal" href="#color-settings">Color settings</a><ul>
+<li><a class="reference internal" href="#available-colors-and-their-names">Available colors and their names</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#view-settings">View settings</a></li>
+<li><a class="reference internal" href="#axes-settings">Axes settings</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#efficient-tricks">Efficient tricks</a><ul>
+<li><a class="reference internal" href="#fronts-belonging-to-same-neuron">Fronts belonging to same neuron</a></li>
+<li><a class="reference internal" href="#has-a-front-grown">Has a front grown?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="simulator.html"
+                          title="previous chapter">simulator module</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="advanced.html"
+                          title="next chapter">Advanced Tutorial</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/basic.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="advanced.html" title="Advanced Tutorial"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="simulator.html" title="simulator module"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Basic Tutorial</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-2022, OIST.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,351 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modeling growth &#8212; NeuroDevSim 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Modeling growth</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="modeling-growth">
+<h1>Modeling growth<a class="headerlink" href="#modeling-growth" title="Permalink to this headline">¶</a></h1>
+<p>Growth is simulated in NeuroDevSim by creating new fronts that will become the child of the front calling <code class="docutils literal notranslate"><span class="pre">self.manage_front</span></code>. This tutorial section focuses on implementing specific kinds of phenomenological growth, it assumes that the reader understands the coding style introduced in <a class="reference internal" href="tutorial.html#started-label"><span class="std std-ref">Getting started</span></a>.</p>
+<div class="section" id="front-extension">
+<span id="extension-label"></span><h2>Front extension<a class="headerlink" href="#front-extension" title="Permalink to this headline">¶</a></h2>
+<p>Front extension is done by the <code class="docutils literal notranslate"><span class="pre">add_child</span></code> method. It is the simplest way to grow a neuron. It just requires a coordinate <em>new_pos</em> for the new front:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span>
+        <span class="n">new_dir</span> <span class="o">=</span> <span class="o">...</span> <span class="c1"># do something to get a Point with a new direction</span>
+        <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">new_dir</span> <span class="c1"># compute position of child end</span>
+        <span class="c1"># check for possible collisions</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">)</span> <span class="c1"># make a new front</span>
+            <span class="c1"># make old front inactive: stops growing -&gt; will not call this method again</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+            <span class="k">return</span> <span class="c1"># done for this cycle</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span> <span class="n">GridCompetitionError</span><span class="p">,</span> <span class="n">InsideParentError</span><span class="p">,</span> <span class="n">VolumeError</span><span class="p">):</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">continue</span> <span class="c1"># pick another new_pos, no attempt to correct the error</span>
+</pre></div>
+</div>
+<p>The <em>new_front</em> will be a cylinder with <code class="docutils literal notranslate"><span class="pre">new_front.orig</span> <span class="pre">==</span> <span class="pre">self.end</span></code> and <code class="docutils literal notranslate"><span class="pre">new_front.end</span> <span class="pre">==</span> <span class="pre">new_pos</span></code>. By default, the new front gets the same <em>radius</em>, <em>branch_name</em> and <em>swc_type</em> values as <em>self</em>, but these can easily be changed in the <code class="docutils literal notranslate"><span class="pre">add_child</span></code> call:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span><span class="n">swc_type</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">branch_name</span><span class="o">=</span><span class="s2">&quot;axon1&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This section deals with successful growth, see <a class="reference internal" href="collisions.html#collisions-label"><span class="std std-ref">Preventing and dealing with collisions</span></a> for more advanced handling of <a class="reference internal" href="tutorial.html#collisionerror-label"><span class="std std-ref">CollisionError</span></a>.</p>
+<p>The art of front extension is determining the new direction for growth. The easiest approach is to use the <code class="docutils literal notranslate"><span class="pre">unit_heading_sample</span></code> method that mimics biological growth: growth cones tend to continue along their current path, called heading, with some randomness. The <code class="docutils literal notranslate"><span class="pre">unit_heading_sample</span></code> returns a Point vector (relative to [0, 0, 0]) that on average falls within a cone centered around the heading of the current front <em>self</em>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">new_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The figure below shows different colored directions obtained by 20 calls of <code class="docutils literal notranslate"><span class="pre">unit_heading_sample</span></code> for the red front.</p>
+<a class="reference internal image-reference" href="_images/heading_sample.png"><img alt="_images/heading_sample.png" class="align-center" src="_images/heading_sample.png" style="width: 300px;" /></a>
+<p>The size of the cone can be controlled with the <em>width</em> optional parameter, which sets the standard deviation of the Gaussian distribution around zero angle. The default value for <em>width</em> is 55 degrees, based on cat spinal cord motor neurons, and often a smaller cone is desirable:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">new_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="_images/heading_sample20.png"><img alt="_images/heading_sample20.png" class="align-center" src="_images/heading_sample20.png" style="width: 300px;" /></a>
+<p>As implicit in the name, <code class="docutils literal notranslate"><span class="pre">unit_heading_sample</span></code> returns a vector that is 1 µm long. Usually one will want to make longer fronts. In general, <strong>fronts should be longer than their radius</strong> to avoid spurious collision errors. A simple multiplication of <em>new_dir</em> achieves this goal:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">new_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+    <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">new_dir</span> <span class="o">*</span> <span class="mf">10.</span> <span class="c1"># compute position of child end</span>
+</pre></div>
+</div>
+<p>In the figures above, the different front lengths were 40 µm.</p>
+<p>As mentioned in <a class="reference internal" href="intro.html#fronts-label"><span class="std std-ref">Fronts</span></a>, front extension will often be determined by combining several influencing factors. Each of these factors can be represented by a vector and the resulting new direction will be the sum of those vectors. For example, the following code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pia</span> <span class="o">=</span> <span class="mi">199</span> <span class="c1"># z coordinate of the pia, an attractive boundary</span>
+<span class="o">...</span>
+    <span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+        <span class="o">...</span>
+        <span class="c1"># 1) black arrow: grow in the same direction as self: get the vector direction of self</span>
+        <span class="n">heading_dir</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">orig</span><span class="p">)</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span> <span class="c1"># norm returns unit length vector</span>
+        <span class="c1"># 2) light grey arrow: repulsed by another neuron: this requires two steps</span>
+        <span class="c1">#  2a) get a list of positions of all fronts belonging to other nearby neurons, uses the default what=&quot;other&quot; option of get_fronts</span>
+        <span class="n">other_fronts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fronts</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">max_distance</span><span class="o">=</span><span class="mf">20.</span><span class="p">)</span>
+        <span class="c1">#  2b) get a direction to the nearest front</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">other_fronts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># safe coding!</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="n">other_fronts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># closest front</span>
+            <span class="n">dir_to_other</span> <span class="o">=</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">mid</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">)</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span> <span class="c1"># use mid point on other front</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dir_to_other</span> <span class="o">=</span> <span class="n">Point</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">)</span>  <span class="c1"># no direction</span>
+        <span class="c1"># 3) dark grey arrow: attracted by a gradient: we use the numerically most efficient solution</span>
+        <span class="n">dir_to_pia</span> <span class="o">=</span> <span class="n">Point</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="n">pia</span><span class="p">)</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span> <span class="c1"># vertical direction</span>
+        <span class="c1"># now combine by scaling and summing these 3 vectors, repulsion is a subtraction</span>
+        <span class="n">new_dir</span> <span class="o">=</span> <span class="n">heading_dir</span> <span class="o">*</span> <span class="mf">2.0</span>  <span class="o">-</span> <span class="n">dir_to_other</span> <span class="o">+</span> <span class="n">dir_to_pia</span> <span class="o">*</span> <span class="mf">2.0</span>
+        <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">new_dir</span>  <span class="c1"># increment from current positon</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p>represents the vector addition in the figure below.</p>
+<img alt="_images/front_extension.png" class="align-center" src="_images/front_extension.png" />
+</div>
+<div class="section" id="terminal-branching">
+<span id="tbranching-label"></span><h2>Terminal branching<a class="headerlink" href="#terminal-branching" title="Permalink to this headline">¶</a></h2>
+<p>Terminal branching occurs at the growth tips, another form of branching that happens in older parts of the neuron is described in <a class="reference internal" href="#ibranching-label"><span class="std std-ref">Interstitial branching</span></a>. Terminal branching is in its simplest form very similar to <a class="reference internal" href="#extension-label"><span class="std std-ref">Front extension</span></a> but more than one front is created:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="o">...</span>  <span class="c1"># generate a list of points for new_front.end</span>
+    <span class="n">rad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">taper</span><span class="p">(</span><span class="mf">0.8</span><span class="p">)</span> <span class="c1"># decrease radius</span>
+    <span class="n">num_branch</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># count number of branches</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">points</span><span class="p">:</span> <span class="c1"># make 2 branches</span>
+        <span class="o">...</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="n">rad</span><span class="p">)</span> <span class="c1"># make a new front</span>
+            <span class="n">num_branch</span> <span class="o">+=</span> <span class="mi">1</span> <span class="c1"># success</span>
+            <span class="k">if</span> <span class="n">num_branch</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="c1"># enough branches made</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+                <span class="k">return</span> <span class="c1"># completed this call</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span> <span class="n">GridCompetitionError</span><span class="p">,</span> <span class="n">InsideParentError</span><span class="p">,</span> <span class="n">VolumeError</span><span class="p">):</span>
+            <span class="k">continue</span> <span class="c1"># pick another point, no attempt to correct the error</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>Note that the radius of the new fronts was decreased by <code class="docutils literal notranslate"><span class="pre">0.8</span> <span class="pre">*</span> <span class="pre">self.radius</span></code> using the <code class="docutils literal notranslate"><span class="pre">taper</span></code> method. The order of the new fronts is automatically increased by one after each branching event.</p>
+<p>Directions for the new branches are chosen with a similar procedure as described in <a class="reference internal" href="#extension-label"><span class="std std-ref">Front extension</span></a> but using the <code class="docutils literal notranslate"><span class="pre">unit_branching_sample</span></code> method. <code class="docutils literal notranslate"><span class="pre">unit_branching_sample</span></code> returns a given number of directions that have an angle relative to the heading of the calling front (if it is cylinder) and a minimal separation between each possible pair. This results a biological branching pattern, the directions are again obtained from normal distributions based on cat spinal cord motor neurons:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_branching_sample</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="c1"># generate more points than needed</span>
+</pre></div>
+</div>
+<p>An example of default <code class="docutils literal notranslate"><span class="pre">unit_branching_sample</span></code>:</p>
+<a class="reference internal image-reference" href="_images/branching_sample.png"><img alt="_images/branching_sample.png" class="align-center" src="_images/branching_sample.png" style="width: 300px;" /></a>
+<p><code class="docutils literal notranslate"><span class="pre">unit_branching_sample</span></code> can generate a maximum of 20 separated directions. The mean and width of both the branching angle and the separation angle can be changed by the user, see <a class="reference internal" href="simulator.html#simulator-label"><span class="std std-ref">simulator module</span></a>.</p>
+<p>Another requirement is to decide when to branch. The simplest approach is to draw a random number:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.05</span><span class="p">:</span>  <span class="c1"># branch</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_branching_sample</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+        <span class="o">...</span>
+    <span class="k">else</span><span class="p">:</span>  <span class="c1"># just extend the front</span>
+        <span class="n">new_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p>This can be made fancier by making the branching probability order-dependent:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">order</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="n">bif_prob</span> <span class="o">=</span> <span class="mf">0.03</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c1"># minimal order for non-somatic front is 1</span>
+        <span class="n">bif_prob</span> <span class="o">=</span> <span class="mf">0.6</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">order</span> <span class="o">*</span> <span class="mf">2.</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">bif_prob</span><span class="p">:</span>  <span class="c1"># branch</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_branching_sample</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+        <span class="o">...</span>
+    <span class="k">else</span><span class="p">:</span>  <span class="c1"># just extend the front</span>
+        <span class="n">new_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p>Another approach is to make branching dependent on the environment, for example which cortical layer the front occupies.</p>
+</div>
+<div class="section" id="branch-termination">
+<h2>Branch termination<a class="headerlink" href="#branch-termination" title="Permalink to this headline">¶</a></h2>
+<p>Growth of a dendritic or axonal branch can be terminated by disabling the front at its tip:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># make inactive and stop growth</span>
+    <span class="k">return</span>
+</pre></div>
+</div>
+<p>Obviously a decision is required on when to terminate growth. This is usually done based on random numbers:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.02</span><span class="p">:</span>  <span class="c1"># terminate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># make inactive and stop growth</span>
+        <span class="k">return</span>
+</pre></div>
+</div>
+<p>Another termination condition can be cumulative distance from the soma <em>path_length</em>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_length</span> <span class="o">&gt;</span> <span class="mf">500.</span><span class="p">:</span>  <span class="c1"># terminate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># make inactive and stop growth</span>
+        <span class="k">return</span>
+</pre></div>
+</div>
+<p>or use <em>self.order</em>, <em>constellation.cycle</em>, etc. An unsolvable <a class="reference internal" href="tutorial.html#collisionerror-label"><span class="std std-ref">CollisionError</span></a> may also be a reason to terminate growth.</p>
+</div>
+<div class="section" id="interstitial-branching">
+<span id="ibranching-label"></span><h2>Interstitial branching<a class="headerlink" href="#interstitial-branching" title="Permalink to this headline">¶</a></h2>
+<p>Interstitial branching is the process where a branch sprouts from a neuron segment that is not a growth cone, this happens more frequently in axons than in dendrites. Simulating interstitial branching is similar to terminal branching but requires careful handling of <em>active</em> and <em>growing</em> status of the parent front. The first step is to <strong>not</strong> <code class="docutils literal notranslate"><span class="pre">disable</span></code> the future parent front after it completes its initial front extension:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">swc_type</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span> <span class="c1"># apical dendrite: can sprout obliques later</span>
+        <span class="o">...</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="n">rad</span><span class="p">)</span> <span class="c1"># make a new front and store it</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_length</span> <span class="o">&lt;</span> <span class="mf">50.</span><span class="p">):</span> <span class="c1"># close to soma, no interstitial growth</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+            <span class="c1"># other new_front are not disabled</span>
+            <span class="k">return</span> <span class="c1"># done for this cycle</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span> <span class="n">GridCompetitionError</span><span class="p">,</span> <span class="n">InsideParentError</span><span class="p">,</span> <span class="n">VolumeError</span><span class="p">):</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p>In the example code above, taken from the <a class="reference internal" href="examples.html#interstitialnote-label"><span class="std std-ref">Interstitial Growth notebook</span></a>, this is done conditionally: only apical dendrite fronts that are some distance from the soma are not disabled.</p>
+<p>The interstitial growth itself is handled similarly to front extension but needs to be made a rare event as it should happen for only a few fronts:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">swc_type</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span> <span class="c1"># apical dendrite: can sprout obliques later</span>
+        <span class="o">...</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.0025</span><span class="p">:</span> <span class="c1"># make oblique dendrite</span>
+            <span class="o">...</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="n">rad</span><span class="p">,</span><span class="n">swc_type</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># stop interstitial growth</span>
+                <span class="k">return</span> <span class="c1"># done for this cycle</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span> <span class="n">GridCompetitionError</span><span class="p">,</span> <span class="n">InsideParentError</span><span class="p">,</span> <span class="n">VolumeError</span><span class="p">):</span>
+            <span class="o">...</span>
+</pre></div>
+</div>
+<p>Obviously the code needs to distinguish between front extension and interstitial growth, this can be done by tracking <em>self.num_children</em>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">swc_type</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span> <span class="c1"># apical dendrite: can sprout obliques later</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_children</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># initial extension of apical dendrite</span>
+            <span class="c1"># front extension code</span>
+            <span class="o">...</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># interstitial branching code</span>
+            <span class="o">...</span>
+</pre></div>
+</div>
+<p>It is easy to generate a growth direction for the oblique dendrite that is close to perpendicular to the apical one by requesting a mean angle of 90 degrees for <code class="docutils literal notranslate"><span class="pre">unit_heading_sample</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">rnd_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span><span class="n">width</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span> <span class="c1"># close to perpendicular</span>
+<span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">rnd_dir</span> <span class="o">*</span> <span class="mf">4.0</span>
+</pre></div>
+</div>
+<p>It may also be desirable to prevent sprouting of additional oblique dendrites within a given distance of the new one:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">swc_type</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span> <span class="c1"># apical dendrite: can sprout obliques later</span>
+        <span class="o">...</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.0025</span><span class="p">:</span> <span class="c1"># make oblique dendrite</span>
+            <span class="o">...</span>
+            <span class="n">rnd_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span><span class="n">width</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span> <span class="c1"># close to perpendicular</span>
+            <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">rnd_dir</span> <span class="o">*</span> <span class="mf">4.0</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="n">rad</span><span class="p">,</span><span class="n">swc_type</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span> <span class="c1"># make a new front and store it</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># stop interstitial growth</span>
+                 <span class="c1"># stop interstitial branching within 10 µm distance</span>
+                <span class="n">neighbors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_neighbors</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="mf">10.</span><span class="p">,</span><span class="n">branch_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">front</span> <span class="ow">in</span> <span class="n">neighbors</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">front</span><span class="o">.</span><span class="n">is_active</span><span class="p">():</span>
+                        <span class="n">front</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># stop interstitial growth</span>
+                <span class="k">return</span> <span class="c1"># done for this cycle</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span> <span class="n">GridCompetitionError</span><span class="p">,</span> <span class="n">InsideParentError</span><span class="p">,</span> <span class="n">VolumeError</span><span class="p">):</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">get_neighbors</span></code> will return a list of fronts that is within a 10 µm path_length distance of self, in both somatopetal and somatofugal directions.</p>
+<p>Finally, if oblique growth should occur only at much later developmental stages, it is more efficient to <code class="docutils literal notranslate"><span class="pre">disable</span></code> the future parent till the cycle in which oblique growth can start:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">swc_type</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span> <span class="c1"># apical dendrite: can sprout obliques later</span>
+        <span class="o">...</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="n">rad</span><span class="p">)</span> <span class="c1"># make a new front and store it</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_length</span> <span class="o">&lt;</span> <span class="mf">50.</span><span class="p">):</span> <span class="c1"># close to soma, only extension</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># no interstitial growth</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">till_cycle_g</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span> <span class="c1"># delayed interstitial growth</span>
+            <span class="k">return</span> <span class="c1"># done for this cycle</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span> <span class="n">GridCompetitionError</span><span class="p">,</span> <span class="n">InsideParentError</span><span class="p">,</span> <span class="n">VolumeError</span><span class="p">):</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p>The <em>till_cycle_g</em> optional parameter disables till the given cycle, at which time the front is made <em>active</em> again and set to <em>growing</em>. Similar code can be used to interrupt any type of growth.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Modeling growth</a><ul>
+<li><a class="reference internal" href="#front-extension">Front extension</a></li>
+<li><a class="reference internal" href="#terminal-branching">Terminal branching</a></li>
+<li><a class="reference internal" href="#branch-termination">Branch termination</a></li>
+<li><a class="reference internal" href="#interstitial-branching">Interstitial branching</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/growth.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Modeling growth</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-2022, OIST.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+  </body>
+</html>

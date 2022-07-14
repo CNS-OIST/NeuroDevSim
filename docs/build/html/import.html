@@ -1,0 +1,110 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Importing a simulation &#8212; NeuroDevSim 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Importing a simulation</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="importing-a-simulation">
+<span id="import-label"></span><h1>Importing a simulation<a class="headerlink" href="#importing-a-simulation" title="Permalink to this headline">¶</a></h1>
+<p>Some developmental models may simulate consecutive stages in development and each stage may be optimized separately during model creation. If the simulations take a lot of time to run it may then be advantageous to use a previous simulation of early stages of development to start simulating a later stage.</p>
+<p>This is possible with the <code class="docutils literal notranslate"><span class="pre">Admin_agent.import_simulation</span></code> method:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fname_old</span> <span class="o">=</span> <span class="s2">&quot;output/prev_simulation.db&quot;</span>
+<span class="n">fname</span> <span class="o">=</span> <span class="s2">&quot;output/new_simulation.db&quot;</span>
+<span class="n">sim_volume</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span> <span class="p">[</span><span class="mf">100.</span><span class="p">,</span> <span class="mf">100.</span><span class="p">,</span> <span class="mf">100.</span><span class="p">]]</span>
+<span class="n">neuron_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">MyFront1</span><span class="p">,</span><span class="n">MyFront2</span><span class="p">]</span>
+<span class="n">num_procs</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">admin</span> <span class="o">=</span> <span class="n">Admin_agent</span><span class="p">(</span><span class="n">num_procs</span><span class="p">,</span><span class="n">fname</span><span class="p">,</span><span class="n">sim_volume</span><span class="p">,</span><span class="n">neuron_types</span><span class="p">,</span><span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">admin</span><span class="o">.</span><span class="n">import_simulation</span><span class="p">(</span><span class="n">fname_old</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>There are strict limitations to the use of <code class="docutils literal notranslate"><span class="pre">import_simulation</span></code>:</p>
+<ol class="arabic simple">
+<li><p>The database should be <em>importable</em>: this should be set in the previous simulation as <code class="docutils literal notranslate"><span class="pre">admin.importable_db</span> <span class="pre">=</span> <span class="pre">True</span></code>, best immediately after <a class="reference internal" href="simulator.html#admin-agent-label"><span class="std std-ref">Admin_agent class</span></a> initalization.</p></li>
+<li><p>The importing simulation shoul call <code class="docutils literal notranslate"><span class="pre">import_simulation</span></code> as the first method after initalization of <a class="reference internal" href="simulator.html#admin-agent-label"><span class="std std-ref">Admin_agent class</span></a>.</p></li>
+<li><p><a class="reference internal" href="simulator.html#admin-agent-label"><span class="std std-ref">Admin_agent class</span></a> initalization should be almost identical to that used for the previous simulation: <em>num_procs</em>, <em>sim_volume</em> and <em>neuron_types</em> should be identical (<em>num_procs</em> can be 0 for <a class="reference internal" href="interactive.html#interactive-label"><span class="std std-ref">Interactive mode</span></a>). The code defining each neuron type should be compatible with the previous simulation. Optional changes to <code class="docutils literal notranslate"><span class="pre">Admin_agent</span></code> array size attributes should also be identical.</p></li>
+<li><p>The database name for the new simulation should be different from that of the previous one. By default the database contents are copied to the new simulation database, but this can be turned off with the optional <em>copy_db</em> parameter.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Admin_agent</span></code> <em>seed</em> and <em>verbose</em> can be different.</p></li>
+</ol>
+<p>The new simulation will start at the next cycle after the last one stored in the previous simulation database. Because it uses an <em>importable</em> database it has all the information needed to continue the simulation as if it was never interrupted. If any <a class="reference internal" href="subclassing.html#additional-label"><span class="std std-ref">Additional attributes</span></a> were declared their values should be stored during the previous simulation, this can be done with <a class="reference internal" href="storage.html#storage-label"><span class="std std-ref">Storing additional attributes</span></a> and setting the optional parameter <code class="docutils literal notranslate"><span class="pre">last_only=True</span></code>.</p>
+<p>Several use cases of <code class="docutils literal notranslate"><span class="pre">import_simulation</span></code> are shown in the <a class="reference internal" href="examples.html#importnote-label"><span class="std std-ref">Import notebook</span></a>.</p>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/import.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Importing a simulation</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-2022, OIST.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+  </body>
+</html>

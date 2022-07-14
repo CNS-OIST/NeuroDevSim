@@ -1,0 +1,1395 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Advanced Tutorial &#8212; NeuroDevSim 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Examples" href="examples.html" />
+    <link rel="prev" title="Basic Tutorial" href="basic.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="examples.html" title="Examples"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="basic.html" title="Basic Tutorial"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Advanced Tutorial</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="advanced-tutorial">
+<h1>Advanced Tutorial<a class="headerlink" href="#advanced-tutorial" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<div class="section" id="subclassing-front">
+<span id="subclassing-label"></span><h2>Subclassing <code class="docutils literal notranslate"><span class="pre">Front</span></code><a class="headerlink" href="#subclassing-front" title="Permalink to this headline">¶</a></h2>
+<p>Every NeuroDevSim model requires at least one <code class="docutils literal notranslate"><span class="pre">Front</span></code> subclass definition with its own <em>manage_front</em> method:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyFront</span><span class="p">(</span><span class="n">Front</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+</pre></div>
+</div>
+<p>This is how specific models are defined, as explained in <a class="reference internal" href="tutorial.html#started-label"><span class="std std-ref">Getting started</span></a>. In this subsection additional, optional aspects of subclassing are described in detail.</p>
+<div class="section" id="additional-attributes">
+<span id="additional-label"></span><h3>Additional attributes<a class="headerlink" href="#additional-attributes" title="Permalink to this headline">¶</a></h3>
+<p>It may be useful to store  data that is needed to control the behavior of fronts or that introduces new dynamics to the model as an additional <code class="docutils literal notranslate"><span class="pre">Front</span></code> attribute. There are strict rules on using additional attributes for a <code class="docutils literal notranslate"><span class="pre">Front</span></code> subclass:</p>
+<ol class="arabic simple">
+<li><p>They need to be declared in the subclass definition using a special syntax shown below.</p></li>
+<li><p>They are all typed using data types defined in the <a class="reference external" href="https://docs.python.org/3/library/ctypes.html">Python ctypes library</a> or as NeuroDevSim classes. Trying to set an attribute to a value of a different type will throw an error.</p></li>
+<li><p>They are all fixed size: no dictionaries, lists, strings,…</p></li>
+<li><p>They will be present in every instance of the subclass, instance specific attributes are not supported (see the <a class="reference internal" href="tutorial.html#dos-donts-label"><span class="std std-ref">Important dos and don’ts</span></a>). So even if the attribute is functionally needed in only one or a few instances of the subclass, it will be present in all of them. Consider carefully whether an extra attribute is really needed.</p></li>
+</ol>
+<p>The syntax to specify additional attributes is unusual, it is specific to how Python supports memory shared arrays. They are defined as a list of tuples, with each tuple containing the attribute name and and a <code class="docutils literal notranslate"><span class="pre">ctypes</span></code> data type:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[(</span><span class="s1">&#39;attribute1_name&#39;</span><span class="p">,</span> <span class="n">ctypes_data_type</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;attribute2_name&#39;</span><span class="p">,</span> <span class="n">ctypes_data_type</span><span class="p">)]</span>
+</pre></div>
+</div>
+<p>For example, to define an int attribute <em>foo</em>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyFront</span><span class="p">(</span><span class="n">Front</span><span class="p">):</span>
+    <span class="n">_fields_</span> <span class="o">=</span> <span class="n">Front</span><span class="o">.</span><span class="n">_fields_</span> <span class="o">+</span> <span class="p">[(</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="n">c_int</span><span class="p">)]</span>
+</pre></div>
+</div>
+<p>and a second float attribute <em>bar</em>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyFront</span><span class="p">(</span><span class="n">Front</span><span class="p">):</span>
+    <span class="n">_fields_</span> <span class="o">=</span> <span class="n">Front</span><span class="o">.</span><span class="n">_fields_</span> <span class="o">+</span> <span class="p">[(</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="n">c_int</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;bar&#39;</span><span class="p">,</span> <span class="n">c_double</span><span class="p">)]</span>
+</pre></div>
+</div>
+<p>Different from standard Python behavior, it is important to respect the types of the additional attributes. The following code will cause a ‘TypeError: int expected instead of float’ because <em>foo</em> has been declared to be an integer:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyFront</span><span class="p">(</span><span class="n">Front</span><span class="p">):</span>
+    <span class="n">_fields_</span> <span class="o">=</span> <span class="n">Front</span><span class="o">.</span><span class="n">_fields_</span> <span class="o">+</span> <span class="p">[(</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="n">c_int</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+        <span class="o">...</span>
+        <span class="c1"># this will cause an error because 1.5 is a float</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">foo</span> <span class="o">=</span> <span class="mf">1.5</span>
+        <span class="c1"># this is fine</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">foo</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1.5</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The following <a class="reference external" href="https://docs.python.org/3/library/ctypes.html">ctypes</a> are imported in NeuroDevSim and can be used in attribute definitions:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 31%" />
+<col style="width: 69%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ctypes type</p></th>
+<th class="head"><p>Python type</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>c_bool</p></td>
+<td><p>bool</p></td>
+</tr>
+<tr class="row-odd"><td><p>c_char</p></td>
+<td><p>1-character bytes object</p></td>
+</tr>
+<tr class="row-even"><td><p>c_short</p></td>
+<td><p>int</p></td>
+</tr>
+<tr class="row-odd"><td><p>c_int</p></td>
+<td><p>int</p></td>
+</tr>
+<tr class="row-even"><td><p>c_long</p></td>
+<td><p>int</p></td>
+</tr>
+<tr class="row-odd"><td><p>c_double</p></td>
+<td><p>float</p></td>
+</tr>
+</tbody>
+</table>
+<p>The differences between c_short, c_int and c_long is in the number of bytes used (2, 4, 8 bytes on 64 bit operating systems) and the corresponding range of numbers encoded (−32,768 through 32,767; −2,147,483,648 through 2,147,483,647 and -9,223,372,036,854,775,808 through 9,223,372,036,854,775,807). Additional <code class="docutils literal notranslate"><span class="pre">ctypes</span></code> data types exist and can be imported by knowledgeable users.</p>
+<p>In addition, one can also use a <em>class</em> type, which has been defined elsewhere. At present we recommend using only the predefined <code class="docutils literal notranslate"><span class="pre">Point</span></code> class or the <code class="docutils literal notranslate"><span class="pre">ID</span></code> class, which is used to identify <code class="docutils literal notranslate"><span class="pre">Fronts</span></code> and <code class="docutils literal notranslate"><span class="pre">Substrate</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyFront</span><span class="p">(</span><span class="n">Front</span><span class="p">):</span>
+    <span class="n">_fields_</span> <span class="o">=</span> <span class="n">Front</span><span class="o">.</span><span class="n">_fields_</span> <span class="o">+</span> <span class="p">[(</span><span class="s1">&#39;friend&#39;</span><span class="p">,</span> <span class="n">ID</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+        <span class="o">...</span>
+        <span class="c1"># get a list of fronts with neuron_name beginning with &quot;friend&quot;</span>
+        <span class="n">my_friends</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fronts</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">what</span><span class="o">=</span><span class="s1">&#39;name&#39;</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;friend&quot;</span><span class="p">,</span><span class="n">returnID</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># store the first front returned as an ID</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">friend</span> <span class="o">=</span> <span class="n">my_friends</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Using <code class="docutils literal notranslate"><span class="pre">Fronts</span></code> or <code class="docutils literal notranslate"><span class="pre">Substrate</span></code> as an additional attribute is not recommended because it makes a copy of the original instance and this copy will not be updated. Moreover, for <code class="docutils literal notranslate"><span class="pre">Front</span></code> the specific subclass would have to be specified.</p>
+</div>
+<div class="section" id="attribute-initialization">
+<h3>Attribute initialization<a class="headerlink" href="#attribute-initialization" title="Permalink to this headline">¶</a></h3>
+<p>Additional attributes are automatically initialized to a zero value, in the case of a Structure all its fields are set to zero. An additional attribute can be given a starting value immediately after its instantiation by <code class="docutils literal notranslate"><span class="pre">add_child</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyFront</span><span class="p">(</span><span class="n">Front</span><span class="p">):</span>
+    <span class="n">_fields_</span> <span class="o">=</span> <span class="n">Front</span><span class="o">.</span><span class="n">_fields_</span> <span class="o">+</span> <span class="p">[(</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="n">c_int</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+        <span class="o">...</span>
+        <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">)</span>
+        <span class="n">new_front</span><span class="o">.</span><span class="n">foo</span> <span class="o">=</span> <span class="mi">7</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="front-status-flags">
+<span id="flags-label"></span><h2><code class="docutils literal notranslate"><span class="pre">Front</span></code> status flags<a class="headerlink" href="#front-status-flags" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Front</span></code> status flags are important in scheduling <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> calls and controlling model behavior. Some flags report on front status and can only be read, others can be changed by the user and some can be freely used. All flag methods are documented in <a class="reference internal" href="simulator.html#simulator-label"><span class="std std-ref">simulator module</span></a>. NeuroDevSim tries to keep the control of scheduling simple with the use of the <code class="docutils literal notranslate"><span class="pre">enable(constellation)</span></code> and <code class="docutils literal notranslate"><span class="pre">disable(constellation)</span></code> methods that directly changes status flags, but in some instances finer control is needed.</p>
+<div class="section" id="status-flags-scheduling-manage-front">
+<h3>Status flags scheduling <code class="docutils literal notranslate"><span class="pre">manage_front</span></code><a class="headerlink" href="#status-flags-scheduling-manage-front" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">manage_front</span></code> is called only for <code class="docutils literal notranslate"><span class="pre">Front</span></code> that are <em>active</em>, but the order in which fronts are called depends on the <em>growing</em> and <em>migrating</em> status flags and, if either is set to True, on the position of <code class="docutils literal notranslate"><span class="pre">Front</span></code> in the simulation volume. Correct setting of these flags is important to reudce the likelyhood of <a class="reference internal" href="tutorial.html#gridcompetitionerror-label"><span class="std std-ref">GridCompetitionError</span></a>. The <em>active</em>, <em>growing</em> and <em>migrating</em> flags can be set by the user or changed through the <code class="docutils literal notranslate"><span class="pre">enable</span></code> and <code class="docutils literal notranslate"><span class="pre">disable</span></code> methods:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 40%" />
+<col style="width: 26%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Flag query</p></th>
+<th class="head"><p>Set to True</p></th>
+<th class="head"><p>Set to False</p></th>
+<th class="head"><p>Active if True</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">is_active()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">enable(constellation)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">disable(constellation)</span></code></p></td>
+<td><p>yes</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">is_growing()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">set_growing()</span></code>
+<code class="docutils literal notranslate"><span class="pre">enable(constellation,growing=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">clear_growing()</span></code>
+<code class="docutils literal notranslate"><span class="pre">disable(constellation)</span></code></p></td>
+<td><p>yes</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">is_migrating()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">set_migrating()</span></code>
+<code class="docutils literal notranslate"><span class="pre">enable(constellation,migrating=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">clear_migrating()</span></code>
+<code class="docutils literal notranslate"><span class="pre">disable(constellation)</span></code></p></td>
+<td><p>yes</p></td>
+</tr>
+</tbody>
+</table>
+<p>Note that <em>active</em> changes to True if either <em>growing</em> or <em>migrating</em> are set to True, but the reverse does not apply. All new <code class="docutils literal notranslate"><span class="pre">Front</span></code> created by <code class="docutils literal notranslate"><span class="pre">Admin_agent.add_neurons</span></code> or <code class="docutils literal notranslate"><span class="pre">Front.add_child</span></code> are <em>active</em> and <em>growing</em>. For fronts created by <code class="docutils literal notranslate"><span class="pre">Front.add_branch</span></code> only the last of the series made is <em>active</em> and <em>growing</em> unless the optional parameter <em>enable_all</em> is set to True. Somata created by <code class="docutils literal notranslate"><span class="pre">Admin_agent.add_neurons</span></code> can also be <em>migrating</em> if the optional parameter is set to True.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><code class="docutils literal notranslate"><span class="pre">enable</span></code> and <code class="docutils literal notranslate"><span class="pre">disable</span></code> can be called for any front. Only <em>self</em> or <em>new_front</em> created by <code class="docutils literal notranslate"><span class="pre">add_child</span></code> or <code class="docutils literal notranslate"><span class="pre">add_branch</span></code> can call <code class="docutils literal notranslate"><span class="pre">set_growing()</span></code>, <code class="docutils literal notranslate"><span class="pre">clear_growing()</span></code>, <code class="docutils literal notranslate"><span class="pre">set_migrating()</span></code> and <code class="docutils literal notranslate"><span class="pre">clear_migrating()</span></code>. Calling these methods on other fronts will change the status flags but may not affect their behavior.</p>
+</div>
+<p>As mentioned, using <code class="docutils literal notranslate"><span class="pre">disable(constellation)</span></code> to stop growth of <em>self</em> is usually sufficient to control scheduling, but sometimes more fine-grained control is required:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">)</span> <span class="c1"># make a new front and store it</span>
+        <span class="c1"># make front stop growing but keep it active</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_growing</span><span class="p">()</span>
+        <span class="k">return</span> <span class="c1"># completed this call</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>In the code example above, <em>self</em> is kept <em>active</em> but is not expected to call <code class="docutils literal notranslate"><span class="pre">add_child</span></code> again. This could be useful if <em>self</em> should be able to react to some future condition as it will keep calling <code class="docutils literal notranslate"><span class="pre">manage_front</span></code>. If for some reason it should grow again at a later cycle, it is safer to call <em>self.set_growing()</em> first and wait till the next cycle to call <code class="docutils literal notranslate"><span class="pre">add_child</span></code>.</p>
+<p>In the following code example a parent front is not only enabled again but set to <em>growing</em> after retraction of a child:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">parent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parent</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+    <span class="n">parent</span><span class="o">.</span><span class="n">enable</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">growing</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">retract</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># retract self</span>
+    <span class="k">return</span> <span class="c1"># do not do anything else with self</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>The same effect can be obtained using <code class="docutils literal notranslate"><span class="pre">self.enable_parent(constellation,growing=True)</span></code>.</p>
+<p>Finally, a reminder: only keep fronts <em>active</em> if needed. Fronts calling <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> without it executing any code before <code class="docutils literal notranslate"><span class="pre">return</span></code> can slow down simulations significantly. It is possible to <code class="docutils literal notranslate"><span class="pre">disable</span></code> fronts transiently using the optional parameters <em>till_cycle</em>, <em>till_cycle_g</em> or <em>till_cycle_m</em>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">till_cycle_g</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>this will disable <em>self</em> till cycle 100. On cycle 100 it becomes <em>active</em> again with <em>is_growing()</em> True.</p>
+</div>
+<div class="section" id="read-only-status-flags">
+<span id="readflags-label"></span><h3>Read-only status flags<a class="headerlink" href="#read-only-status-flags" title="Permalink to this headline">¶</a></h3>
+<p>The following status flags are set by NeuroDevSim methods and inform on status of <code class="docutils literal notranslate"><span class="pre">Front</span></code>:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 41%" />
+<col style="width: 38%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Flag query</p></th>
+<th class="head"><p>Set by method</p></th>
+<th class="head"><p>Meaning of True</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">is_cylinder()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">add_neurons</span></code>, <code class="docutils literal notranslate"><span class="pre">add_child</span></code>, <code class="docutils literal notranslate"><span class="pre">add_branch</span></code></p></td>
+<td><p>shape is cylindrical, False for a sphere</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">has_moved()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">migrate_soma</span></code></p></td>
+<td><p>soma migrated at previous or current
+cycle</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">has_migrated()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">migrate_soma</span></code></p></td>
+<td><p>soma migrated at some cycle</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">is_retracted()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">retract</span></code>, <code class="docutils literal notranslate"><span class="pre">retract_branch</span></code></p></td>
+<td><p>front has been retracted</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">has_child_retracted</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">retract</span></code>, <code class="docutils literal notranslate"><span class="pre">retract_branch</span></code></p></td>
+<td><p>a child of this front was retracted at some
+cycle, is reset to False after new child
+is made</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">is_arc()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">add_branch</span></code></p></td>
+<td><p>front is part of an arc made by
+<code class="docutils literal notranslate"><span class="pre">arc_around</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p>These status flags can be read for any <code class="docutils literal notranslate"><span class="pre">Front</span></code> but notice that <code class="docutils literal notranslate"><span class="pre">has_moved()</span></code> and <code class="docutils literal notranslate"><span class="pre">has_migrated()</span></code> can change value during the present cycle and for fronts other than <em>self</em> the timing of this change cannot be predicted.</p>
+</div>
+<div class="section" id="user-availabe-status-flags">
+<h3>User availabe status flags<a class="headerlink" href="#user-availabe-status-flags" title="Permalink to this headline">¶</a></h3>
+<p>The following status flags can be used as boolean variables by the user instead of making a <em>c_bool</em> additional attribute:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 31%" />
+<col style="width: 33%" />
+<col style="width: 37%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Flag query</p></th>
+<th class="head"><p>Set to True</p></th>
+<th class="head"><p>Set to False</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">is_status1()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">set_status1()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">clear_status1()</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">is_status2()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">set_status2()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">clear_status2()</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">is_status3()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">set_status3()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">clear_status3()</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p>These status flags can be read and set/cleared for any <code class="docutils literal notranslate"><span class="pre">Front</span></code>. However, if setting or clearing on a front other than <em>self</em> <strong>be sure that only one front can do this</strong> during a given cycle to avoid competition. See <a class="reference internal" href="tutorial.html#attributes-label"><span class="std std-ref">Changing attributes of Front or Substrate</span></a> for more information.</p>
+</div>
+</div>
+<div class="section" id="importing-a-simulation">
+<span id="import-label"></span><h2>Importing a simulation<a class="headerlink" href="#importing-a-simulation" title="Permalink to this headline">¶</a></h2>
+<p>Some developmental models may simulate consecutive stages in development and each stage may be optimized separately during model creation. If the simulations take a lot of time to run it may then be advantageous to use a previous simulation of early stages of development to start simulating a later stage.</p>
+<p>This is possible with the <code class="docutils literal notranslate"><span class="pre">Admin_agent.import_simulation</span></code> method:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fname_old</span> <span class="o">=</span> <span class="s2">&quot;output/prev_simulation.db&quot;</span>
+<span class="n">fname</span> <span class="o">=</span> <span class="s2">&quot;output/new_simulation.db&quot;</span>
+<span class="n">sim_volume</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span> <span class="p">[</span><span class="mf">100.</span><span class="p">,</span> <span class="mf">100.</span><span class="p">,</span> <span class="mf">100.</span><span class="p">]]</span>
+<span class="n">neuron_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">MyFront1</span><span class="p">,</span><span class="n">MyFront2</span><span class="p">]</span>
+<span class="n">num_procs</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">admin</span> <span class="o">=</span> <span class="n">Admin_agent</span><span class="p">(</span><span class="n">num_procs</span><span class="p">,</span><span class="n">fname</span><span class="p">,</span><span class="n">sim_volume</span><span class="p">,</span><span class="n">neuron_types</span><span class="p">,</span><span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">admin</span><span class="o">.</span><span class="n">import_simulation</span><span class="p">(</span><span class="n">fname_old</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>There are strict limitations to the use of <code class="docutils literal notranslate"><span class="pre">import_simulation</span></code>:</p>
+<ol class="arabic simple">
+<li><p>The database should be <em>importable</em>: this should be set in the previous simulation as <code class="docutils literal notranslate"><span class="pre">admin.importable_db</span> <span class="pre">=</span> <span class="pre">True</span></code>, best immediately after <a class="reference internal" href="simulator.html#admin-agent-label"><span class="std std-ref">Admin_agent class</span></a> initalization.</p></li>
+<li><p>The importing simulation shoul call <code class="docutils literal notranslate"><span class="pre">import_simulation</span></code> as the first method after initalization of <a class="reference internal" href="simulator.html#admin-agent-label"><span class="std std-ref">Admin_agent class</span></a>.</p></li>
+<li><p><a class="reference internal" href="simulator.html#admin-agent-label"><span class="std std-ref">Admin_agent class</span></a> initalization should be almost identical to that used for the previous simulation: <em>num_procs</em>, <em>sim_volume</em> and <em>neuron_types</em> should be identical (<em>num_procs</em> can be 0 for <a class="reference internal" href="interactive.html#interactive-label"><span class="std std-ref">Interactive mode</span></a>). The code defining each neuron type should be compatible with the previous simulation. Optional changes to <code class="docutils literal notranslate"><span class="pre">Admin_agent</span></code> array size attributes should also be identical.</p></li>
+<li><p>The database name for the new simulation should be different from that of the previous one. By default the database contents are copied to the new simulation database, but this can be turned off with the optional <em>copy_db</em> parameter.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Admin_agent</span></code> <em>seed</em> and <em>verbose</em> can be different.</p></li>
+</ol>
+<p>The new simulation will start at the next cycle after the last one stored in the previous simulation database. Because it uses an <em>importable</em> database it has all the information needed to continue the simulation as if it was never interrupted. If any <a class="reference internal" href="subclassing.html#additional-label"><span class="std std-ref">Additional attributes</span></a> were declared their values should be stored during the previous simulation, this can be done with <a class="reference internal" href="storage.html#storage-label"><span class="std std-ref">Storing additional attributes</span></a> and setting the optional parameter <code class="docutils literal notranslate"><span class="pre">last_only=True</span></code>.</p>
+<p>Several use cases of <code class="docutils literal notranslate"><span class="pre">import_simulation</span></code> are shown in the <a class="reference internal" href="examples.html#importnote-label"><span class="std std-ref">Import notebook</span></a>.</p>
+</div>
+<div class="section" id="interactive-mode">
+<span id="interactive-label"></span><h2>Interactive mode<a class="headerlink" href="#interactive-mode" title="Permalink to this headline">¶</a></h2>
+<p>It is quite easy to run NeuroDevSim in interactive mode, either in a notebook with plotting or from the terminal. However, the interactive mode comes with severe restrictions:</p>
+<ul class="simple">
+<li><p>nothing is stored, all results are transient</p></li>
+<li><p>there is no parallel computing so only simple models can be simulated</p></li>
+<li><p>a complete simulation is either interactive or not, one cannot switch</p></li>
+</ul>
+<p>Nevertheless the interactive mode can be quite useful to gain intuition, explore ideas and, especially, debug complex models. These use cases are introduced in the <a class="reference internal" href="examples.html#interactivenote-label"><span class="std std-ref">Interactive Mode notebook</span></a>.</p>
+<div class="section" id="basic-interactive-simulation">
+<h3>Basic interactive simulation<a class="headerlink" href="#basic-interactive-simulation" title="Permalink to this headline">¶</a></h3>
+<p>All that is needed to run an interactive simulation is to instantiate <a class="reference internal" href="simulator.html#admin-agent-label"><span class="std std-ref">Admin_agent class</span></a> with zero <em>num_procs</em>. A <a class="reference internal" href="simulator.html#front-label"><span class="std std-ref">Front class</span></a> needs to be defined because a <em>neuron_type</em> is required. A minimal set-up taken from the notebook example is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">neurodevsim.simulator</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="k">class</span> <span class="nc">RandomFront</span><span class="p">(</span><span class="n">Front</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="c1"># initialize Admin_agent</span>
+    <span class="n">sim_volume</span> <span class="o">=</span> <span class="p">[[</span><span class="o">-</span><span class="mf">100.</span><span class="p">,</span> <span class="o">-</span><span class="mf">100.</span><span class="p">,</span> <span class="o">-</span><span class="mf">100.</span><span class="p">],</span> <span class="p">[</span><span class="mf">100.0</span><span class="p">,</span><span class="mf">100.0</span><span class="p">,</span><span class="mf">100.0</span><span class="p">]]</span>
+    <span class="n">neuron_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">RandomFront</span><span class="p">]</span>
+    <span class="n">admin</span> <span class="o">=</span> <span class="n">Admin_agent</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="n">sim_volume</span><span class="p">,</span><span class="n">neuron_types</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># interactive mode</span>
+    <span class="n">constellation</span> <span class="o">=</span> <span class="n">admin</span><span class="o">.</span><span class="n">constellation</span>
+</pre></div>
+</div>
+<p>Notice that the <a class="reference internal" href="tutorial.html#manage-front-label"><span class="std std-ref">manage_front method</span></a> is empty, it will not be used. If desired one can have the normal <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> present as reference, this may be useful while debugging. Because there is no database output no file name needs to be specified for <code class="docutils literal notranslate"><span class="pre">Admin_agent</span></code>.</p>
+<p>The <a class="reference internal" href="simulator.html#constellation-label"><span class="std std-ref">Constellation class</span></a> is obtained because this will be needed in many method calls.</p>
+<p>Now any NeuroDevSim method can be called. Because most of these depend on object instantiation, relevant objects should be made first. For example, one could call <code class="docutils literal notranslate"><span class="pre">admin.add_neurons</span></code> to make a soma:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fronts</span> <span class="o">=</span> <span class="n">admin</span><span class="o">.</span><span class="n">add_neurons</span><span class="p">(</span><span class="n">RandomFront</span><span class="p">,</span><span class="s2">&quot;rand_neuron&quot;</span><span class="p">,</span><span class="mi">1</span><span class="p">,[[</span><span class="o">-</span><span class="mf">30.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],[</span><span class="o">-</span><span class="mi">30</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">]],</span><span class="mf">5.</span><span class="p">)</span>
+<span class="n">soma</span> <span class="o">=</span> <span class="n">fronts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Notice that in this case we capture the return of <code class="docutils literal notranslate"><span class="pre">admin.add_neurons</span></code> so that the <em>soma</em> that was created can be accessed. Using <code class="docutils literal notranslate"><span class="pre">soma.add_child</span></code> more fronts can now be created to simulate simple growth or any other <code class="docutils literal notranslate"><span class="pre">Front</span></code> method can be called as desired. Remember that the fronts are <strong>not stored</strong> in the simulation database and if notebook plotting is enabled, new fronts need to plotted explicitly with <code class="docutils literal notranslate"><span class="pre">admin.plot_item</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">line</span> <span class="o">=</span> <span class="n">admin</span><span class="o">.</span><span class="n">plot_item</span><span class="p">(</span><span class="n">soma</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>There is no need to call <code class="docutils literal notranslate"><span class="pre">admin.destruction</span></code> because no extra processes were spawned.</p>
+</div>
+<div class="section" id="interactive-model-debugging">
+<h3>Interactive model debugging<a class="headerlink" href="#interactive-model-debugging" title="Permalink to this headline">¶</a></h3>
+<p>Because NeuroDevSim simulations are not reproducible they can be very difficult to debug in a traditional way. Instead the output of a buggy simulation can be loaded with the <code class="docutils literal notranslate"><span class="pre">import_simulation</span></code> method and interactive mode can be used to investigate what went wrong.</p>
+<p>To use this approach effectively it is important to identify “problem” fronts. This information can be obtained either by printing out relevant front IDs during the simulation or by analyzing the database content as explained in <a class="reference internal" href="database.html#database-label"><span class="std std-ref">Understanding the database</span></a>.</p>
+<p>Start an interactive session with the same <em>sim_volume</em> and <em>neuron_types</em> as used for the stored simulation, as shown above. Then import an existing simulation database:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">...</span>
+<span class="n">admin</span> <span class="o">=</span> <span class="n">Admin_agent</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="n">sim_volume</span><span class="p">,</span><span class="n">neuron_types</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># interactive mode</span>
+<span class="n">constellation</span> <span class="o">=</span> <span class="n">admin</span><span class="o">.</span><span class="n">constellation</span>
+
+<span class="n">admin</span><span class="o">.</span><span class="n">import_simulation</span><span class="p">(</span><span class="s2">&quot;simulation.db&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The complete simulation till the end will be loaded and because <code class="docutils literal notranslate"><span class="pre">plot=True</span></code> plotted. For large simulations, plotting takes a lot of time. This can be prevented by plotting only a relevant region of the simulation, using the <code class="docutils literal notranslate"><span class="pre">Admin_agent</span></code> <em>box</em> attribute:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">admin</span> <span class="o">=</span> <span class="n">Admin_agent</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="n">sim_volume</span><span class="p">,</span><span class="n">neuron_types</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">box</span><span class="o">=</span><span class="p">[[</span><span class="mf">60.</span><span class="p">,</span><span class="mf">60.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],[</span><span class="mf">90.</span><span class="p">,</span><span class="mf">90.</span><span class="p">,</span><span class="mf">30.</span><span class="p">]])</span>
+</pre></div>
+</div>
+<p>To use <em>box</em> effectively one should know which region to focus on, usually centered around the “problem” front. It is best to use an isometric box, with idential ax lengths for each dimension. Only when a <em>box</em> is defined, the list of <code class="docutils literal notranslate"><span class="pre">Front</span></code> plotted is available as <em>admin.plot_items</em>. If the number of fronts plotted is small, investigating this list is the fastest way to discover what is plotted.</p>
+<p>After <code class="docutils literal notranslate"><span class="pre">import_simulation</span></code> all fronts that existed at the end of the simulation are present in memory and can be accessed by their <code class="docutils literal notranslate"><span class="pre">ID</span></code>.</p>
+<p>If “problem” fronts were identified using print statements during the original simulation information like this will have been printed:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Front</span> <span class="n">ID</span><span class="p">:</span> <span class="n">neuron</span> <span class="nb">type</span> <span class="mi">1</span><span class="p">,</span> <span class="n">index</span> <span class="mi">4005</span>
+</pre></div>
+</div>
+<p>the corresponding front can now be obtained with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">my_front</span> <span class="o">=</span> <span class="n">constellation</span><span class="o">.</span><span class="n">front_by_id</span><span class="p">(</span><span class="n">ID</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">4005</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>If “problem” fronts were identified in the database, the procedure is a bit more complicated. Each front has two numerical identifiers in the database: a <em>neuron_id</em> and a <em>front_id</em>, see <a class="reference internal" href="database.html#database-label"><span class="std std-ref">Understanding the database</span></a>. Combined, these constitute a <code class="docutils literal notranslate"><span class="pre">DataID</span></code> which is unfortunately different from <code class="docutils literal notranslate"><span class="pre">ID</span></code>, but one can easily be converted into the other using <code class="docutils literal notranslate"><span class="pre">constellation.data_to_id</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">my_ID</span> <span class="o">=</span> <span class="n">constellation</span><span class="o">.</span><span class="n">data_to_id</span><span class="p">(</span><span class="n">DataID</span><span class="p">(</span><span class="n">neuron_id</span><span class="p">,</span><span class="n">front_id</span><span class="p">))</span>
+<span class="n">my_front</span> <span class="o">=</span> <span class="n">constellation</span><span class="o">.</span><span class="n">front_by_id</span><span class="p">(</span><span class="n">my_ID</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Where is <em>my_front</em> in the simulation plot? As this is often not easy to recognize, one can make any plotted front flash during an interactive session:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">admin</span><span class="o">.</span><span class="n">flash_front</span><span class="p">(</span><span class="n">my_front</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If the plot is crowded, it may have to be rotated before the flashes are visible. One can <code class="docutils literal notranslate"><span class="pre">flash_front</span></code> as often as necessary.</p>
+<p>The next steps depend on the type of problem to solve. Let’s, for example, look at a fatal collison during an <code class="docutils literal notranslate"><span class="pre">add_child</span></code> call:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">new_pos</span> <span class="o">=</span> <span class="o">...</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">new_front</span> <span class="o">=</span> <span class="n">my_front</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">)</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="n">new_front</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">CollisionError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="n">error</span><span class="p">)</span>
+    <span class="n">colerror</span> <span class="o">=</span> <span class="n">error</span> <span class="c1"># error is only defined within the except scope</span>
+</pre></div>
+</div>
+<p>Either a <em>new_front</em> will be created and printed or a <code class="docutils literal notranslate"><span class="pre">CollisionError</span></code> occurs and then this will be printed. If the error occurred, one could then try <code class="docutils literal notranslate"><span class="pre">solve_collision</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">points</span> <span class="o">=</span> <span class="n">my_front</span><span class="o">.</span><span class="n">solve_collision</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">colerror</span><span class="p">)</span>
+<span class="nb">print</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">),</span><span class="s2">&quot;points:&quot;</span><span class="p">,</span><span class="n">points</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">solve_collision</span></code> fails (it returns an empty list), maybe this is due to multiple colliding structures? By default only the first collision is detected as explained in <a class="reference internal" href="collisions.html#collisions-label"><span class="std std-ref">Preventing and dealing with collisions</span></a>, but this can be changed so that <strong>all</strong> collisions are detected:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">constellation</span><span class="o">.</span><span class="n">only_first_collision</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1"># report all collisions</span>
+<span class="n">colerror</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">new_front</span> <span class="o">=</span> <span class="n">my_front</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">)</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="n">new_front</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">CollisionError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="n">error</span><span class="p">)</span>
+    <span class="n">colerror</span> <span class="o">=</span> <span class="n">error</span> <span class="c1"># error is only defined within the except scope</span>
+<span class="k">if</span> <span class="n">colerror</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">colerror</span><span class="o">.</span><span class="n">collider</span><span class="p">:</span> <span class="c1"># print all the colliding structures</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The possibilities of the interactive mode are endless… One can test large sections of code, the behavior of specific methods, explore alternatives, etc. Just remember that nothing gets stored!</p>
+<p>Finally, when investigating <a class="reference internal" href="migration.html#migration-label"><span class="std std-ref">Modeling soma migration</span></a>, the interactive mode has an additional useful feature: it can provide a history of the migration of any migrating soma that was loaded by <code class="docutils literal notranslate"><span class="pre">import_simulation</span></code> with <code class="docutils literal notranslate"><span class="pre">get_migration_history</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">my_somaID</span> <span class="o">=</span> <span class="n">constellation</span><span class="o">.</span><span class="n">data_to_id</span><span class="p">(</span><span class="n">DataID</span><span class="p">(</span><span class="n">neuron_id</span><span class="p">,</span><span class="n">front_id</span><span class="p">))</span>
+<span class="n">my_soma</span> <span class="o">=</span> <span class="n">constellation</span><span class="o">.</span><span class="n">front_by_id</span><span class="p">(</span><span class="n">my_somaID</span><span class="p">)</span>
+<span class="n">coordinates</span><span class="p">,</span> <span class="n">cycles</span> <span class="o">=</span> <span class="n">my_soma</span><span class="o">.</span><span class="n">get_migration_history</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><em>coordinates</em> is a list of <code class="docutils literal notranslate"><span class="pre">Point</span></code> representing <em>my_soma.orig</em>, from the location where it was created up to the last cycle, and <em>cycles</em> contains the corresponding cycle for each entry in <em>coordinates</em>. One can print this information or plot it:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lines</span> <span class="o">=</span> <span class="n">admin</span><span class="o">.</span><span class="n">plot_item</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span><span class="n">line</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="understanding-the-database">
+<span id="database-label"></span><h2>Understanding the database<a class="headerlink" href="#understanding-the-database" title="Permalink to this headline">¶</a></h2>
+<p>All NeuroDevSim simulations are saved in a <a class="reference external" href="https://www.sqlite.org/index.html">SQLite database</a>. Many SQLite database browser apps are available to view the contents of the database, we like the <a class="reference external" href="https://sqlitebrowser.org/">DB Browser for SQLite</a>.</p>
+<p>NeuroDevSim comes with a set of methods in the <a class="reference internal" href="processing.html#processing-label"><span class="std std-ref">processing module</span></a> that print or plot database contents, so most users may never have to read this section of the manual. But understanding of the database structure is necessary to write specific analysis routines and may also be required to use the <a class="reference internal" href="interactive.html#interactive-label"><span class="std std-ref">Interactive mode</span></a> effectively.</p>
+<div class="section" id="database-tables">
+<h3>Database tables<a class="headerlink" href="#database-tables" title="Permalink to this headline">¶</a></h3>
+<p>Information is stored in different database tables. These tables are shown in order of relevance for the user below and important tables are discussed in more detail next. Optional tables are tables that are only made when relevant: either when the corresponding class is instantiated or when  <a class="reference internal" href="storage.html#storage-label"><span class="std std-ref">Storing additional attributes</span></a> has been used.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 10%" />
+<col style="width: 73%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Table name</p></th>
+<th class="head"><p>Optional</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>neuron_data</p></td>
+<td><p>no</p></td>
+<td><p>data for every <em>Neuron</em> in simulation, necessary for <em>front_data</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>front_data</p></td>
+<td><p>no</p></td>
+<td><p>data for every <em>Front</em> in simulation, needed for <em>synapse_data</em>, <em>migration_data1</em></p></td>
+</tr>
+<tr class="row-even"><td><p>synapse_data</p></td>
+<td><p>yes</p></td>
+<td><p>data for every <em>Synapse</em> in simulation</p></td>
+</tr>
+<tr class="row-odd"><td><p>substrate_data</p></td>
+<td><p>yes</p></td>
+<td><p>data for all <em>Substrate</em> in simulation</p></td>
+</tr>
+<tr class="row-even"><td><p>migration_data1</p></td>
+<td><p>yes</p></td>
+<td><p>coordinates of migrating somata, additional <em>migration_data2</em>,… may be present</p></td>
+</tr>
+<tr class="row-odd"><td><p>neurodevsim</p></td>
+<td><p>no</p></td>
+<td><p>basic information about simulation: volume, number cycles, software version,…</p></td>
+</tr>
+<tr class="row-even"><td><p>neuron_types</p></td>
+<td><p>no</p></td>
+<td><p>class names of each <em>neuron_type</em> in simulation</p></td>
+</tr>
+<tr class="row-odd"><td><p>attributes</p></td>
+<td><p>yes</p></td>
+<td><p>list of all tables storing additional attributes (tables not listed here)</p></td>
+</tr>
+<tr class="row-even"><td><p>arc_data</p></td>
+<td><p>yes</p></td>
+<td><p>technical table: data for all <em>Arcs</em>, only needed for <em>import_simulation</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>arc_points</p></td>
+<td><p>yes</p></td>
+<td><p>technical table: points for all <em>Arcs</em>, only needed for <em>import_simulation</em></p></td>
+</tr>
+<tr class="row-even"><td><p>mig_fronts_data</p></td>
+<td><p>yes</p></td>
+<td><p>technical table: order of migrating fronts, only needed for <em>import_simulation</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>sqlite_sequence</p></td>
+<td><p>no</p></td>
+<td><p>technical table: standard sqlite table listing all other tables and their length</p></td>
+</tr>
+</tbody>
+</table>
+<p>The contents of the database are updated at the end of each cycle. If a simulation crashes or is stopped, the database will be readable and contain correct information up till the last complete cycle. However, changing content in several tables is only updated at the end of the simulation by <code class="docutils literal notranslate"><span class="pre">Admin_agent.destruction</span></code>.</p>
+</div>
+<div class="section" id="reading-the-database">
+<h3>Reading the database<a class="headerlink" href="#reading-the-database" title="Permalink to this headline">¶</a></h3>
+<p>This subsection will be familiar to anybody who has previously written code to read from
+a <a class="reference external" href="https://www.sqlite.org/index.html">SQLite database</a>. One connects to the database using its filename <em>db_name</em> and creates a <em>cursor</em>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sqlite3</span>
+<span class="o">...</span>
+<span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">db_name</span><span class="p">)</span>
+<span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+<span class="n">conn</span><span class="o">.</span><span class="n">row_factory</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Row</span>
+</pre></div>
+</div>
+<p>The last statement is quite important because it allows to access content by the name of columns, which results in more readable and easier to manage code.</p>
+<p>Next one usually loads an entire table <em>this_table</em> and analyzes it row by row:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;select * from this_table&quot;</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+    <span class="n">item1</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;name_of_column2&#39;</span><span class="p">]</span>
+    <span class="n">item2</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;name_of_column3&#39;</span><span class="p">]</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>Each table has as first column an <em>id</em> created by SQLite itself, this <em>id</em> is not related to the simulation. The content of relevant tables is described briefly in the following subsections, but <em>id</em> will not be mentioned. To get started yourself, it maybe helpful to look at the code in <a class="reference internal" href="processing.html#processing-label"><span class="std std-ref">processing module</span></a>, for example the <code class="docutils literal notranslate"><span class="pre">nds_neuron</span></code> method is fairly easy to understand.</p>
+<p>NeuroDevSim writes new data to the database at the end of every cycle, so its information is complete up to the last completed cycle in case of a crash of the simulation. <strong>Type</strong> refers to SQLite data types, not NeuroDevSim data types. <strong>Updated</strong> refers to whether the value may be updated from its initial value when the object was created.</p>
+</div>
+<div class="section" id="neuron-data-table">
+<h3>neuron_data table:<a class="headerlink" href="#neuron-data-table" title="Permalink to this headline">¶</a></h3>
+<p>This table contains a row for each <code class="docutils literal notranslate"><span class="pre">Neuron</span></code> created and (a) new row(s) will be written to the database at the end of each <code class="docutils literal notranslate"><span class="pre">admin.add_neurons</span></code> call, it has the following columns:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 6%" />
+<col style="width: 70%" />
+<col style="width: 9%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column_name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Updated</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>neuron_id</p></td>
+<td><p>int</p></td>
+<td><p>unique to each neuron, is the neuron identifier in <code class="docutils literal notranslate"><span class="pre">DataID</span></code></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>type_id</p></td>
+<td><p>int</p></td>
+<td><p>identifies <em>neuron_type</em>, is the neuron identifier in <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>name</p></td>
+<td><p>text</p></td>
+<td><p>name of the neuron</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>firing_rate</p></td>
+<td><p>real</p></td>
+<td><p>initial <em>firing_rate</em> of neuron</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>CV_ISI</p></td>
+<td><p>real</p></td>
+<td><p>initial <em>CV_ISI</em> of neuron</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>num_fronts</p></td>
+<td><p>int</p></td>
+<td><p>final number of fronts in neuron</p></td>
+<td><p>at end</p></td>
+</tr>
+<tr class="row-even"><td><p>num_retracted</p></td>
+<td><p>int</p></td>
+<td><p>final number of retracted fronts in neuron</p></td>
+<td><p>at end</p></td>
+</tr>
+<tr class="row-odd"><td><p>num_synapses</p></td>
+<td><p>int</p></td>
+<td><p>final number of synapses in neuron</p></td>
+<td><p>at end</p></td>
+</tr>
+</tbody>
+</table>
+<p>‘at end’ means that the column value is updated by <code class="docutils literal notranslate"><span class="pre">admin.destruction()</span></code>.</p>
+</div>
+<div class="section" id="front-data-table">
+<h3>front_data table:<a class="headerlink" href="#front-data-table" title="Permalink to this headline">¶</a></h3>
+<p>This table contains a row for each <code class="docutils literal notranslate"><span class="pre">Front</span></code> created, with the following columns:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 5%" />
+<col style="width: 72%" />
+<col style="width: 7%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column_name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Updated</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>neuron_id</p></td>
+<td><p>int</p></td>
+<td><p>neuron the front belongs to, refers to similar column in <em>neuron_data</em></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>front_id</p></td>
+<td><p>int</p></td>
+<td><p>unique to each front of a specific <em>neuron_type</em>,
+front identifier in <code class="docutils literal notranslate"><span class="pre">DataID</span></code> and <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>branch</p></td>
+<td><p>text</p></td>
+<td><p>optional <em>branch_name</em> of front</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>swc_type</p></td>
+<td><p>int</p></td>
+<td><p><em>swc_type</em> of the front, see <a class="reference internal" href="swc.html#swc-label"><span class="std std-ref">SWC types used in NeuroDevSim</span></a></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>shape</p></td>
+<td><p>int</p></td>
+<td><p>indicates spherical (<em>shape</em> == 1) or cylindrical (<em>shape</em> == 2) front</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>orig_x</p></td>
+<td><p>real</p></td>
+<td><p><em>x</em> of the <em>orig</em> coordinate of the front, for a migrating soma this
+is its original  position</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>orig_y</p></td>
+<td><p>real</p></td>
+<td><p><em>y</em> of the <em>orig</em> coordinate of the front</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>orig_z</p></td>
+<td><p>real</p></td>
+<td><p><em>z</em> of the <em>orig</em> coordinate of the front</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>end_x</p></td>
+<td><p>real</p></td>
+<td><p><em>x</em> of the <em>end</em> coordinate of the front, for spherical fronts
+identical to their <em>orig</em></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>end_y</p></td>
+<td><p>real</p></td>
+<td><p><em>y</em> of the <em>end</em> coordinate of the front</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>end_z</p></td>
+<td><p>real</p></td>
+<td><p><em>z</em> of the <em>end</em> coordinate of the front</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>radius</p></td>
+<td><p>real</p></td>
+<td><p>front <em>radius</em></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>parent_id</p></td>
+<td><p>int</p></td>
+<td><p>the <em>front_id</em> of the parent front or -1 for the root of a neuron tree</p></td>
+<td><p>maybe</p></td>
+</tr>
+<tr class="row-odd"><td><p>b_order</p></td>
+<td><p>int</p></td>
+<td><p>branching <em>order</em> of the front, 0 at the root</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>path_len</p></td>
+<td><p>real</p></td>
+<td><p>cumulated <em>path_length</em> from soma till <em>end</em> of the front</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>birth</p></td>
+<td><p>int</p></td>
+<td><p><em>birth</em> of the front, cycle when the front was created</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>death</p></td>
+<td><p>int</p></td>
+<td><p><em>death</em>, -1 or if retracted cycle when the front was retracted</p></td>
+<td><p>maybe</p></td>
+</tr>
+<tr class="row-odd"><td><p>migration</p></td>
+<td><p>int</p></td>
+<td><p>column number in <em>migration_data</em> table for migrating soma, 0 if not
+migrating</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>flags</p></td>
+<td><p>int</p></td>
+<td><p><a class="reference internal" href="flags.html#flags-label"><span class="std std-ref">Front status flags</span></a></p></td>
+<td><p>maybe</p></td>
+</tr>
+</tbody>
+</table>
+<p>The <em>death</em> column value is updated at the end of the cycle of retraction, otherwise it stays -1. The <em>parent_id</em> (may have changed due to <a class="reference internal" href="migration.html#migration-label"><span class="std std-ref">Modeling soma migration</span></a>) and <em>flags</em> columns are updated at the end of simulation by <code class="docutils literal notranslate"><span class="pre">admin.destruction()</span></code> if <code class="docutils literal notranslate"><span class="pre">admin.importable_db</span> <span class="pre">==</span> <span class="pre">True</span></code>, otherwise they keep the original value.</p>
+<p>Note that <em>num_children</em> and the parent to child relation are not stored in the database. This information is implicit in the child to parent relation that is stored in the <em>parent_id</em> column.</p>
+</div>
+<div class="section" id="synapse-data-table">
+<h3>synapse_data table:<a class="headerlink" href="#synapse-data-table" title="Permalink to this headline">¶</a></h3>
+<p>This table contains a row for each <code class="docutils literal notranslate"><span class="pre">Synapse</span></code> created, with the following columns:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 6%" />
+<col style="width: 70%" />
+<col style="width: 9%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column_name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Updated</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>pre_neuron_id</p></td>
+<td><p>int</p></td>
+<td><p>identifies presynaptic neuron, refers to <em>neuron_id</em> in
+<em>neuron_data</em></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>pre_front_id</p></td>
+<td><p>int</p></td>
+<td><p>identifies presynaptic front, refers <em>front_id</em> in
+<em>front_data</em></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>post_neuron_id</p></td>
+<td><p>int</p></td>
+<td><p>identifies postsynaptic neuron, refers to <em>neuron_id</em> in
+<em>neuron_data</em></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>post_front_id</p></td>
+<td><p>int</p></td>
+<td><p>identifies postsynaptic front, refers <em>front_id</em> in
+<em>front_data</em></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>weight:</p></td>
+<td><p>real</p></td>
+<td><p>initial synaptic <em>weight</em></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>birth</p></td>
+<td><p>int</p></td>
+<td><p><em>birth</em> of the synapse, cycle when the synapse was created</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>death</p></td>
+<td><p>int</p></td>
+<td><p><em>death</em>, -1 or if removed cycle when synapse was removed</p></td>
+<td><p>maybe</p></td>
+</tr>
+</tbody>
+</table>
+<p>The <em>death</em> column value is updated at the end of the cycle of removal, otherwise it stays -1.</p>
+</div>
+<div class="section" id="substrate-data-table">
+<h3>substrate_data table:<a class="headerlink" href="#substrate-data-table" title="Permalink to this headline">¶</a></h3>
+<p>This table contains a row for each <code class="docutils literal notranslate"><span class="pre">Substrate</span></code> created, with the following columns:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 6%" />
+<col style="width: 70%" />
+<col style="width: 9%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column_name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Updated</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>name</p></td>
+<td><p>text</p></td>
+<td><p><em>name</em> of the substrate</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>x</p></td>
+<td><p>real</p></td>
+<td><p><em>x</em> of the <em>orig</em> coordinate of the substrate</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>y</p></td>
+<td><p>real</p></td>
+<td><p><em>y</em> of the <em>orig</em> coordinate of the substrate</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>z</p></td>
+<td><p>real</p></td>
+<td><p><em>z</em> of the <em>orig</em> coordinate of the substrate</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>amount</p></td>
+<td><p>real</p></td>
+<td><p><em>n_mol</em> of the substrate</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>rate</p></td>
+<td><p>real</p></td>
+<td><p><em>rate</em> of the substrate</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>diff_c</p></td>
+<td><p>real</p></td>
+<td><p><em>diff_c</em> of the substrate</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>birth</p></td>
+<td><p>int</p></td>
+<td><p><em>birth</em> of the substrate, cycle when the substrate was created</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>death</p></td>
+<td><p>int</p></td>
+<td><p><em>death</em> -1</p></td>
+<td><p>no</p></td>
+</tr>
+</tbody>
+</table>
+<p>At present <code class="docutils literal notranslate"><span class="pre">Substrate</span></code> cannot be removed.</p>
+</div>
+<div class="section" id="migration-data-table">
+<h3>migration_data table:<a class="headerlink" href="#migration-data-table" title="Permalink to this headline">¶</a></h3>
+<p>The database can contain several migration tables, numbered consecutively as <em>migration_data1</em>, <em>migration_data2</em>, <em>migration_data3</em>,… This is because the number of columns in a SQLite database table is limited, so if more than 600 somata migrated an extra <em>migration_data</em> table will be created.</p>
+<p>These tables contains a row for each cycle during which a migration event took place. Its first column is the cycle and then 3 columns for each migrating soma:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 6%" />
+<col style="width: 70%" />
+<col style="width: 9%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column_name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Updated</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>cycle</p></td>
+<td><p>int</p></td>
+<td><p>the cycle at which each soma migrated to these positions</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p><a href="#id2"><span class="problematic" id="id3">x_</span></a>…</p></td>
+<td><p>real</p></td>
+<td><p>for each front identified by the elements of <code class="docutils literal notranslate"><span class="pre">ID</span></code>, the
+x position of the coordinate it migrated to this cycle or
+<em>NULL</em> if it did not migrate during this cycle</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p><a href="#id4"><span class="problematic" id="id5">y_</span></a>…</p></td>
+<td><p>real</p></td>
+<td><p>same for the y position of the coordinate</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p><a href="#id6"><span class="problematic" id="id7">z_</span></a>…</p></td>
+<td><p>real</p></td>
+<td><p>same for the z position of the coordinate</p></td>
+<td><p>no</p></td>
+</tr>
+</tbody>
+</table>
+<p>If multiple <em>migration_data</em> table are present the <em>cycle</em> column of each table is unique.</p>
+</div>
+<div class="section" id="neurodevsim-table">
+<h3>neurodevsim table<a class="headerlink" href="#neurodevsim-table" title="Permalink to this headline">¶</a></h3>
+<p>This table contains only a single row with information about the simulation in the following columns:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 5%" />
+<col style="width: 71%" />
+<col style="width: 9%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column_name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Updated</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>xmin</p></td>
+<td><p>int</p></td>
+<td><p><em>x</em> of the left-front-bottom coordinate of the simulation volume</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>ymin</p></td>
+<td><p>int</p></td>
+<td><p><em>y</em> of the left-front-bottom coordinate of the simulation volume</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>zmin</p></td>
+<td><p>int</p></td>
+<td><p><em>z</em> of the left-front-bottom coordinate of the simulation volume</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>xmax</p></td>
+<td><p>int</p></td>
+<td><p><em>x</em> of the right-back-top coordinate of the simulation volume</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>ymax</p></td>
+<td><p>int</p></td>
+<td><p><em>y</em> of the right-back-top coordinate of the simulation volume</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>zmax</p></td>
+<td><p>int</p></td>
+<td><p><em>z</em> of the right-back-top coordinate of the simulation volume</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>num_cycles</p></td>
+<td><p>int</p></td>
+<td><p>total number of cycles simulated</p></td>
+<td><p>at end</p></td>
+</tr>
+<tr class="row-odd"><td><p>num_procs</p></td>
+<td><p>int</p></td>
+<td><p>number of computing processes used to instantiate <code class="docutils literal notranslate"><span class="pre">Admin_agent</span></code></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>version</p></td>
+<td><p>real</p></td>
+<td><p>value representing the NeuroDevSim version number multiplied by
+100., used by many methods to check whether database can be read</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>run_time</p></td>
+<td><p>real</p></td>
+<td><p>run time of the simulation in seconds</p></td>
+<td><p>at end</p></td>
+</tr>
+<tr class="row-even"><td><p>importable</p></td>
+<td><p>int</p></td>
+<td><p>can database be read by <code class="docutils literal notranslate"><span class="pre">import_simulation</span></code> (1) or not (0)</p></td>
+<td><p>at end</p></td>
+</tr>
+<tr class="row-odd"><td><p>substrate</p></td>
+<td><p>int</p></td>
+<td><p>number of <em>substrate</em> tables present in the database (0 or 1)</p></td>
+<td><p>yes</p></td>
+</tr>
+<tr class="row-even"><td><p>migration</p></td>
+<td><p>int</p></td>
+<td><p>number of <em>migration</em> tables present in the database</p></td>
+<td><p>yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>synapses</p></td>
+<td><p>int</p></td>
+<td><p>number of <em>synapses</em> tables present in the database (0 or 1)</p></td>
+<td><p>yes</p></td>
+</tr>
+<tr class="row-even"><td><p>attributes</p></td>
+<td><p>int</p></td>
+<td><p>number of tables storing attributes present in the database</p></td>
+<td><p>yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>arcs</p></td>
+<td><p>int</p></td>
+<td><p>number of arc related tables present in the database (0 or 2)</p></td>
+<td><p>at end</p></td>
+</tr>
+</tbody>
+</table>
+<p>‘at end’ means that the column value is updated by <code class="docutils literal notranslate"><span class="pre">admin.destruction()</span></code>.</p>
+</div>
+<div class="section" id="neuron-types-table">
+<h3>neuron_types table<a class="headerlink" href="#neuron-types-table" title="Permalink to this headline">¶</a></h3>
+<p>This table contains a row for each <code class="docutils literal notranslate"><span class="pre">Front</span></code> subclass listed in <em>neuron_types</em> during instantiation of <a class="reference internal" href="simulator.html#admin-agent-label"><span class="std std-ref">Admin_agent class</span></a>.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 5%" />
+<col style="width: 71%" />
+<col style="width: 9%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column_name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Updated</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>type_id</p></td>
+<td><p>int</p></td>
+<td><p>index into shared arrays, is the neuron identifier in <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>neuron_type</p></td>
+<td><p>text</p></td>
+<td><p><em>class name</em> of <code class="docutils literal notranslate"><span class="pre">Front</span></code> subclass</p></td>
+<td><p>no</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="attributes-table">
+<h3>attributes table<a class="headerlink" href="#attributes-table" title="Permalink to this headline">¶</a></h3>
+<p>This table contains a row for each attribute that was stored using <code class="docutils literal notranslate"><span class="pre">admin.attrib_to_db</span></code>, it is updated by this method.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 5%" />
+<col style="width: 71%" />
+<col style="width: 9%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column_name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Updated</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>name</p></td>
+<td><p>text</p></td>
+<td><p><em>name</em> of the attribute table</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>type</p></td>
+<td><p>text</p></td>
+<td><p>SQLite type of the attribute</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>neuron_name</p></td>
+<td><p>text</p></td>
+<td><p><em>neuron_name</em> optional parameter of <code class="docutils literal notranslate"><span class="pre">admin.attrib_to_db</span></code></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>last_only</p></td>
+<td><p>int</p></td>
+<td><p><em>last_only</em> optional parameter of <code class="docutils literal notranslate"><span class="pre">admin.attrib_to_db</span></code></p></td>
+<td><p>no</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="attribute-data-tables">
+<h3>Attribute data tables<a class="headerlink" href="#attribute-data-tables" title="Permalink to this headline">¶</a></h3>
+<p>Several such tables may be present with names listed in the <em>attributes</em> table: the name of the attribute followed by <cite>_data</cite>. It contents depend on the SQLite type of the attribute.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 9%" />
+<col style="width: 64%" />
+<col style="width: 8%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column_name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Updated</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>neuron_id</p></td>
+<td><p>int</p></td>
+<td><p>identifies neuron, refers to <em>neuron_id</em> column in <em>neuron_data</em></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>front_id</p></td>
+<td><p>int</p></td>
+<td><p>identifies front if relevant (0 for <code class="docutils literal notranslate"><span class="pre">Neuron</span></code>), refers to
+<em>front_id</em> column in <em>front_data</em></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>cycle</p></td>
+<td><p>int</p></td>
+<td><p>simulation <em>cycle</em> for which data is stored</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>1, 2 or 3 columns:</em></p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>attribute name</p></td>
+<td><p>int</p></td>
+<td><p>integer value of a simple attribute</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>or</em></p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>attribute name</p></td>
+<td><p>real</p></td>
+<td><p>real value of a simple attribute</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>or</em></p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>attribute name</p></td>
+<td><p>text</p></td>
+<td><p>text value of a simple attribute</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>or</em></p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>attribute_ID_0</p></td>
+<td><p>int</p></td>
+<td><p><em>type_id</em> component of an <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>attribute_ID_1</p></td>
+<td><p>int</p></td>
+<td><p><em>front_id</em> component of an <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p><em>or</em></p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>attribute_x</p></td>
+<td><p>real</p></td>
+<td><p><em>x</em> value of a <code class="docutils literal notranslate"><span class="pre">Point</span></code></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>attribute_y</p></td>
+<td><p>real</p></td>
+<td><p><em>y</em> value of a <code class="docutils literal notranslate"><span class="pre">Point</span></code></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>attribute_z</p></td>
+<td><p>real</p></td>
+<td><p><em>z</em> value of a <code class="docutils literal notranslate"><span class="pre">Point</span></code></p></td>
+<td><p>no</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="database-from-a-crashed-simulation">
+<h3>Database from a crashed simulation<a class="headerlink" href="#database-from-a-crashed-simulation" title="Permalink to this headline">¶</a></h3>
+<p>The database of a crashed simulation will be intact but incomplete and never importable.</p>
+<p>All tables will have up to date information till the cycle before the crash, but none of the data marked as <strong>Updated</strong> <em>at end</em> in the table listings will have been updated. The easiest way to identify a database as being from a crashed simulation is to check the <em>num_cycles</em> column in the <em>neurodevsim</em> table: it will be 0 (except after <cite>import_simulation</cite>, then it will be final cycle of the imported database). The number of cycles stored can be determined by the <em>birth</em> of the last fronts stored in the <em>front_data</em> table.</p>
+</div>
+</div>
+<div class="section" id="storing-additional-attributes">
+<span id="storage-label"></span><h2>Storing additional attributes<a class="headerlink" href="#storing-additional-attributes" title="Permalink to this headline">¶</a></h2>
+<p>It may be useful or necessary to store attributes that are not automatically stored by NeuroDevSim either because they need to be analyzed or plotted, or to prepare for <a class="reference internal" href="import.html#import-label"><span class="std std-ref">Importing a simulation</span></a>. These may either be user defined <a class="reference internal" href="subclassing.html#additional-label"><span class="std std-ref">Additional attributes</span></a> or attributes like <code class="docutils literal notranslate"><span class="pre">Neuron</span></code> <em>firing_rate</em> for which only the initial value is stored by default.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">admin.attrib_to_db</span></code> method supports such storing. <code class="docutils literal notranslate"><span class="pre">attrib_to_db</span></code> is called in the <em>main</em> part of the code, anytime after at least one instance of the <code class="docutils literal notranslate"><span class="pre">Front</span></code> subclass has been made, for example by <code class="docutils literal notranslate"><span class="pre">add_neurons</span></code>. This code sample causes <code class="docutils literal notranslate"><span class="pre">Front.num_children</span></code> to be stored for all instances of <code class="docutils literal notranslate"><span class="pre">SimpleNeuronFront</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="o">...</span>
+    <span class="n">neuron_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">SimpleNeuronFront</span><span class="p">,</span><span class="n">AxonFront</span><span class="p">]</span>
+    <span class="n">admin</span> <span class="o">=</span> <span class="n">Admin_agent</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+
+    <span class="n">admin</span><span class="o">.</span><span class="n">add_neurons</span><span class="p">(</span><span class="n">SimpleNeuronFront</span><span class="p">,</span><span class="s2">&quot;simple_neuron&quot;</span><span class="p">,</span><span class="mi">1</span><span class="p">,[[</span><span class="o">...</span><span class="p">],[</span><span class="o">...</span><span class="p">]],</span><span class="mf">30.</span><span class="p">)</span>
+
+    <span class="n">admin</span><span class="o">.</span><span class="n">attrib_to_db</span><span class="p">(</span><span class="n">SimpleNeuronFront</span><span class="p">,</span><span class="s2">&quot;num_children&quot;</span><span class="p">,</span><span class="s2">&quot;int&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">attrib_to_db</span></code> requires minimally 3 parameters: the <em>subclass of ``Front``</em> for which the attribute should be stored, the <em>name of the attribute</em> to be stored and a <em>sql_type</em>. The latter defines the format that should be used to store the parameter in the  database and should be one of the following:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 13%" />
+<col style="width: 30%" />
+<col style="width: 58%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>sql_type</p></th>
+<th class="head"><p>ctypes or class</p></th>
+<th class="head"><p>columns in the data table</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>int</p></td>
+<td><p>c_bool, c_short,
+c_int, c_long</p></td>
+<td><p>1 <em>int</em> column containing the value</p></td>
+</tr>
+<tr class="row-odd"><td><p>real</p></td>
+<td><p>c_double</p></td>
+<td><p>1 <em>real</em> column containing the value</p></td>
+</tr>
+<tr class="row-even"><td><p>text</p></td>
+<td><p>c_char</p></td>
+<td><p>1 <em>text</em> column containing the text</p></td>
+</tr>
+<tr class="row-odd"><td><p>id</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">id</span></code></p></td>
+<td><p>2 <em>int</em> columns containing both parts</p></td>
+</tr>
+<tr class="row-even"><td><p>point</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Point</span></code></p></td>
+<td><p>3 <em>real</em> columns containing <em>x</em>, <em>y</em>, <em>z</em></p></td>
+</tr>
+</tbody>
+</table>
+<p>An example of storing an additional attribute:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">SimpleNeuronFront</span><span class="p">(</span><span class="n">SynFront</span><span class="p">):</span>
+    <span class="n">_fields_</span> <span class="o">=</span> <span class="n">SynFront</span><span class="o">.</span><span class="n">_fields_</span> <span class="o">+</span> <span class="p">[(</span><span class="s1">&#39;signal&#39;</span><span class="p">,</span> <span class="n">c_double</span><span class="p">)]</span>
+<span class="o">...</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="o">...</span>
+    <span class="n">neuron_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">SimpleNeuronFront</span><span class="p">,</span><span class="n">AxonFront</span><span class="p">]</span>
+    <span class="n">admin</span> <span class="o">=</span> <span class="n">Admin_agent</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+
+    <span class="n">admin</span><span class="o">.</span><span class="n">add_neurons</span><span class="p">(</span><span class="n">SimpleNeuronFront</span><span class="p">,</span><span class="s2">&quot;integrate_neuron&quot;</span><span class="p">,</span><span class="mi">1</span><span class="p">,[[</span><span class="o">...</span><span class="p">],[</span><span class="o">...</span><span class="p">]],</span><span class="mf">30.</span><span class="p">)</span>
+
+    <span class="n">admin</span><span class="o">.</span><span class="n">attrib_to_db</span><span class="p">(</span><span class="n">SimpleNeuronFront</span><span class="p">,</span><span class="s2">&quot;signal&quot;</span><span class="p">,</span><span class="s2">&quot;real&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">attrib_to_db</span></code> will only store attributes that are not stored yet or that are not being updated. Trying to store an unchanging attribute that is always stored, like for example <code class="docutils literal notranslate"><span class="pre">Front.radius</span></code> or <code class="docutils literal notranslate"><span class="pre">Neuron.neuron_name</span></code> will cause an error.</p>
+<p>By default <code class="docutils literal notranslate"><span class="pre">attrib_to_db</span></code> assumes that the attribute to store belongs to <code class="docutils literal notranslate"><span class="pre">Front</span></code>, but for <code class="docutils literal notranslate"><span class="pre">Neuron</span></code> <em>firing_rate</em> and <em>CV_ISI</em> and for <code class="docutils literal notranslate"><span class="pre">Synapse</span></code> <em>weight</em> can be stored but the class needs to be specified in the <em>object</em> optional parameter:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">admin</span><span class="o">.</span><span class="n">attrib_to_db</span><span class="p">(</span><span class="n">AxonFront</span><span class="p">,</span><span class="s2">&quot;firing_rate&quot;</span><span class="p">,</span><span class="s2">&quot;real&quot;</span><span class="p">,</span><span class="nb">object</span><span class="o">=</span><span class="n">Neuron</span><span class="p">)</span>
+<span class="n">admin</span><span class="o">.</span><span class="n">attrib_to_db</span><span class="p">(</span><span class="n">SimpleNeuronFront</span><span class="p">,</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span><span class="s2">&quot;real&quot;</span><span class="p">,</span><span class="nb">object</span><span class="o">=</span><span class="n">Synapse</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If multiple attributes from the same <code class="docutils literal notranslate"><span class="pre">Front</span></code> subclass or object are to be stored they can be specified as a list:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">admin</span><span class="o">.</span><span class="n">attrib_to_db</span><span class="p">(</span><span class="n">AxonFront</span><span class="p">,[</span><span class="s2">&quot;firing_rate&quot;</span><span class="p">,</span><span class="s2">&quot;CV_ISI&quot;</span><span class="p">],[</span><span class="s2">&quot;real&quot;</span><span class="p">,</span><span class="s2">&quot;real&quot;</span><span class="p">],</span><span class="nb">object</span><span class="o">=</span><span class="n">Neuron</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that <em>sql_type</em> then also becomes a list, because not all attributes may have the same type. It is not possible to combine attributes from different <em>object</em> types in a list.</p>
+<p>Another optional parameter controls how often the attribute is saved. By default it is saved for every cycle after the <code class="docutils literal notranslate"><span class="pre">attrib_to_db</span></code> call, but this may not be necessary. If the attribute is stored to prepare for <a class="reference internal" href="import.html#import-label"><span class="std std-ref">Importing a simulation</span></a> then only its final value is needed. This can be achieved by setting the <em>last_only</em> optional parameter to <em>True</em>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="o">...</span>
+    <span class="n">neuron_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">SimpleNeuronFront</span><span class="p">,</span><span class="n">AxonFront</span><span class="p">]</span>
+    <span class="n">admin</span> <span class="o">=</span> <span class="n">Admin_agent</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+    <span class="n">admin</span><span class="o">.</span><span class="n">importable_db</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">admin</span><span class="o">.</span><span class="n">add_neurons</span><span class="p">(</span><span class="n">AxonFront</span><span class="p">,</span><span class="s2">&quot;axon&quot;</span><span class="p">,</span><span class="mi">10</span><span class="p">,[[</span><span class="o">...</span><span class="p">],[</span><span class="o">...</span><span class="p">]],</span><span class="mf">1.</span><span class="p">,</span><span class="n">axon</span><span class="o">=</span><span class="p">[</span><span class="o">...</span><span class="p">])</span>
+
+    <span class="n">admin</span><span class="o">.</span><span class="n">attrib_to_db</span><span class="p">(</span><span class="n">AxonFront</span><span class="p">,</span><span class="s2">&quot;goalID&quot;</span><span class="p">,</span><span class="s2">&quot;id&quot;</span><span class="p">,</span><span class="n">last_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><em>goaldID</em> will now only be stored for the last cycle of the simulation.</p>
+<p>The last optional parameter of <code class="docutils literal notranslate"><span class="pre">attrib_to_db</span></code> controls for which neurons data will be stored. The <em>neuron_name</em> optional parameter will limit storage to data belonging to neurons with this name (<em>neuron_name</em> is a wildcard).</p>
+<p>Several use cases of <code class="docutils literal notranslate"><span class="pre">attrib_to_db</span></code> are shown in the <a class="reference internal" href="examples.html#databasenote-label"><span class="std std-ref">Database notebook</span></a>, this also includes analysis and plotting of stored data. An <a class="reference internal" href="import.html#import-label"><span class="std std-ref">Importing a simulation</span></a> use case is shown in the <a class="reference internal" href="examples.html#importnote-label"><span class="std std-ref">Import notebook</span></a>.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Advanced Tutorial</a><ul>
+<li><a class="reference internal" href="#subclassing-front">Subclassing <code class="docutils literal notranslate"><span class="pre">Front</span></code></a><ul>
+<li><a class="reference internal" href="#additional-attributes">Additional attributes</a></li>
+<li><a class="reference internal" href="#attribute-initialization">Attribute initialization</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#front-status-flags"><code class="docutils literal notranslate"><span class="pre">Front</span></code> status flags</a><ul>
+<li><a class="reference internal" href="#status-flags-scheduling-manage-front">Status flags scheduling <code class="docutils literal notranslate"><span class="pre">manage_front</span></code></a></li>
+<li><a class="reference internal" href="#read-only-status-flags">Read-only status flags</a></li>
+<li><a class="reference internal" href="#user-availabe-status-flags">User availabe status flags</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#importing-a-simulation">Importing a simulation</a></li>
+<li><a class="reference internal" href="#interactive-mode">Interactive mode</a><ul>
+<li><a class="reference internal" href="#basic-interactive-simulation">Basic interactive simulation</a></li>
+<li><a class="reference internal" href="#interactive-model-debugging">Interactive model debugging</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#understanding-the-database">Understanding the database</a><ul>
+<li><a class="reference internal" href="#database-tables">Database tables</a></li>
+<li><a class="reference internal" href="#reading-the-database">Reading the database</a></li>
+<li><a class="reference internal" href="#neuron-data-table">neuron_data table:</a></li>
+<li><a class="reference internal" href="#front-data-table">front_data table:</a></li>
+<li><a class="reference internal" href="#synapse-data-table">synapse_data table:</a></li>
+<li><a class="reference internal" href="#substrate-data-table">substrate_data table:</a></li>
+<li><a class="reference internal" href="#migration-data-table">migration_data table:</a></li>
+<li><a class="reference internal" href="#neurodevsim-table">neurodevsim table</a></li>
+<li><a class="reference internal" href="#neuron-types-table">neuron_types table</a></li>
+<li><a class="reference internal" href="#attributes-table">attributes table</a></li>
+<li><a class="reference internal" href="#attribute-data-tables">Attribute data tables</a></li>
+<li><a class="reference internal" href="#database-from-a-crashed-simulation">Database from a crashed simulation</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#storing-additional-attributes">Storing additional attributes</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="basic.html"
+                          title="previous chapter">Basic Tutorial</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="examples.html"
+                          title="next chapter">Examples</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/advanced.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="examples.html" title="Examples"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="basic.html" title="Basic Tutorial"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Advanced Tutorial</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-2022, OIST.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+  </body>
+</html>

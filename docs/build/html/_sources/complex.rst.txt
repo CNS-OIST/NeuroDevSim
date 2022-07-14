@@ -1,0 +1,3 @@
+A more complex model
+********************
+We will expand the *RandomFront* model introduced in the  *Getting started* section to...
