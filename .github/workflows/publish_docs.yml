@@ -1,0 +1,22 @@
+name: Publish docs
+
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v2
+
+      - name: Add .nojekyll file
+        run: touch docs/build/html/.nojekyll
+
+      - name: Publish current workdir (which contains generated content) to GitHub Pages
+        uses: rayluo/github-pages-overwriter@v1.2
+        with:
+          source-directory: docs/build/html
+          target-branch: gh_pages

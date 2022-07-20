@@ -56,3 +56,11 @@ html_theme = 'classic'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+# Discard unwanted members
+def autodoc_skip_member(app, what, name, obj, skip, options):
+    return skip or obj.__class__.__qualname__ == 'CField'
+
+# Setup app
+def setup(app):
+    app.connect('autodoc-skip-member', autodoc_skip_member)
