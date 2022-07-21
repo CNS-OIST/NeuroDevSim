@@ -8,7 +8,7 @@ NeuroDevSim
 - **Microcircuits**: neurons are generated together in a simulated volume. With the addition of connections rules and synapses circuits emerge.  
 - **Interactions**: growth can be influenced by environmental cues. Most obvious is guidance through repulsion or attraction by other neurons or chemical cues. Existing structures can block growth: physical overlap between structures is not allowed.  
 
-Access the **Documentation** as <http:docs/build/html/index.html>
+Access the **Documentation** at https://cns-oist.github.io/NeuroDevSim/index.html or locally as <http:docs/build/html/index.html>
 
 At present no publication is available that describes NeuroDevSim. If you use this software, for the time being, please cite its predecessor NeuroMac:  Torben-Nielsen, B. & De Schutter, E. (2014) Context-aware modeling of neuronal morphologies. *Frontiers in Neuroanatomy* 8: 92.
 
