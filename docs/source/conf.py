@@ -12,7 +12,6 @@
 #
 import os
 import sys
-#sys.path.append('/Users/erik/Documents/NeuroDevSim/NeuroDevSim/neurodevsim')
 sys.path.insert(0, os.path.abspath('../../neurodevsim'))
 
 
