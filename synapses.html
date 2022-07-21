@@ -1,0 +1,156 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Synapses &#8212; NeuroDevSim 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Synapses</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="synapses">
+<span id="synapses-label"></span><h1>Synapses<a class="headerlink" href="#synapses" title="Permalink to this headline">¶</a></h1>
+<p>Growth based synapses are possible when fronts are derived from the <a class="reference internal" href="simulator.html#synfront-label"><span class="std std-ref">SynFront subclass</span></a>. A <code class="docutils literal notranslate"><span class="pre">Synapse</span></code> can be purely structural but can also be used as an input signal. The use of synapses is extensively demonstrated in the  <a class="reference internal" href="examples.html#synapsenote-label"><span class="std std-ref">Synapses notebook</span></a>.</p>
+<div class="section" id="making-synapses">
+<h2>Making synapses<a class="headerlink" href="#making-synapses" title="Permalink to this headline">¶</a></h2>
+<p>A synapse can be made between any two non-migrating fronts that are not more than 5 µm apart. In making the synapse the user defines which front is presynaptic, the other is postsynaptic. At present, there can be only one synapse per front.</p>
+<p>To make a synapse use the <code class="docutils literal notranslate"><span class="pre">SynFront.add_synapse</span></code> method with a known <em>other_front</em>. The weight determines whether it is excitatory (positive float) or inhibitory (negative float):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="c1"># make excitatory synapse from presynaptic asynfront1 to postsynaptic other_front1</span>
+    <span class="n">asynfront1</span><span class="o">.</span><span class="n">add_synapse</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">other_front1</span><span class="p">,</span><span class="mf">1.</span><span class="p">)</span>
+    <span class="c1"># make inhibitory synapse from postsynaptic asynfront2 to presynaptic other_front2</span>
+    <span class="n">asynfront2</span><span class="o">.</span><span class="n">add_synapse</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">other_front2</span><span class="p">,</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span><span class="n">presynaptic</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>The presence of a synapse can be detected with the <code class="docutils literal notranslate"><span class="pre">self.has_synapse()</span></code> method and its properties by <code class="docutils literal notranslate"><span class="pre">self.get_synapse(constellation)</span></code>, <code class="docutils literal notranslate"><span class="pre">self.is_presynaptic(constellation)</span></code> or <code class="docutils literal notranslate"><span class="pre">self.is_postsynaptic(constellation)</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_synapse</span><span class="p">():</span>
+        <span class="n">synapse</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_synapse</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_presynaptic</span><span class="p">():</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;is presynaptic to&quot;</span><span class="p">,</span><span class="n">constellation</span><span class="o">.</span><span class="n">front_by_id</span><span class="p">(</span><span class="n">synapse</span><span class="o">.</span><span class="n">post_syn</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;has postsynaptic to&quot;</span><span class="p">,</span><span class="n">constellation</span><span class="o">.</span><span class="n">front_by_id</span><span class="p">(</span><span class="n">synapse</span><span class="o">.</span><span class="n">pre_syn</span><span class="p">))</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>Note that synapses store the identity of the presynaptic (<em>pre_syn</em> attribute) and postsynaptic (<em>pos_syn</em> attribute) fronts as <code class="docutils literal notranslate"><span class="pre">ID</span></code>.</p>
+</div>
+<div class="section" id="using-syn-input">
+<span id="syn-input-label"></span><h2>Using <em>syn_input</em><a class="headerlink" href="#using-syn-input" title="Permalink to this headline">¶</a></h2>
+<p>Each postsynaptic <code class="docutils literal notranslate"><span class="pre">SynFront</span></code> will update its its <em>syn_input</em> before the start of each cycle and this can be used as an input signal  in <code class="docutils literal notranslate"><span class="pre">manage_front</span></code>. Note that the synaptic input is an average over the entire previous cycle.</p>
+<p>The sign of <em>syn_input</em> is determined by whether the synapse is excitatory (positive <em>weight</em>) or inhibitory (negative <em>weight</em>):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_synapse</span><span class="p">():</span>
+        <span class="n">synapse</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_synapse</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">synapse</span><span class="o">.</span><span class="n">weight</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;has an excitatory synapse&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">synapse</span><span class="o">.</span><span class="n">weight</span> <span class="o">&lt;</span> <span class="mf">0.</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;has an inhibitory synapse&quot;</span><span class="p">)</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>The value of <em>syn_input</em> combines presynaptic properties, <em>firing_rate</em> and <em>CV_ISI</em>, with synaptic <em>weight</em>. In the absence of stochasticity (<code class="docutils literal notranslate"><span class="pre">CV_ISI</span> <span class="pre">==</span> <span class="pre">0.</span></code>) it reflects an average over time: <code class="docutils literal notranslate"><span class="pre">syn_input</span> <span class="pre">=</span> <span class="pre">firing_rate</span> <span class="pre">*</span> <span class="pre">weight</span></code>. If <code class="docutils literal notranslate"><span class="pre">CV_ISI</span> <span class="pre">&gt;</span> <span class="pre">0.</span></code> <em>syn_input</em> is stochastic and drawn from a normal distribution with mean <em>syn_input</em> computed as shown before. The presynaptic <em>firing_rate</em> and <em>CV_ISI</em> are set for the <a class="reference internal" href="neurons.html#neurons-label"><span class="std std-ref">Neurons</span></a>.</p>
+<p>The weight of the synapse can be changed to simulate synaptic plasticity:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_postsynaptic</span><span class="p">():</span>
+        <span class="n">synapse</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_synapse</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+        <span class="n">synapse</span><span class="o">.</span><span class="n">set_weight</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="mf">5.</span><span class="p">)</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>By correlating presynaptic firing rate with postsynaptic responses correlation based synaptic plasticity rules can be implemented. Note, however, that these operate on a slow developmental time scale, it is not possible to simulate <a class="reference external" href="https://en.wikipedia.org/wiki/Spike-timing-dependent_plasticity">spike-timing dependent plasticity</a> in NeuroDevSim!</p>
+<p>Note that only the initial value of <em>weight</em> is automatically stored in the database, to store updated values of <em>weight</em> <code class="docutils literal notranslate"><span class="pre">admin.attrib_to_db</span></code> should be used as described in <a class="reference internal" href="storage.html#storage-label"><span class="std std-ref">Storing additional attributes</span></a>. Similarly, <code class="docutils literal notranslate"><span class="pre">admin.attrib_to_db</span></code> can be used to store <em>syn_input</em> values.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Synapses</a><ul>
+<li><a class="reference internal" href="#making-synapses">Making synapses</a></li>
+<li><a class="reference internal" href="#using-syn-input">Using <em>syn_input</em></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/synapses.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Synapses</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-2022, OIST.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+  </body>
+</html>

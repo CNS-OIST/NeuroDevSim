@@ -1,0 +1,130 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Efficient tricks &#8212; NeuroDevSim 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Efficient tricks</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="efficient-tricks">
+<h1>Efficient tricks<a class="headerlink" href="#efficient-tricks" title="Permalink to this headline">¶</a></h1>
+<p>This section contains some tricks that did not fit in other parts of the documentation.</p>
+<div class="section" id="fronts-belonging-to-same-neuron">
+<h2>Fronts belonging to same neuron<a class="headerlink" href="#fronts-belonging-to-same-neuron" title="Permalink to this headline">¶</a></h2>
+<p>The fastest way to check whether two fronts belong to the same neuron is to use the <code class="docutils literal notranslate"><span class="pre">get_soma</span></code> method on both and compare the results:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">soma1</span> <span class="o">=</span> <span class="n">front1</span><span class="o">.</span><span class="n">get_soma</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+    <span class="n">soma2</span> <span class="o">=</span> <span class="n">front2</span><span class="o">.</span><span class="n">get_soma</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">soma1</span> <span class="o">==</span> <span class="n">soma2</span><span class="p">:</span> <span class="c1"># same neuron</span>
+        <span class="o">...</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c1"># different neuron</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p>The soma <code class="docutils literal notranslate"><span class="pre">ID</span></code>, call <code class="docutils literal notranslate"><span class="pre">get_soma(constellation,returnID=True)</span></code>, is the best attribute to store if one needs to store information about another neuron.</p>
+<p>To check neuron identity the <code class="docutils literal notranslate"><span class="pre">get_neuron</span></code> method should be used, to check neuron type use <code class="docutils literal notranslate"><span class="pre">get_neuron_type</span></code>.</p>
+</div>
+<div class="section" id="has-a-front-grown">
+<h2>Has a front grown?<a class="headerlink" href="#has-a-front-grown" title="Permalink to this headline">¶</a></h2>
+<p>There is no status flag similar to <code class="docutils literal notranslate"><span class="pre">Front.has_moved()</span></code> or <code class="docutils literal notranslate"><span class="pre">Front.has_migrated()</span></code> to check for growth because this can be achieved using the <em>num_children</em> attribute:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_children</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># self has grown</span>
+        <span class="o">...</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c1"># self has not grown</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p><em>num_children</em> is always up to date and can be accessed much faster than the result of <code class="docutils literal notranslate"><span class="pre">Front.get_children(constellation)</span></code>.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Efficient tricks</a><ul>
+<li><a class="reference internal" href="#fronts-belonging-to-same-neuron">Fronts belonging to same neuron</a></li>
+<li><a class="reference internal" href="#has-a-front-grown">Has a front grown?</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/tricks.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Efficient tricks</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-2022, OIST.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+  </body>
+</html>

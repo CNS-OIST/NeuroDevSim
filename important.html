@@ -1,0 +1,224 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Important dos and don’ts &#8212; NeuroDevSim 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Important dos and don’ts</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="important-dos-and-don-ts">
+<span id="dos-donts-label"></span><h1>Important dos and don’ts<a class="headerlink" href="#important-dos-and-don-ts" title="Permalink to this headline">¶</a></h1>
+<p>NeuroDevSim is fast thanks to two Python libraries: <em>multiprocessing</em> and its <em>sharedctypes</em>. The first supports parallel processing on a multicore computer and the second allows sharing of memory between the cores. Unfortunately the use of these methods imposes rules on how a NeuroDevSim model is coded.</p>
+<p>In general, fundamental model components of NeuroDevSim, <code class="docutils literal notranslate"><span class="pre">Front</span></code> and <code class="docutils literal notranslate"><span class="pre">Substrate</span></code>, act more like C language structures than like Python objects. Specifically:</p>
+<div class="section" id="no-instance-attributes">
+<h2>No instance attributes<a class="headerlink" href="#no-instance-attributes" title="Permalink to this headline">¶</a></h2>
+<p>The size of a <code class="docutils literal notranslate"><span class="pre">Front</span></code> and its subclasses is predefined and cannot be changed, consequently it is not possible to declare new attributes for specific instances inside methods. For example the following code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyFront</span><span class="p">(</span><span class="n">Front</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constellation</span><span class="p">):</span>
+        <span class="o">...</span>
+        <span class="c1"># do not do this</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">foo</span> <span class="o">=</span> <span class="mi">25</span>
+        <span class="c1"># but this is fine, though usable only within the scope of the current manage_front call</span>
+        <span class="n">foo</span> <span class="o">=</span> <span class="mi">25</span>
+</pre></div>
+</div>
+<p>will not result in a new attribute <em>foo</em> being stored in the <code class="docutils literal notranslate"><span class="pre">Front</span></code>. This code will not generate an error, but any attempt to access <em>self.foo</em> in subsequent <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> calls will generate a “‘Front’ object has no attribute ‘foo’” error.</p>
+</div>
+<div class="section" id="user-defined-attributes">
+<h2>User-defined attributes<a class="headerlink" href="#user-defined-attributes" title="Permalink to this headline">¶</a></h2>
+<p>Additional attributes can be declared in the <code class="docutils literal notranslate"><span class="pre">Front</span></code> subclass definition but special syntax is required:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyFront</span><span class="p">(</span><span class="n">Front</span><span class="p">):</span>
+    <span class="n">_fields_</span> <span class="o">=</span> <span class="n">Front</span><span class="o">.</span><span class="n">_fields_</span> <span class="o">+</span> <span class="p">[(</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="n">c_int</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constellation</span><span class="p">):</span>
+        <span class="o">...</span>
+        <span class="c1"># now it is safe to do this</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">foo</span> <span class="o">=</span> <span class="mi">25</span>
+</pre></div>
+</div>
+<p>Note that <em>foo</em> will be present in <strong>all</strong> instances of <em>MyFront</em>, as mentioned in the previous subsection it is not possible to have instance specific attributes. Only fixed size attributes can be declared, lists, dictionaries or strings are not possible. It is not advised to store other <code class="docutils literal notranslate"><span class="pre">Front</span></code> as an attribute, instead store its <code class="docutils literal notranslate"><span class="pre">ID</span></code> as the attribute.</p>
+<p>Defining additional attributes is explained in more detail in <a class="reference internal" href="subclassing.html#subclassing-label"><span class="std std-ref">Subclassing Front</span></a>.</p>
+</div>
+<div class="section" id="do-not-instantiate-front-or-synapse">
+<h2>Do not instantiate <code class="docutils literal notranslate"><span class="pre">Front</span></code> or <code class="docutils literal notranslate"><span class="pre">Synapse</span></code><a class="headerlink" href="#do-not-instantiate-front-or-synapse" title="Permalink to this headline">¶</a></h2>
+<p>While it is possible to instantiate <code class="docutils literal notranslate"><span class="pre">Front</span></code> or <code class="docutils literal notranslate"><span class="pre">Synapse</span></code>, those objects cannot interact with existing <code class="docutils literal notranslate"><span class="pre">Front</span></code> and they cannot be stored in the shared arrays, they will disappear after the <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> call is completed. Use the <code class="docutils literal notranslate"><span class="pre">Admin_agent.add_neurons</span></code>, <code class="docutils literal notranslate"><span class="pre">Front.add_child</span></code> or <code class="docutils literal notranslate"><span class="pre">Front.add_branch</span></code> methods to instantiate <code class="docutils literal notranslate"><span class="pre">Front</span></code>. See <a class="reference internal" href="synapses.html#synapses-label"><span class="std std-ref">Synapses</span></a> about the use of <code class="docutils literal notranslate"><span class="pre">add_synapse</span></code>.</p>
+</div>
+<div class="section" id="changing-attributes-of-front-or-substrate">
+<span id="attributes-label"></span><h2>Changing attributes of <code class="docutils literal notranslate"><span class="pre">Front</span></code> or <code class="docutils literal notranslate"><span class="pre">Substrate</span></code><a class="headerlink" href="#changing-attributes-of-front-or-substrate" title="Permalink to this headline">¶</a></h2>
+<p>The public predefined attributes of <code class="docutils literal notranslate"><span class="pre">Front</span></code> and <code class="docutils literal notranslate"><span class="pre">Substrate</span></code> are read-only. Their value is set when a new front or substrate is created and should not be changed. Doing so has unpredictable consequences, most likely the change will be ignored but it may also crash the simulation.</p>
+<p>User-defined attributes can be used freely for <em>self</em>. Changing such attributes for a target <code class="docutils literal notranslate"><span class="pre">Front</span></code> or <code class="docutils literal notranslate"><span class="pre">Substrate</span></code> other than <em>self</em> is risky but sometimes a useful short-cut. The challenge is to ensure that:</p>
+<ul class="simple">
+<li><p>there is no competition among different fronts that are trying to change the same attribute in a target front during the same cycle.</p></li>
+<li><p>have code that is robust to the unpredictable timing of the change: there is no way to control whether in the <em>cycle</em> of the change the target front will call its <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> method before or after the change was made.</p></li>
+</ul>
+<p>There are two approaches possible to dealing with the first challenge:</p>
+<ul class="simple">
+<li><p>unique pair-wise relation: avoid possible competition by making sure that only one front can make the change and that the target front does not use this attribute itself in the relevant time frame. This is the most robust approach if possible. An example can be found in the <a class="reference internal" href="examples.html#migrationnote-label"><span class="std std-ref">Migration notebook</span></a>: the growing tip of the filipod in Filipod migration uses <code class="docutils literal notranslate"><span class="pre">soma.set_status1()</span></code> to set the <em>status1</em> flag in the soma.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">constellation.lock(target)</span></code> the target front before changing the attribute. This approach is guaranteed safe if several fronts can make the change. Unfortunately, if several fronts try to do this during the same cycle it is easy to trigger a lock competition causing a <code class="docutils literal notranslate"><span class="pre">LockError</span></code>. Therefore this approach is not robust in many simulation contexts.</p></li>
+</ul>
+<p>An example of using <code class="docutils literal notranslate"><span class="pre">constellation.lock</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyFront</span><span class="p">(</span><span class="n">Front</span><span class="p">):</span>
+    <span class="n">_fields_</span> <span class="o">=</span> <span class="n">Front</span><span class="o">.</span><span class="n">_fields_</span> <span class="o">+</span> <span class="p">[(</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="n">c_int</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constellation</span><span class="p">):</span>
+        <span class="o">...</span>
+        <span class="c1"># code called by a front that is not the soma</span>
+        <span class="n">soma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_soma</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">constellation</span><span class="o">.</span><span class="n">lock</span><span class="p">(</span><span class="n">soma</span><span class="p">):</span> <span class="c1"># lock soma before changing its attribute</span>
+            <span class="n">soma</span><span class="o">.</span><span class="n">foo</span> <span class="o">=</span> <span class="mi">25</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">constellation</span><span class="o">.</span><span class="n">unlock</span><span class="p">(</span><span class="n">soma</span><span class="p">)</span>  <span class="c1"># and unlock it again</span>
+</pre></div>
+</div>
+<p>If two processes compete for access, one will need to wait till the lock of the other one is released. Therefore, it is important to <code class="docutils literal notranslate"><span class="pre">unlock</span></code> as soon as possible to avoid a <code class="docutils literal notranslate"><span class="pre">LockError</span></code>. Every front is locked automatically during its <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> call.</p>
+</div>
+<div class="section" id="no-direct-access-to-shared-arrays">
+<h2>No direct access to shared arrays<a class="headerlink" href="#no-direct-access-to-shared-arrays" title="Permalink to this headline">¶</a></h2>
+<p>The underlying shared memory structure is quite complex to be able to deal with issues like different sized <code class="docutils literal notranslate"><span class="pre">Front</span></code> (due to additional attributes) and variable sized data structures (like the children of a <code class="docutils literal notranslate"><span class="pre">Front</span></code>). Therefore direct user access is strongly discouraged, instead many access methods are provided. Most important:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Access other fronts by their ID</span>
+<span class="n">fid</span> <span class="o">=</span> <span class="n">a_front</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="c1"># obtain a front ID</span>
+<span class="o">...</span>
+<span class="n">a_front</span> <span class="o">=</span> <span class="n">constellation</span><span class="o">.</span><span class="n">front_by_id</span><span class="p">(</span><span class="n">fid</span><span class="p">)</span> <span class="c1"># get the front back in another context</span>
+
+<span class="c1"># Access substrate by their ID</span>
+<span class="n">sid</span> <span class="o">=</span> <span class="n">a_sub</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="c1"># obtain a substrate ID</span>
+<span class="o">...</span>
+<span class="n">a_sub</span> <span class="o">=</span> <span class="n">substrate_by_id</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span> <span class="c1"># get the substrate back in another context</span>
+
+<span class="c1"># Get the parent front</span>
+<span class="n">parent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parent</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+<span class="c1">#   or its ID</span>
+<span class="n">parent_ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parent</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">returnID</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1">#   or check whether a front is the parent</span>
+<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_child</span><span class="p">(</span><span class="n">parent</span><span class="p">):</span> <span class="c1"># True if self is a child of parent</span>
+    <span class="o">...</span>
+
+<span class="c1"># Get the child fronts as a list</span>
+<span class="n">children</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_children</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+<span class="n">always_True</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">children</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_children</span>
+<span class="c1">#   or get them as a list of IDs</span>
+<span class="n">child_IDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_children</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">returnID</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1">#   or check whether it is a child</span>
+<span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">children</span><span class="p">:</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_parent</span><span class="p">(</span><span class="n">child</span><span class="p">):</span> <span class="c1"># True if self is parent of child</span>
+        <span class="o">...</span>
+
+<span class="c1"># Get the soma front</span>
+<span class="n">soma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_soma</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+<span class="c1">#   or its ID</span>
+<span class="n">soma_ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_soma</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">returnID</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Get all fronts belonging to a neuron</span>
+<span class="n">all_fronts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_neuron</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+<span class="c1">#   or as IDs</span>
+<span class="n">all_IDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_neuron</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span> <span class="n">returnID</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="names-are-not-strings">
+<h2>Names are not strings<a class="headerlink" href="#names-are-not-strings" title="Permalink to this headline">¶</a></h2>
+<p>Both the <em>neuron_name</em> and the optional <em>branch_name</em> are stored as fixed length character sequences. This has two consequences:</p>
+<ol class="arabic simple">
+<li><p>They have a fixed length of 40 or 20 characters, respectively. For the <em>neuron_name</em> 6 characters are reserved for the ‘_0_’, ‘_1_’,… numbering so the <em>neuron_name</em> parameter in the  <em>Admin_agent.add_neurons</em> method can only be 34 characters long, longer names cause an error.</p></li>
+<li><p>Reading them directly does not return a <code class="docutils literal notranslate"><span class="pre">string</span></code> but a sequence of <code class="docutils literal notranslate"><span class="pre">bytes</span></code>. Instead use methods that returns the proper <code class="docutils literal notranslate"><span class="pre">string</span></code> value: <code class="docutils literal notranslate"><span class="pre">self.get_neuron_name(constellation)</span></code> or <code class="docutils literal notranslate"><span class="pre">self.get_branch_name()</span></code>.</p></li>
+</ol>
+</div>
+<div class="section" id="predefined-array-sizes">
+<h2>Predefined array sizes<a class="headerlink" href="#predefined-array-sizes" title="Permalink to this headline">¶</a></h2>
+<p>All the shared memory consists of fixed size arrays. The default <em>Admin_agent</em> initialization allows for both small and medium size simulations, but for very large ones it may be necessary to increase some of the optional preset array sizes. This may have to be done by trial and error: NeuroDevSim will generate a <code class="docutils literal notranslate"><span class="pre">OverflowError</span></code> error if a preset array size is too small and the error message will instruct which <em>Admin_agent</em> initialization parameter needs to be increased. Incrementally increase this parameter value at <em>Admin_agent</em> initialization till the model runs without errors. See <a class="reference internal" href="simulator.html#simulator-label"><span class="std std-ref">simulator module</span></a> for a complete listing of <em>Admin_agent</em> optional initialization parameters.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Important dos and don’ts</a><ul>
+<li><a class="reference internal" href="#no-instance-attributes">No instance attributes</a></li>
+<li><a class="reference internal" href="#user-defined-attributes">User-defined attributes</a></li>
+<li><a class="reference internal" href="#do-not-instantiate-front-or-synapse">Do not instantiate <code class="docutils literal notranslate"><span class="pre">Front</span></code> or <code class="docutils literal notranslate"><span class="pre">Synapse</span></code></a></li>
+<li><a class="reference internal" href="#changing-attributes-of-front-or-substrate">Changing attributes of <code class="docutils literal notranslate"><span class="pre">Front</span></code> or <code class="docutils literal notranslate"><span class="pre">Substrate</span></code></a></li>
+<li><a class="reference internal" href="#no-direct-access-to-shared-arrays">No direct access to shared arrays</a></li>
+<li><a class="reference internal" href="#names-are-not-strings">Names are not strings</a></li>
+<li><a class="reference internal" href="#predefined-array-sizes">Predefined array sizes</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/important.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Important dos and don’ts</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-2022, OIST.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+  </body>
+</html>

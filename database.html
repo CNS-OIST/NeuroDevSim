@@ -1,0 +1,843 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Understanding the database &#8212; NeuroDevSim 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Understanding the database</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="understanding-the-database">
+<span id="database-label"></span><h1>Understanding the database<a class="headerlink" href="#understanding-the-database" title="Permalink to this headline">¶</a></h1>
+<p>All NeuroDevSim simulations are saved in a <a class="reference external" href="https://www.sqlite.org/index.html">SQLite database</a>. Many SQLite database browser apps are available to view the contents of the database, we like the <a class="reference external" href="https://sqlitebrowser.org/">DB Browser for SQLite</a>.</p>
+<p>NeuroDevSim comes with a set of methods in the <a class="reference internal" href="processing.html#processing-label"><span class="std std-ref">processing module</span></a> that print or plot database contents, so most users may never have to read this section of the manual. But understanding of the database structure is necessary to write specific analysis routines and may also be required to use the <a class="reference internal" href="interactive.html#interactive-label"><span class="std std-ref">Interactive mode</span></a> effectively.</p>
+<div class="section" id="database-tables">
+<h2>Database tables<a class="headerlink" href="#database-tables" title="Permalink to this headline">¶</a></h2>
+<p>Information is stored in different database tables. These tables are shown in order of relevance for the user below and important tables are discussed in more detail next. Optional tables are tables that are only made when relevant: either when the corresponding class is instantiated or when  <a class="reference internal" href="storage.html#storage-label"><span class="std std-ref">Storing additional attributes</span></a> has been used.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 10%" />
+<col style="width: 73%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Table name</p></th>
+<th class="head"><p>Optional</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>neuron_data</p></td>
+<td><p>no</p></td>
+<td><p>data for every <em>Neuron</em> in simulation, necessary for <em>front_data</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>front_data</p></td>
+<td><p>no</p></td>
+<td><p>data for every <em>Front</em> in simulation, needed for <em>synapse_data</em>, <em>migration_data1</em></p></td>
+</tr>
+<tr class="row-even"><td><p>synapse_data</p></td>
+<td><p>yes</p></td>
+<td><p>data for every <em>Synapse</em> in simulation</p></td>
+</tr>
+<tr class="row-odd"><td><p>substrate_data</p></td>
+<td><p>yes</p></td>
+<td><p>data for all <em>Substrate</em> in simulation</p></td>
+</tr>
+<tr class="row-even"><td><p>migration_data1</p></td>
+<td><p>yes</p></td>
+<td><p>coordinates of migrating somata, additional <em>migration_data2</em>,… may be present</p></td>
+</tr>
+<tr class="row-odd"><td><p>neurodevsim</p></td>
+<td><p>no</p></td>
+<td><p>basic information about simulation: volume, number cycles, software version,…</p></td>
+</tr>
+<tr class="row-even"><td><p>neuron_types</p></td>
+<td><p>no</p></td>
+<td><p>class names of each <em>neuron_type</em> in simulation</p></td>
+</tr>
+<tr class="row-odd"><td><p>attributes</p></td>
+<td><p>yes</p></td>
+<td><p>list of all tables storing additional attributes (tables not listed here)</p></td>
+</tr>
+<tr class="row-even"><td><p>arc_data</p></td>
+<td><p>yes</p></td>
+<td><p>technical table: data for all <em>Arcs</em>, only needed for <em>import_simulation</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>arc_points</p></td>
+<td><p>yes</p></td>
+<td><p>technical table: points for all <em>Arcs</em>, only needed for <em>import_simulation</em></p></td>
+</tr>
+<tr class="row-even"><td><p>mig_fronts_data</p></td>
+<td><p>yes</p></td>
+<td><p>technical table: order of migrating fronts, only needed for <em>import_simulation</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>sqlite_sequence</p></td>
+<td><p>no</p></td>
+<td><p>technical table: standard sqlite table listing all other tables and their length</p></td>
+</tr>
+</tbody>
+</table>
+<p>The contents of the database are updated at the end of each cycle. If a simulation crashes or is stopped, the database will be readable and contain correct information up till the last complete cycle. However, changing content in several tables is only updated at the end of the simulation by <code class="docutils literal notranslate"><span class="pre">Admin_agent.destruction</span></code>.</p>
+</div>
+<div class="section" id="reading-the-database">
+<h2>Reading the database<a class="headerlink" href="#reading-the-database" title="Permalink to this headline">¶</a></h2>
+<p>This subsection will be familiar to anybody who has previously written code to read from
+a <a class="reference external" href="https://www.sqlite.org/index.html">SQLite database</a>. One connects to the database using its filename <em>db_name</em> and creates a <em>cursor</em>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sqlite3</span>
+<span class="o">...</span>
+<span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">db_name</span><span class="p">)</span>
+<span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+<span class="n">conn</span><span class="o">.</span><span class="n">row_factory</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Row</span>
+</pre></div>
+</div>
+<p>The last statement is quite important because it allows to access content by the name of columns, which results in more readable and easier to manage code.</p>
+<p>Next one usually loads an entire table <em>this_table</em> and analyzes it row by row:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;select * from this_table&quot;</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+    <span class="n">item1</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;name_of_column2&#39;</span><span class="p">]</span>
+    <span class="n">item2</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;name_of_column3&#39;</span><span class="p">]</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>Each table has as first column an <em>id</em> created by SQLite itself, this <em>id</em> is not related to the simulation. The content of relevant tables is described briefly in the following subsections, but <em>id</em> will not be mentioned. To get started yourself, it maybe helpful to look at the code in <a class="reference internal" href="processing.html#processing-label"><span class="std std-ref">processing module</span></a>, for example the <code class="docutils literal notranslate"><span class="pre">nds_neuron</span></code> method is fairly easy to understand.</p>
+<p>NeuroDevSim writes new data to the database at the end of every cycle, so its information is complete up to the last completed cycle in case of a crash of the simulation. <strong>Type</strong> refers to SQLite data types, not NeuroDevSim data types. <strong>Updated</strong> refers to whether the value may be updated from its initial value when the object was created.</p>
+</div>
+<div class="section" id="neuron-data-table">
+<h2>neuron_data table:<a class="headerlink" href="#neuron-data-table" title="Permalink to this headline">¶</a></h2>
+<p>This table contains a row for each <code class="docutils literal notranslate"><span class="pre">Neuron</span></code> created and (a) new row(s) will be written to the database at the end of each <code class="docutils literal notranslate"><span class="pre">admin.add_neurons</span></code> call, it has the following columns:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 6%" />
+<col style="width: 70%" />
+<col style="width: 9%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column_name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Updated</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>neuron_id</p></td>
+<td><p>int</p></td>
+<td><p>unique to each neuron, is the neuron identifier in <code class="docutils literal notranslate"><span class="pre">DataID</span></code></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>type_id</p></td>
+<td><p>int</p></td>
+<td><p>identifies <em>neuron_type</em>, is the neuron identifier in <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>name</p></td>
+<td><p>text</p></td>
+<td><p>name of the neuron</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>firing_rate</p></td>
+<td><p>real</p></td>
+<td><p>initial <em>firing_rate</em> of neuron</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>CV_ISI</p></td>
+<td><p>real</p></td>
+<td><p>initial <em>CV_ISI</em> of neuron</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>num_fronts</p></td>
+<td><p>int</p></td>
+<td><p>final number of fronts in neuron</p></td>
+<td><p>at end</p></td>
+</tr>
+<tr class="row-even"><td><p>num_retracted</p></td>
+<td><p>int</p></td>
+<td><p>final number of retracted fronts in neuron</p></td>
+<td><p>at end</p></td>
+</tr>
+<tr class="row-odd"><td><p>num_synapses</p></td>
+<td><p>int</p></td>
+<td><p>final number of synapses in neuron</p></td>
+<td><p>at end</p></td>
+</tr>
+</tbody>
+</table>
+<p>‘at end’ means that the column value is updated by <code class="docutils literal notranslate"><span class="pre">admin.destruction()</span></code>.</p>
+</div>
+<div class="section" id="front-data-table">
+<h2>front_data table:<a class="headerlink" href="#front-data-table" title="Permalink to this headline">¶</a></h2>
+<p>This table contains a row for each <code class="docutils literal notranslate"><span class="pre">Front</span></code> created, with the following columns:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 5%" />
+<col style="width: 72%" />
+<col style="width: 7%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column_name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Updated</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>neuron_id</p></td>
+<td><p>int</p></td>
+<td><p>neuron the front belongs to, refers to similar column in <em>neuron_data</em></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>front_id</p></td>
+<td><p>int</p></td>
+<td><p>unique to each front of a specific <em>neuron_type</em>,
+front identifier in <code class="docutils literal notranslate"><span class="pre">DataID</span></code> and <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>branch</p></td>
+<td><p>text</p></td>
+<td><p>optional <em>branch_name</em> of front</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>swc_type</p></td>
+<td><p>int</p></td>
+<td><p><em>swc_type</em> of the front, see <a class="reference internal" href="swc.html#swc-label"><span class="std std-ref">SWC types used in NeuroDevSim</span></a></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>shape</p></td>
+<td><p>int</p></td>
+<td><p>indicates spherical (<em>shape</em> == 1) or cylindrical (<em>shape</em> == 2) front</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>orig_x</p></td>
+<td><p>real</p></td>
+<td><p><em>x</em> of the <em>orig</em> coordinate of the front, for a migrating soma this
+is its original  position</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>orig_y</p></td>
+<td><p>real</p></td>
+<td><p><em>y</em> of the <em>orig</em> coordinate of the front</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>orig_z</p></td>
+<td><p>real</p></td>
+<td><p><em>z</em> of the <em>orig</em> coordinate of the front</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>end_x</p></td>
+<td><p>real</p></td>
+<td><p><em>x</em> of the <em>end</em> coordinate of the front, for spherical fronts
+identical to their <em>orig</em></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>end_y</p></td>
+<td><p>real</p></td>
+<td><p><em>y</em> of the <em>end</em> coordinate of the front</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>end_z</p></td>
+<td><p>real</p></td>
+<td><p><em>z</em> of the <em>end</em> coordinate of the front</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>radius</p></td>
+<td><p>real</p></td>
+<td><p>front <em>radius</em></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>parent_id</p></td>
+<td><p>int</p></td>
+<td><p>the <em>front_id</em> of the parent front or -1 for the root of a neuron tree</p></td>
+<td><p>maybe</p></td>
+</tr>
+<tr class="row-odd"><td><p>b_order</p></td>
+<td><p>int</p></td>
+<td><p>branching <em>order</em> of the front, 0 at the root</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>path_len</p></td>
+<td><p>real</p></td>
+<td><p>cumulated <em>path_length</em> from soma till <em>end</em> of the front</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>birth</p></td>
+<td><p>int</p></td>
+<td><p><em>birth</em> of the front, cycle when the front was created</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>death</p></td>
+<td><p>int</p></td>
+<td><p><em>death</em>, -1 or if retracted cycle when the front was retracted</p></td>
+<td><p>maybe</p></td>
+</tr>
+<tr class="row-odd"><td><p>migration</p></td>
+<td><p>int</p></td>
+<td><p>column number in <em>migration_data</em> table for migrating soma, 0 if not
+migrating</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>flags</p></td>
+<td><p>int</p></td>
+<td><p><a class="reference internal" href="flags.html#flags-label"><span class="std std-ref">Front status flags</span></a></p></td>
+<td><p>maybe</p></td>
+</tr>
+</tbody>
+</table>
+<p>The <em>death</em> column value is updated at the end of the cycle of retraction, otherwise it stays -1. The <em>parent_id</em> (may have changed due to <a class="reference internal" href="migration.html#migration-label"><span class="std std-ref">Modeling soma migration</span></a>) and <em>flags</em> columns are updated at the end of simulation by <code class="docutils literal notranslate"><span class="pre">admin.destruction()</span></code> if <code class="docutils literal notranslate"><span class="pre">admin.importable_db</span> <span class="pre">==</span> <span class="pre">True</span></code>, otherwise they keep the original value.</p>
+<p>Note that <em>num_children</em> and the parent to child relation are not stored in the database. This information is implicit in the child to parent relation that is stored in the <em>parent_id</em> column.</p>
+</div>
+<div class="section" id="synapse-data-table">
+<h2>synapse_data table:<a class="headerlink" href="#synapse-data-table" title="Permalink to this headline">¶</a></h2>
+<p>This table contains a row for each <code class="docutils literal notranslate"><span class="pre">Synapse</span></code> created, with the following columns:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 6%" />
+<col style="width: 70%" />
+<col style="width: 9%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column_name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Updated</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>pre_neuron_id</p></td>
+<td><p>int</p></td>
+<td><p>identifies presynaptic neuron, refers to <em>neuron_id</em> in
+<em>neuron_data</em></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>pre_front_id</p></td>
+<td><p>int</p></td>
+<td><p>identifies presynaptic front, refers <em>front_id</em> in
+<em>front_data</em></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>post_neuron_id</p></td>
+<td><p>int</p></td>
+<td><p>identifies postsynaptic neuron, refers to <em>neuron_id</em> in
+<em>neuron_data</em></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>post_front_id</p></td>
+<td><p>int</p></td>
+<td><p>identifies postsynaptic front, refers <em>front_id</em> in
+<em>front_data</em></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>weight:</p></td>
+<td><p>real</p></td>
+<td><p>initial synaptic <em>weight</em></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>birth</p></td>
+<td><p>int</p></td>
+<td><p><em>birth</em> of the synapse, cycle when the synapse was created</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>death</p></td>
+<td><p>int</p></td>
+<td><p><em>death</em>, -1 or if removed cycle when synapse was removed</p></td>
+<td><p>maybe</p></td>
+</tr>
+</tbody>
+</table>
+<p>The <em>death</em> column value is updated at the end of the cycle of removal, otherwise it stays -1.</p>
+</div>
+<div class="section" id="substrate-data-table">
+<h2>substrate_data table:<a class="headerlink" href="#substrate-data-table" title="Permalink to this headline">¶</a></h2>
+<p>This table contains a row for each <code class="docutils literal notranslate"><span class="pre">Substrate</span></code> created, with the following columns:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 6%" />
+<col style="width: 70%" />
+<col style="width: 9%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column_name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Updated</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>name</p></td>
+<td><p>text</p></td>
+<td><p><em>name</em> of the substrate</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>x</p></td>
+<td><p>real</p></td>
+<td><p><em>x</em> of the <em>orig</em> coordinate of the substrate</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>y</p></td>
+<td><p>real</p></td>
+<td><p><em>y</em> of the <em>orig</em> coordinate of the substrate</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>z</p></td>
+<td><p>real</p></td>
+<td><p><em>z</em> of the <em>orig</em> coordinate of the substrate</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>amount</p></td>
+<td><p>real</p></td>
+<td><p><em>n_mol</em> of the substrate</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>rate</p></td>
+<td><p>real</p></td>
+<td><p><em>rate</em> of the substrate</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>diff_c</p></td>
+<td><p>real</p></td>
+<td><p><em>diff_c</em> of the substrate</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>birth</p></td>
+<td><p>int</p></td>
+<td><p><em>birth</em> of the substrate, cycle when the substrate was created</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>death</p></td>
+<td><p>int</p></td>
+<td><p><em>death</em> -1</p></td>
+<td><p>no</p></td>
+</tr>
+</tbody>
+</table>
+<p>At present <code class="docutils literal notranslate"><span class="pre">Substrate</span></code> cannot be removed.</p>
+</div>
+<div class="section" id="migration-data-table">
+<h2>migration_data table:<a class="headerlink" href="#migration-data-table" title="Permalink to this headline">¶</a></h2>
+<p>The database can contain several migration tables, numbered consecutively as <em>migration_data1</em>, <em>migration_data2</em>, <em>migration_data3</em>,… This is because the number of columns in a SQLite database table is limited, so if more than 600 somata migrated an extra <em>migration_data</em> table will be created.</p>
+<p>These tables contains a row for each cycle during which a migration event took place. Its first column is the cycle and then 3 columns for each migrating soma:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 6%" />
+<col style="width: 70%" />
+<col style="width: 9%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column_name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Updated</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>cycle</p></td>
+<td><p>int</p></td>
+<td><p>the cycle at which each soma migrated to these positions</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p><a href="#id2"><span class="problematic" id="id3">x_</span></a>…</p></td>
+<td><p>real</p></td>
+<td><p>for each front identified by the elements of <code class="docutils literal notranslate"><span class="pre">ID</span></code>, the
+x position of the coordinate it migrated to this cycle or
+<em>NULL</em> if it did not migrate during this cycle</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p><a href="#id4"><span class="problematic" id="id5">y_</span></a>…</p></td>
+<td><p>real</p></td>
+<td><p>same for the y position of the coordinate</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p><a href="#id6"><span class="problematic" id="id7">z_</span></a>…</p></td>
+<td><p>real</p></td>
+<td><p>same for the z position of the coordinate</p></td>
+<td><p>no</p></td>
+</tr>
+</tbody>
+</table>
+<p>If multiple <em>migration_data</em> table are present the <em>cycle</em> column of each table is unique.</p>
+</div>
+<div class="section" id="neurodevsim-table">
+<h2>neurodevsim table<a class="headerlink" href="#neurodevsim-table" title="Permalink to this headline">¶</a></h2>
+<p>This table contains only a single row with information about the simulation in the following columns:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 5%" />
+<col style="width: 71%" />
+<col style="width: 9%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column_name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Updated</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>xmin</p></td>
+<td><p>int</p></td>
+<td><p><em>x</em> of the left-front-bottom coordinate of the simulation volume</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>ymin</p></td>
+<td><p>int</p></td>
+<td><p><em>y</em> of the left-front-bottom coordinate of the simulation volume</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>zmin</p></td>
+<td><p>int</p></td>
+<td><p><em>z</em> of the left-front-bottom coordinate of the simulation volume</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>xmax</p></td>
+<td><p>int</p></td>
+<td><p><em>x</em> of the right-back-top coordinate of the simulation volume</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>ymax</p></td>
+<td><p>int</p></td>
+<td><p><em>y</em> of the right-back-top coordinate of the simulation volume</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>zmax</p></td>
+<td><p>int</p></td>
+<td><p><em>z</em> of the right-back-top coordinate of the simulation volume</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>num_cycles</p></td>
+<td><p>int</p></td>
+<td><p>total number of cycles simulated</p></td>
+<td><p>at end</p></td>
+</tr>
+<tr class="row-odd"><td><p>num_procs</p></td>
+<td><p>int</p></td>
+<td><p>number of computing processes used to instantiate <code class="docutils literal notranslate"><span class="pre">Admin_agent</span></code></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>version</p></td>
+<td><p>real</p></td>
+<td><p>value representing the NeuroDevSim version number multiplied by
+100., used by many methods to check whether database can be read</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>run_time</p></td>
+<td><p>real</p></td>
+<td><p>run time of the simulation in seconds</p></td>
+<td><p>at end</p></td>
+</tr>
+<tr class="row-even"><td><p>importable</p></td>
+<td><p>int</p></td>
+<td><p>can database be read by <code class="docutils literal notranslate"><span class="pre">import_simulation</span></code> (1) or not (0)</p></td>
+<td><p>at end</p></td>
+</tr>
+<tr class="row-odd"><td><p>substrate</p></td>
+<td><p>int</p></td>
+<td><p>number of <em>substrate</em> tables present in the database (0 or 1)</p></td>
+<td><p>yes</p></td>
+</tr>
+<tr class="row-even"><td><p>migration</p></td>
+<td><p>int</p></td>
+<td><p>number of <em>migration</em> tables present in the database</p></td>
+<td><p>yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>synapses</p></td>
+<td><p>int</p></td>
+<td><p>number of <em>synapses</em> tables present in the database (0 or 1)</p></td>
+<td><p>yes</p></td>
+</tr>
+<tr class="row-even"><td><p>attributes</p></td>
+<td><p>int</p></td>
+<td><p>number of tables storing attributes present in the database</p></td>
+<td><p>yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>arcs</p></td>
+<td><p>int</p></td>
+<td><p>number of arc related tables present in the database (0 or 2)</p></td>
+<td><p>at end</p></td>
+</tr>
+</tbody>
+</table>
+<p>‘at end’ means that the column value is updated by <code class="docutils literal notranslate"><span class="pre">admin.destruction()</span></code>.</p>
+</div>
+<div class="section" id="neuron-types-table">
+<h2>neuron_types table<a class="headerlink" href="#neuron-types-table" title="Permalink to this headline">¶</a></h2>
+<p>This table contains a row for each <code class="docutils literal notranslate"><span class="pre">Front</span></code> subclass listed in <em>neuron_types</em> during instantiation of <a class="reference internal" href="simulator.html#admin-agent-label"><span class="std std-ref">Admin_agent class</span></a>.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 5%" />
+<col style="width: 71%" />
+<col style="width: 9%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column_name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Updated</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>type_id</p></td>
+<td><p>int</p></td>
+<td><p>index into shared arrays, is the neuron identifier in <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>neuron_type</p></td>
+<td><p>text</p></td>
+<td><p><em>class name</em> of <code class="docutils literal notranslate"><span class="pre">Front</span></code> subclass</p></td>
+<td><p>no</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="attributes-table">
+<h2>attributes table<a class="headerlink" href="#attributes-table" title="Permalink to this headline">¶</a></h2>
+<p>This table contains a row for each attribute that was stored using <code class="docutils literal notranslate"><span class="pre">admin.attrib_to_db</span></code>, it is updated by this method.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 5%" />
+<col style="width: 71%" />
+<col style="width: 9%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column_name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Updated</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>name</p></td>
+<td><p>text</p></td>
+<td><p><em>name</em> of the attribute table</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>type</p></td>
+<td><p>text</p></td>
+<td><p>SQLite type of the attribute</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>neuron_name</p></td>
+<td><p>text</p></td>
+<td><p><em>neuron_name</em> optional parameter of <code class="docutils literal notranslate"><span class="pre">admin.attrib_to_db</span></code></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>last_only</p></td>
+<td><p>int</p></td>
+<td><p><em>last_only</em> optional parameter of <code class="docutils literal notranslate"><span class="pre">admin.attrib_to_db</span></code></p></td>
+<td><p>no</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="attribute-data-tables">
+<h2>Attribute data tables<a class="headerlink" href="#attribute-data-tables" title="Permalink to this headline">¶</a></h2>
+<p>Several such tables may be present with names listed in the <em>attributes</em> table: the name of the attribute followed by <cite>_data</cite>. It contents depend on the SQLite type of the attribute.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 9%" />
+<col style="width: 64%" />
+<col style="width: 8%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column_name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Updated</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>neuron_id</p></td>
+<td><p>int</p></td>
+<td><p>identifies neuron, refers to <em>neuron_id</em> column in <em>neuron_data</em></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>front_id</p></td>
+<td><p>int</p></td>
+<td><p>identifies front if relevant (0 for <code class="docutils literal notranslate"><span class="pre">Neuron</span></code>), refers to
+<em>front_id</em> column in <em>front_data</em></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>cycle</p></td>
+<td><p>int</p></td>
+<td><p>simulation <em>cycle</em> for which data is stored</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>1, 2 or 3 columns:</em></p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>attribute name</p></td>
+<td><p>int</p></td>
+<td><p>integer value of a simple attribute</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>or</em></p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>attribute name</p></td>
+<td><p>real</p></td>
+<td><p>real value of a simple attribute</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>or</em></p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>attribute name</p></td>
+<td><p>text</p></td>
+<td><p>text value of a simple attribute</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>or</em></p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>attribute_ID_0</p></td>
+<td><p>int</p></td>
+<td><p><em>type_id</em> component of an <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>attribute_ID_1</p></td>
+<td><p>int</p></td>
+<td><p><em>front_id</em> component of an <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p><em>or</em></p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>attribute_x</p></td>
+<td><p>real</p></td>
+<td><p><em>x</em> value of a <code class="docutils literal notranslate"><span class="pre">Point</span></code></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>attribute_y</p></td>
+<td><p>real</p></td>
+<td><p><em>y</em> value of a <code class="docutils literal notranslate"><span class="pre">Point</span></code></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p>attribute_z</p></td>
+<td><p>real</p></td>
+<td><p><em>z</em> value of a <code class="docutils literal notranslate"><span class="pre">Point</span></code></p></td>
+<td><p>no</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="database-from-a-crashed-simulation">
+<h2>Database from a crashed simulation<a class="headerlink" href="#database-from-a-crashed-simulation" title="Permalink to this headline">¶</a></h2>
+<p>The database of a crashed simulation will be intact but incomplete and never importable.</p>
+<p>All tables will have up to date information till the cycle before the crash, but none of the data marked as <strong>Updated</strong> <em>at end</em> in the table listings will have been updated. The easiest way to identify a database as being from a crashed simulation is to check the <em>num_cycles</em> column in the <em>neurodevsim</em> table: it will be 0 (except after <cite>import_simulation</cite>, then it will be final cycle of the imported database). The number of cycles stored can be determined by the <em>birth</em> of the last fronts stored in the <em>front_data</em> table.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Understanding the database</a><ul>
+<li><a class="reference internal" href="#database-tables">Database tables</a></li>
+<li><a class="reference internal" href="#reading-the-database">Reading the database</a></li>
+<li><a class="reference internal" href="#neuron-data-table">neuron_data table:</a></li>
+<li><a class="reference internal" href="#front-data-table">front_data table:</a></li>
+<li><a class="reference internal" href="#synapse-data-table">synapse_data table:</a></li>
+<li><a class="reference internal" href="#substrate-data-table">substrate_data table:</a></li>
+<li><a class="reference internal" href="#migration-data-table">migration_data table:</a></li>
+<li><a class="reference internal" href="#neurodevsim-table">neurodevsim table</a></li>
+<li><a class="reference internal" href="#neuron-types-table">neuron_types table</a></li>
+<li><a class="reference internal" href="#attributes-table">attributes table</a></li>
+<li><a class="reference internal" href="#attribute-data-tables">Attribute data tables</a></li>
+<li><a class="reference internal" href="#database-from-a-crashed-simulation">Database from a crashed simulation</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/database.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Understanding the database</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-2022, OIST.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+  </body>
+</html>

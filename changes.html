@@ -1,0 +1,212 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Changes compared to NeuroMaC &#8212; NeuroDevSim 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes compared to NeuroMaC</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="changes-compared-to-neuromac">
+<h1>Changes compared to NeuroMaC<a class="headerlink" href="#changes-compared-to-neuromac" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="major-conceptual-differences">
+<h2>Major conceptual differences<a class="headerlink" href="#major-conceptual-differences" title="Permalink to this headline">¶</a></h2>
+<p>Conceptually NeuroDevSim works like NeuroMaC, but there are extensive coding style  changes. The main differences are:</p>
+<ol class="arabic simple">
+<li><p>No subvolumes and no virtual subvolumes, instead a number of parallel processes are specified. Parallelism is based on shared memory instead of interprocess communication, resulting in much faster code (80x faster for motor_neuron model).</p></li>
+<li><p>The use of shared memory implies fixed data structures: the sizes have to be defined at start-up and cannot be changed. Array overflow errors are possible.</p></li>
+<li><p>As a consequence, all objects must be completely defined before simulation and cannot be changed during simulation, no new attributes can be defined during simulation. See the Tutorial Important dos and don’ts section for more details.</p></li>
+<li><p>All object instances are always accessible. However, they cannot be stored as object attributes, instead store their ID and later retrieve access to the object instance using this ID. One can even change attributes in other object instances, but this requires acquiring a <em>lock</em> on the instance. See the Tutorial Important dos and don’ts section for more details.</p></li>
+<li><p>Because objects instances cannot expand, several attributes like front children are stored in a rather complex manner. They can no longer be accessed directly but methods are provided to return the data. See New methods below.</p></li>
+<li><p>Coordinates are encoded as <code class="docutils literal notranslate"><span class="pre">Points</span></code> with <em>x</em>, <em>y</em> and <em>z</em> attributes. <em>Numpy arrays</em> are no longer used. Coordinates can be negative.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Front</span></code> initialization is no longer required in subclasses, only use it to initialize a new attribute to a value other than zero.</p></li>
+<li><p>Collisions are handled differently in multiple ways. The <code class="docutils literal notranslate"><span class="pre">Front</span></code> <em>point_not_valid</em> method (which replaces NeuroMaC <em>xyz_not_valid</em>) can still be used to prevent collisions but does NOT see soma migration or new fronts managed by other processors at the current cycle. Therefore, even if <em>point_valid</em> returns with 1 (no collisions detected), a collision event can be triggered at a later stage when changes managed by different processors are reconciled. The <em>collision</em> method is much more robust than before but can no longer be subclassed, instead subclass <em>wiggle_front</em>. There is an option to have failed collisions put the calling front into dormant mode instead of terminating growth or migration.</p></li>
+<li><p>NeuroDevSim is not always 100% reproducible for the same seed value. This strongly depends on how crowded the simulation is, for most of the example simulations it is still 100% reproducible. The lack of full reproducibility is caused by slight differences in timing among parallel processes. When this happens the simulation will produce a small set of possible outcomes.</p></li>
+<li><p>Better jupyter notebook support: simulations now run as fast in notebooks as in the terminal. Faster notebook graphics, though they still slow down the simulation.</p></li>
+<li><p>All necessary classes, methods and functions are defined in a single <em>simulator</em> module. The <em>processing</em> module is equivalent to the NeuroMaC’s <em>scripts</em> module.</p></li>
+</ol>
+</div>
+<div class="section" id="differences-to-classes-and-new-classes">
+<h2>Differences to classes and new classes<a class="headerlink" href="#differences-to-classes-and-new-classes" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Front</span></code>: <em>xyz0</em> is now <em>orig</em> and <em>xyz</em> is <em>end</em>, <em>orig</em> and <em>end</em> are <code class="docutils literal notranslate"><span class="pre">Point</span></code>. No <em>shape</em> attribute, instead <code class="docutils literal notranslate"><span class="pre">Front</span></code> instantiation has a <em>cylinder</em> optional parameter which controls whether a cylinder (default) or sphere is created. The shape can be obtained with the new <em>is_cylinder</em> method. Neither <em>parent</em> nor <em>children</em> can be accessed as fields, instead the <em>get_parent</em> or <em>get_children</em> methods should be used. Similarly, <strong>get_neuron_name</strong> and <strong>get_branch_name</strong> should be used for the names. <code class="docutils literal notranslate"><span class="pre">Front</span></code> subclasses can be instantiated directly, <em>new_der_front</em> is no longer available.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ID</span></code>: represents the id of a <code class="docutils literal notranslate"><span class="pre">Front</span></code> or <code class="docutils literal notranslate"><span class="pre">Substrate</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Point</span></code>: a new class that represents coordinates or vectors, has <em>x</em>, <em>y</em>, <em>z</em> attributes.</p>
+</div>
+<div class="section" id="differences-to-methods-and-functions">
+<h2>Differences to methods and functions<a class="headerlink" href="#differences-to-methods-and-functions" title="Permalink to this headline">¶</a></h2>
+<p>Where possible, functions have been turned into methods.</p>
+<p><strong>alternate_locations</strong> is a <code class="docutils literal notranslate"><span class="pre">Front</span></code> method: it is called as <code class="docutils literal notranslate"><span class="pre">front.alternate_locations(point,distance,number)</span></code>.</p>
+<p><strong>angle_two_directions</strong> has been renamed to <strong>angle_two_dirs</strong></p>
+<p><strong>extend_front</strong>: the <em>cycle</em> argument has been removed. The ‘s’ return is no longer available, use <em>constellation.add_substrate()</em> instead. At present no ‘r’ return.</p>
+<p><strong>front_by_id</strong>: is a <code class="docutils literal notranslate"><span class="pre">Constellation</span></code> method.</p>
+<p><strong>front_distance</strong>: <em>other</em> parameter can be a <code class="docutils literal notranslate"><span class="pre">Point</span></code> or <code class="docutils literal notranslate"><span class="pre">Substrate</span></code>.</p>
+<p><strong>front_surface_point</strong> is now <em>surface_point_to</em>.</p>
+<p><strong>get_fronts</strong> is a <code class="docutils literal notranslate"><span class="pre">Front</span></code> method: it is called as <code class="docutils literal notranslate"><span class="pre">front.get_fronts(constellation)</span></code> where <em>front</em> is equivalent to the NeuroMaC <em>reference</em> parameter. There is a <em>returnID</em> optional parameter that if True returns a list of <code class="docutils literal notranslate"><span class="pre">ID</span></code> instead of <code class="docutils literal notranslate"><span class="pre">Front</span></code> and the <em>distal</em> optional parameter has been removed. Other parameters have not changed.</p>
+<p><strong>get_substrates</strong> is a <code class="docutils literal notranslate"><span class="pre">Front</span></code> method: it is called as <code class="docutils literal notranslate"><span class="pre">front.get_substrates(constellation,name)</span></code> where <em>front</em> is equivalent to the NeuroMaC <em>reference</em> parameter. There is a <em>returnID</em> optional parameter that if True returns a list of <code class="docutils literal notranslate"><span class="pre">ID</span></code> instead of <code class="docutils literal notranslate"><span class="pre">Front</span></code> and the <em>distal</em> optional parameter has been removed. Other parameters have not changed.</p>
+<p><strong>migrate_front</strong>: the <em>cycle</em> argument has been removed. The ‘ma’, mf’ and ‘mfa’ returns no longer require the <code class="docutils literal notranslate"><span class="pre">Fronts</span></code> to be returned. Instead this is implicit: the single filipod and/or single axon child, identified by proper swc_type, is automatically used.</p>
+<p><strong>unit_branching_sample</strong> is a <code class="docutils literal notranslate"><span class="pre">Front</span></code> point method: it is called as <code class="docutils literal notranslate"><span class="pre">front.unit_branching_sample(number)</span></code> where <em>front</em> is equivalent to the NeuroMaC <em>front</em> parameter. Other parameters have not changed.</p>
+<p><strong>unit_heading_sample</strong> is a <code class="docutils literal notranslate"><span class="pre">Front</span></code> point method: it is called as <code class="docutils literal notranslate"><span class="pre">front.unit_heading_sample()</span></code> where <em>front</em> is equivalent to the NeuroMaC <em>front</em> parameter. Other parameters have not changed.</p>
+<p><strong>wiggle_front</strong> is a <code class="docutils literal notranslate"><span class="pre">Front</span></code> point method. It no longer changes <em>self</em> but returns a <code class="docutils literal notranslate"><span class="pre">Point</span></code> that can be used to update a <em>self</em> coordinate in the <strong>collision</strong> method.</p>
+<p><strong>xyz_not_valid</strong>: is now <strong>point_valid</strong>.</p>
+</div>
+<div class="section" id="new-methods-and-functions">
+<h2>New methods and functions<a class="headerlink" href="#new-methods-and-functions" title="Permalink to this headline">¶</a></h2>
+<p><strong>abs_coord</strong>: <code class="docutils literal notranslate"><span class="pre">Point</span></code> method that makes all its attributes positive.</p>
+<p><strong>add_neurons</strong>: <code class="docutils literal notranslate"><span class="pre">Admin_agent</span></code> method that replaces <em>initialize_neurons</em>, with the same arguments.</p>
+<p><strong>add_substrate</strong>: both an <code class="docutils literal notranslate"><span class="pre">Admin_agent</span></code> and a <code class="docutils literal notranslate"><span class="pre">Constellation</span></code> method. Replaces the <em>Admin_agent.set_substrate</em> method and the ‘s’ return of <em>extend_front</em>.</p>
+<p><strong>cross</strong>: <code class="docutils literal notranslate"><span class="pre">Point</span></code> method that performs vector cross operation between two 1D vectors.</p>
+<p><strong>dot</strong>: <code class="docutils literal notranslate"><span class="pre">Point</span></code> method that performs vector dot operation between two vectors.</p>
+<p><strong>extend_repeat</strong>: <code class="docutils literal notranslate"><span class="pre">Front</span></code> behavior method that signals repeating calls to <code class="docutils literal notranslate"><span class="pre">extend_front</span></code>.</p>
+<p><strong>get_branch_name</strong>: <code class="docutils literal notranslate"><span class="pre">Front</span></code> attribute method that returns the optional branch name.</p>
+<p><strong>get_children</strong>: <code class="docutils literal notranslate"><span class="pre">Front</span></code> tree method that returns a list of all children as <code class="docutils literal notranslate"><span class="pre">Front</span></code> or <code class="docutils literal notranslate"><span class="pre">ID</span></code>.</p>
+<p><strong>get_colliding_fronts</strong>: <cite>Front`</cite> search method returns a list of all fronts it collided with during its <code class="docutils literal notranslate"><span class="pre">extend_front</span></code> or <code class="docutils literal notranslate"><span class="pre">migrate_front</span></code> call.</p>
+<p><strong>get_id</strong>: <code class="docutils literal notranslate"><span class="pre">Front</span></code> attribute and <code class="docutils literal notranslate"><span class="pre">Substrate</span></code> method that returns the <code class="docutils literal notranslate"><span class="pre">ID</span></code>.</p>
+<p><strong>get_name</strong>: <code class="docutils literal notranslate"><span class="pre">Substrate</span></code> method that returns its name.</p>
+<p><strong>get_neighbors</strong>: <code class="docutils literal notranslate"><span class="pre">Front</span></code> tree method that returns a list of neigboring fronts as <code class="docutils literal notranslate"><span class="pre">Front</span></code> or <code class="docutils literal notranslate"><span class="pre">ID</span></code>.</p>
+<p><strong>get_neuron</strong>: <code class="docutils literal notranslate"><span class="pre">Front</span></code> tree method that returns a list of all neuron fronts as <code class="docutils literal notranslate"><span class="pre">Front</span></code> or <code class="docutils literal notranslate"><span class="pre">ID</span></code>.</p>
+<p><strong>get_neuron_name</strong>: <code class="docutils literal notranslate"><span class="pre">Front</span></code> attribute method that returns the name of the neuron.</p>
+<p><strong>get_parent</strong>: <code class="docutils literal notranslate"><span class="pre">Front</span></code> tree method that returns the parent <code class="docutils literal notranslate"><span class="pre">Front</span></code>.</p>
+<p><strong>get_soma</strong>: <code class="docutils literal notranslate"><span class="pre">Front</span></code> attribute method that returns the soma <code class="docutils literal notranslate"><span class="pre">Front</span></code>.</p>
+<p><strong>has_moved</strong>: <code class="docutils literal notranslate"><span class="pre">Front</span></code> behavior method that returns whether moved in previous cycle.</p>
+<p><strong>interstitial_front</strong>: <code class="docutils literal notranslate"><span class="pre">Front</span></code> growth method that implements interstitial branching.</p>
+<p><strong>in_volume</strong>: <code class="docutils literal notranslate"><span class="pre">Point</span></code> method that returns whether it is inside the simulation volume.</p>
+<p><strong>is_child</strong>: <code class="docutils literal notranslate"><span class="pre">Front</span></code> tree method that confirms whether self is a child of front.</p>
+<p><strong>is_cylinder</strong>: <code class="docutils literal notranslate"><span class="pre">Front</span></code> behavior method that returns shape.</p>
+<p><strong>is_death</strong>: <code class="docutils literal notranslate"><span class="pre">Front</span></code> behavior method that returns deletion at birth.</p>
+<p><strong>is_growing</strong>: <code class="docutils literal notranslate"><span class="pre">Front</span></code> behavior method that returns active growth status.</p>
+<p><strong>is_interstitial</strong>: <code class="docutils literal notranslate"><span class="pre">Front</span></code> behavior method that returns active interstitial status.</p>
+<p><strong>is_migrating</strong>: <code class="docutils literal notranslate"><span class="pre">Front</span></code> behavior method that returns active migration status.</p>
+<p><strong>is_retracted</strong>: <code class="docutils literal notranslate"><span class="pre">Front</span></code> behavior method that returns whether retracted.</p>
+<p><strong>is_retracting</strong>: <code class="docutils literal notranslate"><span class="pre">Front</span></code> behavior method that returns active retraction status.</p>
+<p><strong>is_parent</strong>: <code class="docutils literal notranslate"><span class="pre">Front</span></code> tree method that confirms whether self is the parent of front.</p>
+<p><strong>length</strong>: <code class="docutils literal notranslate"><span class="pre">Point</span></code> and <code class="docutils literal notranslate"><span class="pre">Front</span></code> methods that compute length of a vector or of a front.</p>
+<p><strong>lock</strong>: a <code class="docutils literal notranslate"><span class="pre">Constellation</span></code> method that locks a <code class="docutils literal notranslate"><span class="pre">Front</span></code> or <code class="docutils literal notranslate"><span class="pre">Substrate</span></code> so that its user defined attributes can safely be changed.</p>
+<p><strong>mid</strong>: <code class="docutils literal notranslate"><span class="pre">Front</span></code> point method, returns center point on axis of front.</p>
+<p><strong>norm</strong>: <code class="docutils literal notranslate"><span class="pre">Point</span></code> method that normalizes vector to unit vector.</p>
+<p><strong>nparray</strong>: <code class="docutils literal notranslate"><span class="pre">Point</span></code> method that turns vector into numpy.array.</p>
+<p><strong>point_valid</strong>:  is a <code class="docutils literal notranslate"><span class="pre">Front</span></code> point method replacing <em>xyz_not_valid</em>. Has a <em>cylinder</em> optional parameter that controls whether <em>point</em> belongs to a cylinder or to a sphere, returns an integer with 1 indicating a valid point.</p>
+<p><strong>solve_collision</strong>: is a <code class="docutils literal notranslate"><span class="pre">Front</span></code> point method that tries to return a point that does not collide. At present only solves collisions with spheres.</p>
+<p><strong>sphere_interpol</strong>: is a <code class="docutils literal notranslate"><span class="pre">Front</span></code> point method  returns a point on or close to the membrane surface of spherical self on an arc connecting two points.</p>
+<p><strong>substrate_by_id</strong>: a <code class="docutils literal notranslate"><span class="pre">Constellation</span></code> method that returns <code class="docutils literal notranslate"><span class="pre">Substrate</span></code> with given <code class="docutils literal notranslate"><span class="pre">ID</span></code>.</p>
+<p><strong>surface_point_to</strong>: is a <code class="docutils literal notranslate"><span class="pre">Front</span></code> point method and called as: <cite>front.surface_point_to(point)</cite> where <em>point</em> is equivalent to NeuroMac <em>self.xyz</em>. Other arguments have not changed compared to old <em>front_surface_point</em>.</p>
+<p><strong>taper</strong>: <code class="docutils literal notranslate"><span class="pre">Front</span></code> size method, returns tapered <em>radius</em>.</p>
+<p><strong>unlock</strong>: a <code class="docutils literal notranslate"><span class="pre">Constellation</span></code> method that unlocks a previously locked <code class="docutils literal notranslate"><span class="pre">Front</span></code> or <code class="docutils literal notranslate"><span class="pre">Substrate</span></code>.</p>
+</div>
+<div class="section" id="methods-and-functions-that-no-longer-exist">
+<h2>Methods and functions that no longer exist<a class="headerlink" href="#methods-and-functions-that-no-longer-exist" title="Permalink to this headline">¶</a></h2>
+<p><strong>collision</strong> is no longer a public method, subclass <strong>wiggle_front</strong> instead.</p>
+<p><strong>common_branch_point</strong>: use the <strong>is_child</strong> method on both fronts.</p>
+<p><strong>direction_to</strong>: compute it yourself as the difference between two <code class="docutils literal notranslate"><span class="pre">Point</span></code> coordinates.</p>
+<p><strong>direction_to_plane</strong>: compute it yourself as the difference between two <code class="docutils literal notranslate"><span class="pre">Point</span></code> coordinates.</p>
+<p><strong>exp_gradient_to</strong></p>
+<p><strong>front_surface_point</strong>: replaced with <strong>surface_point_to</strong>.</p>
+<p><strong>get_length</strong>: use <code class="docutils literal notranslate"><span class="pre">Point</span></code> <strong>length</strong> method.</p>
+<p><strong>get_other_structure</strong>: use <code class="docutils literal notranslate"><span class="pre">Front</span></code> <strong>get_fronts</strong> method.</p>
+<p><strong>get_self_structure</strong>: use <code class="docutils literal notranslate"><span class="pre">Front</span></code> <strong>get_fronts</strong> method.</p>
+<p><strong>get_structure</strong>: use <code class="docutils literal notranslate"><span class="pre">Front</span></code> <strong>get_fronts</strong> method.</p>
+<p><strong>initialize_neurons</strong>: renamed to <strong>add_neurons</strong></p>
+<p><strong>initialize_subvols</strong></p>
+<p><strong>internal_front</strong>: will be implemented later.</p>
+<p><strong>load_substrate</strong></p>
+<p><strong>load_subvols</strong></p>
+<p><strong>load_swc</strong>: will be implemented later.</p>
+<p><strong>new_der_front</strong>: instantiate a subclass of <code class="docutils literal notranslate"><span class="pre">Front</span></code> directly.</p>
+<p><strong>normalize_length</strong>: use <code class="docutils literal notranslate"><span class="pre">Point</span></code> <strong>norm</strong> method to get unit vector and multiply that by <em>length</em>.</p>
+<p><strong>retract_front</strong>: will be implemented later.</p>
+<p><strong>rotate_vector</strong></p>
+<p><strong>set_substrate</strong>: renamed to <strong>add_substrate</strong></p>
+<p><strong>sigmoid</strong>: will be implemented later.</p>
+<p><strong>xyz_not_valid</strong>: replaced with <strong>point_valid</strong>.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Changes compared to NeuroMaC</a><ul>
+<li><a class="reference internal" href="#major-conceptual-differences">Major conceptual differences</a></li>
+<li><a class="reference internal" href="#differences-to-classes-and-new-classes">Differences to classes and new classes</a></li>
+<li><a class="reference internal" href="#differences-to-methods-and-functions">Differences to methods and functions</a></li>
+<li><a class="reference internal" href="#new-methods-and-functions">New methods and functions</a></li>
+<li><a class="reference internal" href="#methods-and-functions-that-no-longer-exist">Methods and functions that no longer exist</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/changes.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes compared to NeuroMaC</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-2022, OIST.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+  </body>
+</html>
