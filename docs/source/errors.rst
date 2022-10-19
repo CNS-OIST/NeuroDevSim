@@ -30,7 +30,7 @@ This error is unique to the shared memory parallel computing implemented in Neur
 
 One way in which NeuroDevSim tries to avoid this problem is by scheduling the order in which fronts call ``manage_front`` so that growing or migrating fronts occupying the same grid coordinate are not processed simultaneously on different processes. To do this efficiently it is important that the ``is_growing()`` and ``is_migrating()`` :ref:`flags-label` are set correctly. For simple simulations this is done automatically by ``self.disable(constellation)`` when growth or migration is finished. But in more complex models these :ref:`flags-label` may have to be set explicitly.
 
-If a ``GridCompetitionError`` occurs the best strategy is often to try calling the method again with the same or different parameters, this approach is taken in many examples. But notice that because this prolongs the ``manage_front`` call it may significantly slow down the simulation.
+If a ``GridCompetitionError`` occurs the best strategy is often to try calling the method again a few times with the same or different parameters, this approach is taken in many examples. Alternatively, ``manage_front`` can return without disabling *self* so that the same call is made again next cycle, but this may reduce the growth rate. Note that it is not wise to loop many times (more than 10) for a ``GridCompetitionError`` because this may significantly slow down the simulation.
 
 .. _insideparenterror-label:
 

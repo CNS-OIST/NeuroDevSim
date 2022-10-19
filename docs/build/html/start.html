@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Getting started &#8212; NeuroDevSim 1.0.0 documentation</title>
+    <title>Getting started &#8212; NeuroDevSim 1.0.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -26,7 +26,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Getting started</a></li> 
       </ul>
     </div>  
@@ -384,7 +384,7 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_length</span> <span class="o">&lt;</span> <span class="mi">150</span><span class="p">:</span> <span class="c1"># continue growth of a dendrite or branch it</span>
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">0.06</span><span class="p">:</span> <span class="c1"># most probable: extend with a single front</span>
         <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># counts number of add_child trials</span>
-        <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span>
+        <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">:</span>
             <span class="n">extension</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
             <span class="o">...</span>
             <span class="c1"># check for possible collisions</span>
@@ -398,13 +398,13 @@
                 <span class="k">continue</span> <span class="c1"># pick another new_pos, no attempt to correct the error</span>
 </pre></div>
 </div>
-<p>This is tried up to a 100 times, but usually only a few trials are needed. The <em>count</em> is incremented only if an error occurred, otherwise the <code class="docutils literal notranslate"><span class="pre">while</span></code> loop is left with the <code class="docutils literal notranslate"><span class="pre">return</span></code> statement.</p>
+<p>This is tried up to ten times, but usually only a few trials are needed. The <em>count</em> is incremented only if an error occurred, otherwise the <code class="docutils literal notranslate"><span class="pre">while</span></code> loop is left with the <code class="docutils literal notranslate"><span class="pre">return</span></code> statement.</p>
 <p><code class="docutils literal notranslate"><span class="pre">self.unit_heading_sample(width=20)</span></code> returns a <code class="docutils literal notranslate"><span class="pre">Point</span></code> representing a 1 µm direction vector, drawn from a normal distribution centered around the direction vector of <em>self</em> with a standard deviation of 20. As a result, the dendrite will grow in roughly the same direction as <em>self</em>. A biologically unrealistic abrupt change of direction could occur if a truly random direction was used, as generated with <code class="docutils literal notranslate"><span class="pre">unit_sample_on_sphere()</span></code>.</p>
 <p>The complete code for front extension is:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_length</span> <span class="o">&lt;</span> <span class="mi">150</span><span class="p">:</span> <span class="c1"># continue growth of a dendrite or branch it</span>
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">0.06</span><span class="p">:</span> <span class="c1"># most probable: extend with a single front</span>
         <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># counts number of add_child trials</span>
-        <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span>
+        <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">:</span>
             <span class="n">extension</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
             <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">extension</span> <span class="o">*</span> <span class="mf">5.</span> <span class="c1"># compute position of child end</span>
             <span class="c1"># check for possible collisions</span>
@@ -485,7 +485,7 @@
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_length</span> <span class="o">&lt;</span> <span class="mi">150</span><span class="p">:</span> <span class="c1"># continue growth of a dendrite or branch it</span>
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">0.06</span><span class="p">:</span> <span class="c1"># most probable: extend with a single front</span>
                 <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># counts number of add_child trials</span>
-                <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span>
+                <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">:</span>
                     <span class="n">extension</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
                     <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">extension</span> <span class="o">*</span> <span class="mf">5.</span> <span class="c1"># compute position of child end</span>
                     <span class="c1"># check for possible collisions</span>
@@ -656,7 +656,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Getting started</a></li> 
       </ul>
     </div>

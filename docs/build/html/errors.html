@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Useful Errors &#8212; NeuroDevSim 1.0.0 documentation</title>
+    <title>Useful Errors &#8212; NeuroDevSim 1.0.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -26,7 +26,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Useful <code class="docutils literal notranslate"><span class="pre">Errors</span></code></a></li> 
       </ul>
     </div>  
@@ -58,7 +58,7 @@
 <span id="gridcompetitionerror-label"></span><h2><code class="docutils literal notranslate"><span class="pre">GridCompetitionError</span></code><a class="headerlink" href="#gridcompetitionerror" title="Permalink to this headline">¶</a></h2>
 <p>This error is unique to the shared memory parallel computing implemented in NeuroDevSim. An important coding challenge is to prevent two different processes from trying to write to the same memory location at the same time and to prevent reading partial information because another process is writing. This prevention is done through transient locking of specific memory locations. In the context of <code class="docutils literal notranslate"><span class="pre">GridCompetitionError</span></code> locking of a <em>grid</em> location failed. The <em>grid</em> contains information about the location of all existing fronts, stored on a Cartesian 3D grid. It is used to detect collisions and needs to be accessed and updated frequently. A <code class="docutils literal notranslate"><span class="pre">GridCompetitionError</span></code> occurs when two or more processes try to access the same grid coordinate simultaneously. Because this happens frequently, the standard approach is for all processes except one to wait till the allowed one completes its task, but sometimes the competition is so fierce that this leads to excessive waiting times and then a <code class="docutils literal notranslate"><span class="pre">GridCompetitionError</span></code> occurs.</p>
 <p>One way in which NeuroDevSim tries to avoid this problem is by scheduling the order in which fronts call <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> so that growing or migrating fronts occupying the same grid coordinate are not processed simultaneously on different processes. To do this efficiently it is important that the <code class="docutils literal notranslate"><span class="pre">is_growing()</span></code> and <code class="docutils literal notranslate"><span class="pre">is_migrating()</span></code> <a class="reference internal" href="flags.html#flags-label"><span class="std std-ref">Front status flags</span></a> are set correctly. For simple simulations this is done automatically by <code class="docutils literal notranslate"><span class="pre">self.disable(constellation)</span></code> when growth or migration is finished. But in more complex models these <a class="reference internal" href="flags.html#flags-label"><span class="std std-ref">Front status flags</span></a> may have to be set explicitly.</p>
-<p>If a <code class="docutils literal notranslate"><span class="pre">GridCompetitionError</span></code> occurs the best strategy is often to try calling the method again with the same or different parameters, this approach is taken in many examples. But notice that because this prolongs the <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> call it may significantly slow down the simulation.</p>
+<p>If a <code class="docutils literal notranslate"><span class="pre">GridCompetitionError</span></code> occurs the best strategy is often to try calling the method again a few times with the same or different parameters, this approach is taken in many examples. Alternatively, <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> can return without disabling <em>self</em> so that the same call is made again next cycle, but this may reduce the growth rate. Note that it is not wise to loop many times (more than 10) for a <code class="docutils literal notranslate"><span class="pre">GridCompetitionError</span></code> because this may significantly slow down the simulation.</p>
 </div>
 <div class="section" id="insideparenterror">
 <span id="insideparenterror-label"></span><h2><code class="docutils literal notranslate"><span class="pre">InsideParentError</span></code><a class="headerlink" href="#insideparenterror" title="Permalink to this headline">¶</a></h2>
@@ -122,7 +122,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Useful <code class="docutils literal notranslate"><span class="pre">Errors</span></code></a></li> 
       </ul>
     </div>

@@ -36,12 +36,12 @@ from colorama import Fore
 from neurodevsim.simulator import Point,dist3D_cyl_to_cyl,dist3D_point_to_cyl,\
                                   DataID,_key_to_DataID,BugError
 
-# nds version 1.0.0
+# nds version 1.0.1
 
 ### PLOTTING FUNCTIONS: 
 def nds_plot(db_name,pdf_out=True,max_cycle=-1,neurons=[],wire=False,azim=-60,\
              elev=30,box=False,no_axis=False,scale_axis=False,axis_ticks=True,\
-             soma_black=True,color_scheme=0,color_data=None,neuron_color=None,\
+             soma_black=True,color_scheme=0,color_data=None,neuron_colors=None,\
              prefix="",postfix="",show_retracted=False,verbose=1):
     """ Generate a 3D plot and save it to a pdf file.
     
@@ -52,11 +52,11 @@ def nds_plot(db_name,pdf_out=True,max_cycle=-1,neurons=[],wire=False,azim=-60,\
     axis_ticks : boolean : show axis ticks, default True.
     azim : float : azimuth in degrees of camera, default -60.
     box : box format [[left, front, bottom], [right, back, top]] to plot, allows to zoom in, default full *sim_volume.*
-    color_scheme : integer -1 - 3 : controls how colors change: 0: every neuron has a different color; 1: neurons of same type have same color, different types have different colors; 2: different branches in a neuron have different colors, based on branch_name; 3: color set by front attribute as defined in color_data, -1: use colors defined in neuron_color, default 0.
+    color_scheme : integer -1 - 3 : controls how colors change: 0: every neuron has a different color; 1: neurons of same type have same color, different types have different colors; 2: different branches in a neuron have different colors, based on branch_name; 3: color set by front attribute as defined in color_data, -1: use colors defined in neuron_colors, default 0.
     color_data : list : [front attribute name, min value, max value], data necessary for color_scheme 3, default None.
     elev : float : elevation in degrees of camera, default 30.
     max_cycle : integer : stop plotting at this cycle (inclusive), default -1: plot till end of simulation.
-    neuron_color : string : name of text file containing dictionary info by neuron name that specifies color to use, use nds_get_color_dict to obtain a valid file and then edit it, default None.
+    neuron_colors : string : name of text file containing dictionary info by neuron name that specifies color to use, use nds_get_color_dict to obtain a valid file and then edit it, default None.
     neurons : list of string : only plot the neurons with names (wildcard) listed, default: empty list (plot all).
     no_axis : boolean : suppress drawing of axes, default False.
     pdf_out : boolean : ,save plot as a pdf file, if False plot is shown in a window, default True.
@@ -87,11 +87,11 @@ def nds_plot(db_name,pdf_out=True,max_cycle=-1,neurons=[],wire=False,azim=-60,\
             print ("Error in nsd_plot: color_data should be a list with 3 entries")
     if color_scheme == -1:
         try:
-            f = open(neuron_color,'r')
-            color_data = neuron_color
+            f = open(neuron_colors,'r')
+            color_data = neuron_colors
             #close(f)
         except:
-            print ("Error in nsd_plot: could not open",neuron_color)
+            print ("Error in nsd_plot: could not open",neuron_colors)
     # Get general data
     try:
         cursor.execute("select * from neurodevsim") # Should be only one row
@@ -121,9 +121,10 @@ def nds_plot(db_name,pdf_out=True,max_cycle=-1,neurons=[],wire=False,azim=-60,\
                      soma_black,no_axis,scale_axis,axis_ticks,color_scheme,\
                      show_retraction,verbose,color_data,300,neurons,version)
                      
-def nds_movie(db_name,min_cycle=-1,max_cycle=-1,wire=False,azim=-60.0,elev=30.0,\
+def nds_movie(db_name,min_cycle=-1,max_cycle=-1,neurons=[],wire=False,azim=-60.0,elev=30.0,\
             box=False,no_axis=False,scale_axis=False,axis_ticks=True,soma_black=True,\
-            color_scheme=0,color_data=None,prefix="",postfix="",show_retraction=True,verbose=1,dpi=300):
+            color_scheme=0,color_data=None,neuron_colors=None,prefix="",postfix="",\
+            show_retraction=True,verbose=1,dpi=300):
     """ Generate a 3D movie and save it to a mp4 file.
     
     Parameters
@@ -133,13 +134,14 @@ def nds_movie(db_name,min_cycle=-1,max_cycle=-1,wire=False,azim=-60.0,elev=30.0,
     axis_ticks : boolean : show axis ticks, default True.
     azim : float : azimuth in degrees of camera, default -60.
     box : box format [[left, front, bottom], [right, back, top]] to plot, allows to zoom in, default full *sim_volume.*
-    color_scheme : integer -1 - 3 : controls how colors change: 0: every neuron has a different color; 1: neurons of same type have same color, different types have different colors; 2: different branches in a neuron have different colors, based on branch_name; 3: color set by front attribute as defined in color_data, -1: use colors defined in neuron_color, default 0.
+    color_scheme : integer -1 - 3 : controls how colors change: 0: every neuron has a different color; 1: neurons of same type have same color, different types have different colors; 2: different branches in a neuron have different colors, based on branch_name; 3: color set by front attribute as defined in color_data, -1: use colors defined in neuron_colors, default 0.
     color_data : list : [front attribute name, min value, max value], data necessary for color_scheme 3, default None.
     dpi : integer : resolution of movie frames, default 300.
     elev : float : elevation in degrees of camera, default 30.
     max_cycle : integer : stop plotting at this cycle (inclusive), default -1: plot till end of simulation.
     min_cycle : integer : start plotting at this cycle, default -1: plot from begin of simulation.
-    neuron_color : string : name of text file containing dictionary info by neuron name that specifies color to use, use nds_get_color_dict to obtain a valid file and then edit it, default None.
+    neuron_colors : string : name of text file containing dictionary info by neuron name that specifies color to use, use nds_get_color_dict to obtain a valid file and then edit it, default None.
+    neurons : list of string : only plot the neurons with names (wildcard) listed, default: empty list (plot all).
     no_axis : boolean : suppress drawing of axes, default False.
     pdf_out : boolean : ,save plot as a pdf file, if False plot is shown in a window, default True.
     prefix : string : attach string before database name to specify a directory in name of pdf file, default ''.
@@ -166,6 +168,13 @@ def nds_movie(db_name,min_cycle=-1,max_cycle=-1,wire=False,azim=-60.0,elev=30.0,
             print ("Error in nds_movie: color_data should be a list")
         elif len(color_data) != 3:
             print ("Error in nds_movie: color_data should be a list with 3 entries")
+    if color_scheme == -1:
+        try:
+            f = open(neuron_colors,'r')
+            color_data = neuron_colors
+            #close(f)
+        except:
+            print ("Error in nds_movie: could not open",neuron_colors)
     # Get volume and cycle data
     try:
         cursor.execute("select * from neurodevsim") # Should be only one row
@@ -189,7 +198,7 @@ def nds_movie(db_name,min_cycle=-1,max_cycle=-1,wire=False,azim=-60.0,elev=30.0,
         print ("movie file:",out_name+".mp4")
     _draw_figure(conn,nret,out_name,2,min_cycle,max_cycle,wire,azim,elev,box,soma_black,\
                     no_axis,scale_axis,axis_ticks,color_scheme,show_retraction,verbose,\
-                    color_data,dpi,[],version)
+                    color_data,dpi,neurons,version)
 
 def nds_interact(db_name,neuron_id,front_id,cycle,focus=10,azim=-60,elev=30,\
                  radius_scale=2.0,sphere_scale=1.0,verbose=0):
@@ -789,12 +798,14 @@ def _draw_front(ax,lines,key,col,col2,shape,swc_type,soma_black,orig,end,radius,
             else:
                 lines[key] = ("k",ax.plot([orig.x,end.x],[orig.y,end.y],\
                           zs=[orig.z,end.z],linewidth=2*radius,color="k"))
+            if swc_type == 12: # filipod, remove one cycle later
+                death += 1
             if death not in to_remove:
                 to_remove[death] = []
             to_remove[death].append(key)
 
-# colors plot according to concentration data at specific cycle
-def _draw_attritute(cursor,color_attrib,cf_name,ax,lines,cycle,colors,color_min,color_scale,color_obs,color_nid):
+# colors plot according to attribute data at specific cycle
+def _draw_attribute(cursor,color_attrib,cf_name,ax,lines,cycle,colors,color_min,color_scale,color_obs,color_nid):
     import mpl_toolkits.mplot3d.art3d as mplt
     if cycle == 0:
         return
@@ -843,7 +854,7 @@ def _draw_attritute(cursor,color_attrib,cf_name,ax,lines,cycle,colors,color_min,
             item[0].set_color(col)
 
 # do all checking and drawing related to soma migration
-def _draw_migration(outtype,writer,mig_soma,prev_soma,birth,start,mrets,\
+def _draw_migration(outtype,writer,mig_soma,prev_soma,birth,last,start,mrets,\
                 mig_first_cycle,mig_max_row,ax,lines,soma_black,\
                 color_scheme,to_remove,x_outer,y_outer,z_outer,cursor,\
                 color_attrib,cf_name,colors,col_min,col_scale,color_obs,color_nid):
@@ -858,7 +869,7 @@ def _draw_migration(outtype,writer,mig_soma,prev_soma,birth,start,mrets,\
         if mrow < 0:
             continue
         #print (key,mr_ind,mig_first_cycle[mr_ind],birth,mcol,mig_max_row[mcol])
-        if mrow > mig_max_row[mcol]: # no data for this and later cycles
+        if (mrow > mig_max_row[mcol]) or (birth==last): # no data for this and later cycles or last cycle plotted
             if outtype < 2: # plot soma in final location
                 if mrow > 0:
                     mig_now.append([key,mr_ind,mrow - 1,mr_col,mig_soma[key][1]])
@@ -888,7 +899,7 @@ def _draw_migration(outtype,writer,mig_soma,prev_soma,birth,start,mrets,\
         # write a frame of previous cycle (if not before starting frame)
         if birth > start:
             if color_scheme == 3: # first recolor according to concentration
-                _draw_attritute(cursor,color_attrib,cf_name,ax,lines,birth-1,colors,\
+                _draw_attribute(cursor,color_attrib,cf_name,ax,lines,birth-1,colors,\
                                 col_min,col_scale,color_obs,color_nid)
             writer.grab_frame()
     # now draw all migrating somata
@@ -921,6 +932,12 @@ def _draw_frames(cursor,outtype,fig,ax,writer,start,last,wire,azim,elev,box,\
                   'tab:green','tab:brown','tab:purple','tab:pink','tab:gray','tab:olive']
         c_mapping = {} # map color to name of neuron or dendrite
         c = 0 # index into colors
+        # initialize unused parameters
+        color_attrib = None
+        cf_name = None
+        color_nid = None
+        color_min = None
+        color_scale = None
     else:
         color_attrib = str(color_data[0])
         # is this a user saved attribute?
@@ -1017,13 +1034,13 @@ def _draw_frames(cursor,outtype,fig,ax,writer,start,last,wire,azim,elev,box,\
     names = {} # dict by neuron_id of all names
     lines = {} # store lines and spheres drawn by index front.index
     if color_scheme == -1:
-        f = open(color_data,'r') # color_data contains neuron_color
+        f = open(color_data,'r') # color_data contains neuron_colors
         # read the data into c_mapping
         flines = f.readlines()
         for line in flines:
             space = line.rfind(' ')
             if space < 0:
-                print ("Error in nsd_plot: neuron_color file contains line without separating space:",line)
+                print ("Error in nsd_plot: neuron_colors file contains line without separating space:",line)
                 return
             name = line[0 : space]
             color = line[space + 1 : -1]
@@ -1033,7 +1050,7 @@ def _draw_frames(cursor,outtype,fig,ax,writer,start,last,wire,azim,elev,box,\
         for row in rets:
             name = row['name']
             if name not in c_mapping:
-                print ("Error in nsd_plot: incomplete neuron_color file, no data for:",name)
+                print ("Error in nsd_plot: incomplete neuron_colors file, no data for:",name)
                 return
             nid = row['neuron_id']
             names[nid] = name
@@ -1182,7 +1199,7 @@ def _draw_frames(cursor,outtype,fig,ax,writer,start,last,wire,azim,elev,box,\
             for cycle in range(prev_birth + 1, birth + 1): # in case of absent cycles
                 # plot migrating soma
                 if mig_table > 0:
-                    _draw_migration(outtype,writer,mig_soma,prev_soma,cycle,start,mrets,\
+                    _draw_migration(outtype,writer,mig_soma,prev_soma,cycle,last,start,mrets,\
                                     mig_first_cycle,mig_max_row,ax,lines,soma_black,\
                                     color_scheme,to_remove,x_outer,y_outer,z_outer,cursor,\
                                     color_attrib,cf_name,colors,color_min,color_scale,color_obs,color_nid)
@@ -1190,7 +1207,7 @@ def _draw_frames(cursor,outtype,fig,ax,writer,start,last,wire,azim,elev,box,\
                 elif (outtype >= 2) and (cycle >= start): # movies
                     # write a frame of previous cycle (if not before starting frame)
                     if color_scheme == 3: # first recolor according to concentration
-                        _draw_attritute(cursor,color_attrib,cf_name,ax,lines,birth-1,colors,\
+                        _draw_attribute(cursor,color_attrib,cf_name,ax,lines,birth-1,colors,\
                                         color_min,color_scale,color_obs,color_nid)
                     writer.grab_frame()
                 if show_retraction and (cycle < birth): # remove for intermediate cycles
@@ -1230,10 +1247,10 @@ def _draw_frames(cursor,outtype,fig,ax,writer,start,last,wire,azim,elev,box,\
         prev_birth = birth
     # no more new fronts, process later migrations and removals
     if (len(mig_soma) > 0) or show_retraction:
-        while (birth < last):
+        while (birth <= last):
             birth += 1
             if mig_table > 0:
-                _draw_migration(outtype,writer,mig_soma,prev_soma,birth,start,mrets,\
+                _draw_migration(outtype,writer,mig_soma,prev_soma,birth,last,start,mrets,\
                                 mig_first_cycle,mig_max_row,ax,lines,soma_black,\
                                 color_scheme,to_remove,x_outer,y_outer,z_outer,cursor,\
                                 color_attrib,cf_name,colors,color_min,color_scale,color_obs,color_nid)
@@ -1249,7 +1266,7 @@ def _draw_frames(cursor,outtype,fig,ax,writer,start,last,wire,azim,elev,box,\
                 del to_remove[birth]
             if (outtype >= 2) and (birth >= start): # write a frame
                 if color_scheme == 3: # first recolor according to concentration
-                    _draw_attritute(cursor,color_attrib,cf_name,ax,lines,birth-1,colors,\
+                    _draw_attribute(cursor,color_attrib,cf_name,ax,lines,birth-1,colors,\
                                     color_min,color_scale,color_obs,color_nid)
                 writer.grab_frame()
     # do we need to remove more somata at the end?

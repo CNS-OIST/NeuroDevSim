@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Advanced Tutorial &#8212; NeuroDevSim 1.0.0 documentation</title>
+    <title>Advanced Tutorial &#8212; NeuroDevSim 1.0.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="basic.html" title="Basic Tutorial"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Advanced Tutorial</a></li> 
       </ul>
     </div>  
@@ -159,7 +159,7 @@
 <p><code class="docutils literal notranslate"><span class="pre">Front</span></code> status flags are important in scheduling <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> calls and controlling model behavior. Some flags report on front status and can only be read, others can be changed by the user and some can be freely used. All flag methods are documented in <a class="reference internal" href="simulator.html#simulator-label"><span class="std std-ref">simulator module</span></a>. NeuroDevSim tries to keep the control of scheduling simple with the use of the <code class="docutils literal notranslate"><span class="pre">enable(constellation)</span></code> and <code class="docutils literal notranslate"><span class="pre">disable(constellation)</span></code> methods that directly changes status flags, but in some instances finer control is needed.</p>
 <div class="section" id="status-flags-scheduling-manage-front">
 <h3>Status flags scheduling <code class="docutils literal notranslate"><span class="pre">manage_front</span></code><a class="headerlink" href="#status-flags-scheduling-manage-front" title="Permalink to this headline">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">manage_front</span></code> is called only for <code class="docutils literal notranslate"><span class="pre">Front</span></code> that are <em>active</em>, but the order in which fronts are called depends on the <em>growing</em> and <em>migrating</em> status flags and, if either is set to True, on the position of <code class="docutils literal notranslate"><span class="pre">Front</span></code> in the simulation volume. Correct setting of these flags is important to reudce the likelyhood of <a class="reference internal" href="tutorial.html#gridcompetitionerror-label"><span class="std std-ref">GridCompetitionError</span></a>. The <em>active</em>, <em>growing</em> and <em>migrating</em> flags can be set by the user or changed through the <code class="docutils literal notranslate"><span class="pre">enable</span></code> and <code class="docutils literal notranslate"><span class="pre">disable</span></code> methods:</p>
+<p><code class="docutils literal notranslate"><span class="pre">manage_front</span></code> is called only for <code class="docutils literal notranslate"><span class="pre">Front</span></code> that are <em>active</em>, but the order in which fronts are called depends on the <em>growing</em> and <em>migrating</em> status flags and, if either is set to True, on the position of <code class="docutils literal notranslate"><span class="pre">Front</span></code> in the simulation volume. Correct setting of these flags is important to reduce the likelyhood of <a class="reference internal" href="tutorial.html#gridcompetitionerror-label"><span class="std std-ref">GridCompetitionError</span></a>. The <em>active</em>, <em>growing</em> and <em>migrating</em> flags can be set by the user or changed through the <code class="docutils literal notranslate"><span class="pre">enable</span></code> and <code class="docutils literal notranslate"><span class="pre">disable</span></code> methods:</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 18%" />
@@ -1383,7 +1383,7 @@ c_int, c_long</p></td>
         <li class="right" >
           <a href="basic.html" title="Basic Tutorial"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Advanced Tutorial</a></li> 
       </ul>
     </div>

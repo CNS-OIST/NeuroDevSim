@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Basic Tutorial &#8212; NeuroDevSim 1.0.0 documentation</title>
+    <title>Basic Tutorial &#8212; NeuroDevSim 1.0.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="simulator.html" title="simulator module"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Basic Tutorial</a></li> 
       </ul>
     </div>  
@@ -861,8 +861,8 @@
 <li><p>max value : float : maximum value used for color scale (red color).</p></li>
 </ul>
 <p><strong>soma_black :</strong> boolean : every soma is always colored black (default), used for <em>color_scheme</em> 0-2.</p>
-<p>In addition, <cite>nds_plot</cite> and <cite>nds_movie</cite> also have a <cite>color_scheme==-1</cite> setting. This allows the user to specify a specific color for each neuron in the simulation in a text file, which is defined in <strong>neuron_color</strong>. The easiest way to do this is to first call the <cite>nds_get_color_dict</cite> method on the database, this will output a text file containing for each neuron a line with its name and the color selected for <cite>color_scheme==0</cite> (optionally <cite>color_scheme==1</cite>). The user can then edit this text file, being careful to specify colors correctly as shown in the table below, and then run <cite>nds_plot</cite> or <cite>nds_movie</cite> with <cite>color_scheme==-1</cite>.</p>
-<p><strong>neuron_color :</strong> string : name of text file containing dictionary info by neuron name that specifies color to use for <cite>color_scheme==-1</cite> in <cite>nds_plot</cite> or <cite>nds_movie</cite>. Use <cite>nds_get_color_dict</cite> on the database to obtain a valid text file and then edit it.</p>
+<p>In addition, <cite>nds_plot</cite> and <cite>nds_movie</cite> also have a <cite>color_scheme==-1</cite> setting. This allows the user to specify a specific color for each neuron in the simulation in a text file, which is defined in <strong>neuron_colors</strong>. The easiest way to do this is to first call the <cite>nds_get_color_dict</cite> method on the database, this will output a text file containing for each neuron a line with its name and the color selected for <cite>color_scheme==0</cite> (optionally <cite>color_scheme==1</cite>). The user can then edit this text file, being careful to specify colors correctly as shown in the table below, and then run <cite>nds_plot</cite> or <cite>nds_movie</cite> with <cite>color_scheme==-1</cite>.</p>
+<p><strong>neuron_colors :</strong> string : name of text file containing dictionary info by neuron name that specifies color to use for <cite>color_scheme==-1</cite> in <cite>nds_plot</cite> or <cite>nds_movie</cite>. Use <cite>nds_get_color_dict</cite> on the database to obtain a valid text file and then edit it.</p>
 <div class="section" id="available-colors-and-their-names">
 <h4>Available colors and their names<a class="headerlink" href="#available-colors-and-their-names" title="Permalink to this headline">¶</a></h4>
 <p>These color names should be used in the <strong>neuron_color</strong> text file.</p>
@@ -1082,7 +1082,7 @@
         <li class="right" >
           <a href="simulator.html" title="simulator module"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Basic Tutorial</a></li> 
       </ul>
     </div>

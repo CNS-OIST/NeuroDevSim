@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Changes compared previous versions &#8212; NeuroDevSim 1.0.0 documentation</title>
+    <title>Changes compared previous versions &#8212; NeuroDevSim 1.0.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -30,7 +30,7 @@
         <li class="right" >
           <a href="examples.html" title="Examples"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Changes compared previous versions</a></li> 
       </ul>
     </div>  
@@ -42,8 +42,31 @@
             
   <div class="section" id="changes-compared-previous-versions">
 <h1>Changes compared previous versions<a class="headerlink" href="#changes-compared-previous-versions" title="Permalink to this headline">¶</a></h1>
-<p>The first released NeuroDevSim version was 0.8.8. Version 0.9.2 was the first release of the new user interface based on <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> and Exceptions, and used new processor scheduling methods. First public version is 1.0.0, which is used as reference to track changes.</p>
+<p>The first used NeuroDevSim version was 0.8.8. Version 0.9.2 was the first release of the new user interface based on <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> and Exceptions, and used new processor scheduling methods. First public version is 1.0.0, which is used as reference to track changes.</p>
 <p>NeuroDevSim concepts are derived from the <a class="reference external" href="https://www.frontiersin.org/articles/10.3389/fnana.2014.00092/full">NeuroMaC software</a> originally developed by Benjamin Torben-Nielsen and extended by Erik De Schutter to version 0.6.2.</p>
+<div class="section" id="version-1-0-1">
+<h2>Version 1.0.1<a class="headerlink" href="#version-1-0-1" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Changes to methods:</p></li>
+</ol>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">nds_movie</span></code> has <em>neurons</em> optional parameter.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nds_plot</span></code> and <code class="docutils literal notranslate"><span class="pre">nds_movie</span></code> <em>neuron_color</em> optional parameter renamed to <em>neuron_colors</em>.</p></li>
+</ul>
+<ol class="arabic simple" start="2">
+<li><p>New and removed methods:</p></li>
+</ol>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sim_memory</span></code>: <em>Admin_agent</em> method that prints memory use.</p></li>
+<li><p>removed <code class="docutils literal notranslate"><span class="pre">sim_signature</span></code> as it was not useful for this version.</p></li>
+</ul>
+<ol class="arabic simple" start="3">
+<li><p>Bug fixes:</p></li>
+</ol>
+<ul class="simple">
+<li><p>unknown local variable ‘color_attrib’ bug in <code class="docutils literal notranslate"><span class="pre">nds_plot</span></code> and <code class="docutils literal notranslate"><span class="pre">nds_movie</span></code> fixed.</p></li>
+</ul>
+</div>
 </div>
 
 
@@ -53,6 +76,16 @@
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Changes compared previous versions</a><ul>
+<li><a class="reference internal" href="#version-1-0-1">Version 1.0.1</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
   <div>
     <h4>Previous topic</h4>
     <p class="topless"><a href="examples.html"
@@ -91,7 +124,7 @@
         <li class="right" >
           <a href="examples.html" title="Examples"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Changes compared previous versions</a></li> 
       </ul>
     </div>

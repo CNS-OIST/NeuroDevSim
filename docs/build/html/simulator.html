@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>simulator module &#8212; NeuroDevSim 1.0.0 documentation</title>
+    <title>simulator module &#8212; NeuroDevSim 1.0.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="processing.html" title="processing module"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="modules.html" accesskey="U">Classes and Methods</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">simulator module</a></li> 
       </ul>
@@ -280,18 +280,9 @@
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="simulator.Admin_agent.sim_signature">
-<span class="sig-name descname"><span class="pre">sim_signature</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#simulator.Admin_agent.sim_signature" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a unique signature for a completed simulation.</p>
-<p>This signature can be used to confirm reproducibility of simulation results for a given seed. It returns tuple of integers containing: last cycle with growth, number of fronts made and a unique signature based on the mean of all front coordinates.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><strong>signature</strong></p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>tuple of integers</p>
-</dd>
-</dl>
+<dt class="sig sig-object py" id="simulator.Admin_agent.sim_memory">
+<span class="sig-name descname"><span class="pre">sim_memory</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#simulator.Admin_agent.sim_memory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print memory use in Mb.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -572,6 +563,7 @@
 </dl>
 </dd></dl>
 
+</dd></dl>
 
 </div>
 <div class="section" id="front-class">
@@ -1885,6 +1877,7 @@ point on the surface. Default: True.</p></li>
 </dl>
 </dd></dl>
 
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="simulator.average_fronts">
@@ -2056,6 +2049,7 @@ point on the surface. Default: True.</p></li>
 </dl>
 </dd></dl>
 
+</dd></dl>
 
 </div>
 <div class="section" id="neuron-class">
@@ -2247,6 +2241,7 @@ point on the surface. Default: True.</p></li>
 </dl>
 </dd></dl>
 
+</dd></dl>
 
 </div>
 <div class="section" id="substrate-class">
@@ -2317,7 +2312,6 @@ point on the surface. Default: True.</p></li>
 <span class="sig-name descname"><span class="pre">diff_c</span></span><a class="headerlink" href="#simulator.Substrate.diff_c" title="Permalink to this definition">¶</a></dt>
 <dd><p>float : 3D diffusion coefficient in µm^2/cycle (optional).</p>
 </dd></dl>
-
 
 <dl class="py method">
 <dt class="sig sig-object py" id="simulator.Substrate.nds_class">
@@ -2461,6 +2455,7 @@ Only the <strong>attributes</strong> listed below can be read. NEVER change thes
 </dl>
 </dd></dl>
 
+</dd></dl>
 
 </div>
 </div>
@@ -2727,6 +2722,13 @@ A few <strong>attributes</strong> listed below can be read. NEVER change these a
 <dd><p>integer : neuron_id used in sqlite database.</p>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.DataID.front_id">
+<span class="sig-name descname"><span class="pre">front_id</span></span><a class="headerlink" href="#simulator.DataID.front_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>integer : front_id used in sqlite database, 0 if data is about a <code class="docutils literal notranslate"><span class="pre">Neuron</span></code>.</p>
+</dd></dl>
+
+</dd></dl>
 
 </div>
 <div class="section" id="nds-list-class">
@@ -3176,7 +3178,7 @@ A few <strong>attributes</strong> listed below can be read. NEVER change these a
         <li class="right" >
           <a href="processing.html" title="processing module"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="modules.html" >Classes and Methods</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">simulator module</a></li> 
       </ul>

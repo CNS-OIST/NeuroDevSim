@@ -23,9 +23,9 @@ There are several parameters that control how structures in the simulation are c
 
 **soma_black :** boolean : every soma is always colored black (default), used for *color_scheme* 0-2.
 
-In addition, `nds_plot` and `nds_movie` also have a `color_scheme==-1` setting. This allows the user to specify a specific color for each neuron in the simulation in a text file, which is defined in **neuron_color**. The easiest way to do this is to first call the `nds_get_color_dict` method on the database, this will output a text file containing for each neuron a line with its name and the color selected for `color_scheme==0` (optionally `color_scheme==1`). The user can then edit this text file, being careful to specify colors correctly as shown in the table below, and then run `nds_plot` or `nds_movie` with `color_scheme==-1`.
+In addition, `nds_plot` and `nds_movie` also have a `color_scheme==-1` setting. This allows the user to specify a specific color for each neuron in the simulation in a text file, which is defined in **neuron_colors**. The easiest way to do this is to first call the `nds_get_color_dict` method on the database, this will output a text file containing for each neuron a line with its name and the color selected for `color_scheme==0` (optionally `color_scheme==1`). The user can then edit this text file, being careful to specify colors correctly as shown in the table below, and then run `nds_plot` or `nds_movie` with `color_scheme==-1`.
 
-**neuron_color :** string : name of text file containing dictionary info by neuron name that specifies color to use for `color_scheme==-1` in `nds_plot` or `nds_movie`. Use `nds_get_color_dict` on the database to obtain a valid text file and then edit it.
+**neuron_colors :** string : name of text file containing dictionary info by neuron name that specifies color to use for `color_scheme==-1` in `nds_plot` or `nds_movie`. Use `nds_get_color_dict` on the database to obtain a valid text file and then edit it.
 
 Available colors and their names
 ++++++++++++++++++++++++++++++++

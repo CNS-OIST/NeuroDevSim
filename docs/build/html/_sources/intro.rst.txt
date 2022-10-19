@@ -12,7 +12,9 @@ NeuroDevSim stands for Neural Development Simulator: a parallel computational fr
 - **Microcircuits**: neurons are generated together in a simulated volume. With the addition of connections rules and synapses circuits emerge.
 - **Interactions**: growth can be influenced by environmental cues. Most obvious is guidance through repulsion or attraction by other neurons or chemical cues. Existing structures can block growth: physical overlap between structures is not allowed.
 
-At present no publication is available that describes NeuroDevSim. If you use this software, for the time being, please cite its predecessor NeuroMac:  Torben-Nielsen, B. & De Schutter, E. (2014) Context-aware modeling of neuronal morphologies. *Frontiers in Neuroanatomy* 8: 92.
+This software is described in the following preprint, please cite it when using NeuroDevSim:
+
+E. De Schutter: Efficient simulation of neural development using shared memory parallelization. https://www.biorxiv.org/content/10.1101/2022.10.17.512465v1
 
 Concepts and software design
 ----------------------------
