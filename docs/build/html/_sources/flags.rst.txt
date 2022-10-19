@@ -8,7 +8,7 @@
 Status flags scheduling ``manage_front``
 ----------------------------------------
 
-``manage_front`` is called only for ``Front`` that are *active*, but the order in which fronts are called depends on the *growing* and *migrating* status flags and, if either is set to True, on the position of ``Front`` in the simulation volume. Correct setting of these flags is important to reudce the likelyhood of :ref:`gridcompetitionerror-label`. The *active*, *growing* and *migrating* flags can be set by the user or changed through the ``enable`` and ``disable`` methods:
+``manage_front`` is called only for ``Front`` that are *active*, but the order in which fronts are called depends on the *growing* and *migrating* status flags and, if either is set to True, on the position of ``Front`` in the simulation volume. Correct setting of these flags is important to reduce the likelyhood of :ref:`gridcompetitionerror-label`. The *active*, *growing* and *migrating* flags can be set by the user or changed through the ``enable`` and ``disable`` methods:
 
 ================== ======================================== ========================== ===============
 Flag query         Set to True                              Set to False               Active if True

@@ -105,4 +105,4 @@ Identical to *Small_network* example from the :ref:`randomnote-label` with pdf f
 
 plots_and_movies.py
 +++++++++++++++++++
-Illustrates the use of *nds_plot* to make pdf files and of *nds_movie* to make movies using the ``color_scheme=3`` option as described in :ref:`plots-label`.
+Illustrates the use of *nds_plot* to make pdf files and of *nds_movie* to make movies using the ``color_scheme=-1`` or ``color_scheme=3`` options as described in :ref:`plots-label`.

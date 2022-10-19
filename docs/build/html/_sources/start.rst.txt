@@ -398,7 +398,7 @@ Front extension again needs to deal with :ref:`collisionerror-label` etc. Here a
         elif self.path_length < 150: # continue growth of a dendrite or branch it
             if np.random.random() > 0.06: # most probable: extend with a single front
                 count = 0 # counts number of add_child trials
-                while count < 100:
+                while count < 10:
                     extension = self.unit_heading_sample(width=20)
                     ...
                     # check for possible collisions
@@ -411,7 +411,7 @@ Front extension again needs to deal with :ref:`collisionerror-label` etc. Here a
                         count += 1
                         continue # pick another new_pos, no attempt to correct the error
 
-This is tried up to a 100 times, but usually only a few trials are needed. The *count* is incremented only if an error occurred, otherwise the ``while`` loop is left with the ``return`` statement.
+This is tried up to ten times, but usually only a few trials are needed. The *count* is incremented only if an error occurred, otherwise the ``while`` loop is left with the ``return`` statement.
 
 ``self.unit_heading_sample(width=20)`` returns a ``Point`` representing a 1 µm direction vector, drawn from a normal distribution centered around the direction vector of *self* with a standard deviation of 20. As a result, the dendrite will grow in roughly the same direction as *self*. A biologically unrealistic abrupt change of direction could occur if a truly random direction was used, as generated with ``unit_sample_on_sphere()``.
 
@@ -420,7 +420,7 @@ The complete code for front extension is::
         elif self.path_length < 150: # continue growth of a dendrite or branch it
             if np.random.random() > 0.06: # most probable: extend with a single front
                 count = 0 # counts number of add_child trials
-                while count < 100:
+                while count < 10:
                     extension = self.unit_heading_sample(width=20)
                     new_pos = self.end + extension * 5. # compute position of child end
                     # check for possible collisions
@@ -503,7 +503,7 @@ The complete code to run *RandomFront*::
             elif self.path_length < 150: # continue growth of a dendrite or branch it
                 if np.random.random() > 0.06: # most probable: extend with a single front
                     count = 0 # counts number of add_child trials
-                    while count < 100:
+                    while count < 10:
                         extension = self.unit_heading_sample(width=20)
                         new_pos = self.end + extension * 5. # compute position of child end
                         # check for possible collisions

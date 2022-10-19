@@ -59,9 +59,9 @@ def nds_version(raw=False):
     version : string or float
     """
     if raw:
-        return 100.
+        return 101.
     else:
-        return "NeuroDevSim 1.0.0"
+        return "NeuroDevSim 1.0.1"
         
 class nds_list(list):
     """ Class implementing a list that prints NeuroDevSim objects inside the list nicely. Otherwise acts as a standard list.
@@ -1121,7 +1121,6 @@ class Front(Structure):
             print (constellation.my_id,"retract",self._fid)
         if self.num_children > 0:
             raise TypeError("retract not possible when children are present")
-        #constellation._delete_front(self)
         if constellation._n_newAID >= constellation._new_range:
             raise OverflowError("_new_AIDs","max_active")
         aid = ActiveFrontID(self.get_id(),b'd')
@@ -2543,7 +2542,7 @@ class Front(Structure):
                         while True: # loop for GridCompetitionError
                             count += 1
                             if count > 100:
-                                GridCompetitionError(cgid)
+                                raise GridCompetitionError(cgid)
                             try: 
                                 gids = constellation._get_gids(self.end,new_p,0.)
                                 constellation._test_collision(self.end,new_p,\
@@ -6148,10 +6147,9 @@ class Constellation(object):
         if not self.only_first_collision:
             collisions = nds_list() # store all colliding fronts
             distances = []  # store all distances
-        # first check on previous collisions in ids, then loop through gids till one
-        #   can be locked and repeat.
+        # loop through gids till one can be locked and repeat.
         count = 0 # count failed cycles
-        max_count = 2 * min(55,len(all_gids)) # create cheap randomness
+        max_count = np.random.randint(40,80) # random absolute max count
         while len(all_gids) > 0: # loop through all_gids till all are processed
             if not ids: # find gid entry that can be locked
                 if self.my_id <= 1: # call by admin -> no grid locking needed
@@ -6176,7 +6174,7 @@ class Constellation(object):
                             break # changed gids
                         wlock = self._automatic and lock and (gid in gids) # do we lock it for writing?
                         wait = 0.
-                        if wlock:
+                        if wlock: # locks gids for new front. This is done here so that we can iterate if initial lock attempt fails.
                             gwlock = self._grid_wlock[gid]
                             if gwlock == 0: 
                                 # get long-lasting write+read-only lock
@@ -6194,9 +6192,8 @@ class Constellation(object):
                                 #  one of the competing processes fail. The even/odd
                                 #  test based on cycle ensures that each process has
                                 #  the same probability of GridCompetitionError.
-                                if ((count > 11) and \
-                                       ((self.cycle % 2) == (self.my_id % 2))) \
-                                   or (count > max_count):
+                                if ((count > 11) and ((self.cycle % 2) == (self.my_id % 2))) \
+                                                                                or (count > max_count):
                                     # unlock all current writing locks
                                     for gid0 in gids:
                                         if self._grid_wlock[gid0] == self.my_id:
@@ -7654,10 +7651,8 @@ class Admin_agent(object):
 
         if verbose >= 4:
             runtime = time.time() - self.start
-            pid = os.getpid()
-            py = psutil.Process(pid)
-            memoryUse = py.memory_info()[0]/2.**30  # memory use in GB...I think
-            print ("Admin total startup time: {:.3f}s".format(runtime),"memory usage",memoryUse,"Gb")
+            print ("Admin total startup time: {:.3f}s".format(runtime))
+            self.sim_memory()
 
     # Initialize interactive plot
     def _initialize_plot(self,color_data):
@@ -8919,34 +8914,15 @@ class Admin_agent(object):
                 front._set_storing() # mark as storing
                 self._store_fronts.append(front)
                     
-    def sim_signature(self):
-        """ Return a unique signature for a completed simulation.
-        
-        This signature can be used to confirm reproducibility of simulation results for a given seed. It returns tuple of integers containing: last cycle with growth, number of fronts made and a unique signature based on the mean of all front coordinates.
-        
-        Returns
-        -------
-        signature : tuple of integers
+    def sim_memory(self):
+        """ Print memory use in Mb.
         """
-        sum_coord = Point(0.,0.,0.) # will be summed coordinates
-        num_fronts = 0
-        last_cycle = 0
-        # get data from all surviving fronts in self._fronts arrays
-        for i in range(1, self._num_types_1):
-            for j in range(self._max_fronts[i-1]):
-                front = self._fronts[i][j]
-                if (front._pid != 0) and (front.death < 0):
-                    num_fronts += 1
-                    if front.birth > last_cycle:
-                        last_cycle = front.birth
-                    if front.is_cylinder():
-                        sum_coord += front.end
-                    else:
-                        sum_coord += front.orig # for migrating somata this is final position
-        # compute signature
-        sum_coord = sum_coord / num_fronts # take mean
-        signature = int((sum_coord.x + sum_coord.y + sum_coord.z) * 1000000)
-        return (last_cycle, num_fronts, signature)
+        pid = os.getpid()
+        py = psutil.Process(pid)
+        real_mem = int(py.memory_info()[0]/1e+6)  # real memory use in MB
+        virt_mem = int(py.memory_info()[1]/1e+6)  # virtual memory use in MB
+        print ("Admin with",self._num_procs+1,"cores, real memory:",real_mem,"MB, virtual memory:",virt_mem,"MB")
+
 
     def sim_statistics(self,verbose=3):
         """ Print runtime statistics for a simulation and returns runtime.
@@ -9247,7 +9223,7 @@ class Admin_agent(object):
                                     else:
                                         self._future_active[till_cycle] = \
                                                     [[status,front]]
-                            elif status == b'd': # retract branch
+                            elif status == b'd': # retract branch or single front
                                 front = self._fronts[id._nid][id._fid]
                                 retracted_f.append(front)
                             elif status == b's': # store substrate
@@ -11163,7 +11139,6 @@ class Admin_agent(object):
                         # not locked at present for either writing or reading
                         self._gwlock_request[pid] = 0
                         self._grid_wlock[gid] = pid # lock it for process
-                        #print ("_lock_broker write locking",gid,pid)
                         if self._debug:
                             self._lw_gids.add(gid)
                 else: # negative gid: immediate writing lock request
@@ -11182,7 +11157,6 @@ class Admin_agent(object):
                         # no writing lock or not actively being used
                         self._grlock_request[pid] = 0
                         self._grid_rlock[gid] = pid # reading lock it for process
-                        #print ("_lock_broker read locking",gid,pid)
                         if self._debug:
                             self._lr_gids.add(gid)
                             

@@ -10,5 +10,6 @@ NeuroDevSim
 
 Access the **Documentation** at https://cns-oist.github.io/NeuroDevSim/index.html or locally as <http:docs/build/html/index.html>
 
-At present no publication is available that describes NeuroDevSim. If you use this software, for the time being, please cite its predecessor NeuroMac:  Torben-Nielsen, B. & De Schutter, E. (2014) Context-aware modeling of neuronal morphologies. *Frontiers in Neuroanatomy* 8: 92.
+This software is described in the following preprint, please cite it when using NeuroDevSim:  
+E. De Schutter: Efficient simulation of neural development using shared memory parallelization. https://www.biorxiv.org/content/10.1101/2022.10.17.512465v1
 
