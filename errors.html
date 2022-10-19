@@ -1,0 +1,134 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Useful Errors &#8212; NeuroDevSim 1.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Useful <code class="docutils literal notranslate"><span class="pre">Errors</span></code></a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="useful-errors">
+<span id="usefulerrors-label"></span><h1>Useful <code class="docutils literal notranslate"><span class="pre">Errors</span></code><a class="headerlink" href="#useful-errors" title="Permalink to this headline">¶</a></h1>
+<p>A complete listing of NeuroDevSim errors can be found in <a class="reference internal" href="simulator.html#simulator-label"><span class="std std-ref">simulator module</span></a>. Here errors that can easily be used to improve model code are described briefly.</p>
+<div class="section" id="collisionerror">
+<span id="collisionerror-label"></span><h2><code class="docutils literal notranslate"><span class="pre">CollisionError</span></code><a class="headerlink" href="#collisionerror" title="Permalink to this headline">¶</a></h2>
+<p>This is the most important error to catch because it is quite difficult to prevent collisions between a new front being made by, for example, <code class="docutils literal notranslate"><span class="pre">add_child</span></code> and existing fronts. If a <code class="docutils literal notranslate"><span class="pre">CollisionError</span></code> occurs a different <em>coordinate</em> should be tried for the method that triggered it. In most of the examples this is done randomly, but NeuroDevSim provides a <code class="docutils literal notranslate"><span class="pre">Front.solve_collision</span></code> method that can also help. This is explained in detail in <a class="reference internal" href="collisions.html#collisions-label"><span class="std std-ref">Preventing and dealing with collisions</span></a>. Examples can also be found in all notebooks.</p>
+<p>Often it is useful to know which existing front caused the collision. This information is available in <code class="docutils literal notranslate"><span class="pre">CollisionError</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+<span class="o">...</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">)</span>
+    <span class="o">...</span>
+<span class="k">except</span> <span class="n">CollisionError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;collides with&quot;</span><span class="p">,</span><span class="n">error</span><span class="o">.</span><span class="n">collider</span><span class="p">,</span><span class="s2">&quot;with distance&quot;</span><span class="p">,</span><span class="n">error</span><span class="o">.</span><span class="n">distance</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where <em>error.collider</em> is the offending front. Note that the standard behavior of all methods is to return a <code class="docutils literal notranslate"><span class="pre">CollisionError</span></code> upon the first collision detected. This behavior can be changed to detect all colliding fronts, see <a class="reference internal" href="collisions.html#collisions-label"><span class="std std-ref">Preventing and dealing with collisions</span></a>.</p>
+</div>
+<div class="section" id="gridcompetitionerror">
+<span id="gridcompetitionerror-label"></span><h2><code class="docutils literal notranslate"><span class="pre">GridCompetitionError</span></code><a class="headerlink" href="#gridcompetitionerror" title="Permalink to this headline">¶</a></h2>
+<p>This error is unique to the shared memory parallel computing implemented in NeuroDevSim. An important coding challenge is to prevent two different processes from trying to write to the same memory location at the same time and to prevent reading partial information because another process is writing. This prevention is done through transient locking of specific memory locations. In the context of <code class="docutils literal notranslate"><span class="pre">GridCompetitionError</span></code> locking of a <em>grid</em> location failed. The <em>grid</em> contains information about the location of all existing fronts, stored on a Cartesian 3D grid. It is used to detect collisions and needs to be accessed and updated frequently. A <code class="docutils literal notranslate"><span class="pre">GridCompetitionError</span></code> occurs when two or more processes try to access the same grid coordinate simultaneously. Because this happens frequently, the standard approach is for all processes except one to wait till the allowed one completes its task, but sometimes the competition is so fierce that this leads to excessive waiting times and then a <code class="docutils literal notranslate"><span class="pre">GridCompetitionError</span></code> occurs.</p>
+<p>One way in which NeuroDevSim tries to avoid this problem is by scheduling the order in which fronts call <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> so that growing or migrating fronts occupying the same grid coordinate are not processed simultaneously on different processes. To do this efficiently it is important that the <code class="docutils literal notranslate"><span class="pre">is_growing()</span></code> and <code class="docutils literal notranslate"><span class="pre">is_migrating()</span></code> <a class="reference internal" href="flags.html#flags-label"><span class="std std-ref">Front status flags</span></a> are set correctly. For simple simulations this is done automatically by <code class="docutils literal notranslate"><span class="pre">self.disable(constellation)</span></code> when growth or migration is finished. But in more complex models these <a class="reference internal" href="flags.html#flags-label"><span class="std std-ref">Front status flags</span></a> may have to be set explicitly.</p>
+<p>If a <code class="docutils literal notranslate"><span class="pre">GridCompetitionError</span></code> occurs the best strategy is often to try calling the method again a few times with the same or different parameters, this approach is taken in many examples. Alternatively, <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> can return without disabling <em>self</em> so that the same call is made again next cycle, but this may reduce the growth rate. Note that it is not wise to loop many times (more than 10) for a <code class="docutils literal notranslate"><span class="pre">GridCompetitionError</span></code> because this may significantly slow down the simulation.</p>
+</div>
+<div class="section" id="insideparenterror">
+<span id="insideparenterror-label"></span><h2><code class="docutils literal notranslate"><span class="pre">InsideParentError</span></code><a class="headerlink" href="#insideparenterror" title="Permalink to this headline">¶</a></h2>
+<p>The <em>coordinate</em> provided to <code class="docutils literal notranslate"><span class="pre">self.add_child</span></code> or similar method is inside the volume occupied by the future parent <em>self</em>. The obvious solution is to provide another value for <em>coordinate</em>.</p>
+</div>
+<div class="section" id="volumeerror">
+<span id="volumeerror-label"></span><h2><code class="docutils literal notranslate"><span class="pre">VolumeError</span></code><a class="headerlink" href="#volumeerror" title="Permalink to this headline">¶</a></h2>
+<p>The <em>coordinate</em> provided to <code class="docutils literal notranslate"><span class="pre">self.add_child</span></code> or similar method is outside the simulation volume. Because all growth and migration methods test for this condition anyway, it is more efficient to let the error happen and then deal with it instead of preventing it. In most cases growth should stop after this front is made with its <em>end</em> on the border.</p>
+<p>Because <strong>no</strong> collision detection occurs outside of the simulation volume, it is impossible to grow fronts outside of the volume.</p>
+<p>An example can be found in ‘Demo_attraction’ in the <a class="reference internal" href="examples.html#environmentnote-label"><span class="std std-ref">Environment notebook</span></a>.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Useful <code class="docutils literal notranslate"><span class="pre">Errors</span></code></a><ul>
+<li><a class="reference internal" href="#collisionerror"><code class="docutils literal notranslate"><span class="pre">CollisionError</span></code></a></li>
+<li><a class="reference internal" href="#gridcompetitionerror"><code class="docutils literal notranslate"><span class="pre">GridCompetitionError</span></code></a></li>
+<li><a class="reference internal" href="#insideparenterror"><code class="docutils literal notranslate"><span class="pre">InsideParentError</span></code></a></li>
+<li><a class="reference internal" href="#volumeerror"><code class="docutils literal notranslate"><span class="pre">VolumeError</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/errors.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Useful <code class="docutils literal notranslate"><span class="pre">Errors</span></code></a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-2022, OIST.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+  </body>
+</html>

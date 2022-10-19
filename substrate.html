@@ -1,0 +1,125 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Substrate &#8212; NeuroDevSim 1.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Substrate</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="substrate">
+<span id="substrate-label"></span><h1>Substrate<a class="headerlink" href="#substrate" title="Permalink to this headline">¶</a></h1>
+<p>Substrate is a class that implements chemical cues at different locations. It is the only class in NeuroDevSim that can be directly initiated with syntax <code class="docutils literal notranslate"><span class="pre">Substrate(name,location,creation_cycle,amount)</span></code>. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sub</span> <span class="o">=</span> <span class="n">Substrate</span><span class="p">(</span><span class="s2">&quot;attractor&quot;</span><span class="p">,</span><span class="n">Point</span><span class="p">(</span><span class="mf">10.</span><span class="p">,</span><span class="mf">10.</span><span class="p">,</span><span class="mf">10.</span><span class="p">),</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>creates a substrate named <em>attractor</em> at coordinate (10.,10.,10.) which will exist from the beginning of the simulation (cycle 0) and consists of a single molecule. Such a simple substrate is sufficient for a <strong>deterministic</strong> <a class="reference internal" href="environment.html#substratecue-label"><span class="std std-ref">Chemical cue using Substrate</span></a>.</p>
+<p>However, before it can be used it should be added to the simulation. This can be done in two different ways: in the main code or by a <code class="docutils literal notranslate"><span class="pre">Front</span></code> during its <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> call. The first case uses <code class="docutils literal notranslate"><span class="pre">Admin_agent.add_substrate</span></code> as shown in the <a class="reference internal" href="examples.html#environmentnote-label"><span class="std std-ref">Environment notebook</span></a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="o">...</span>
+    <span class="c1"># add substrate information, in this case a single random point</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="mi">20</span> <span class="o">+</span> <span class="mi">60</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="mi">20</span> <span class="o">+</span> <span class="mi">60</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span>
+    <span class="c1"># instantiate a substrate</span>
+    <span class="n">sub</span> <span class="o">=</span> <span class="n">Substrate</span><span class="p">(</span><span class="s2">&quot;attractor&quot;</span><span class="p">,</span><span class="n">Point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="mf">99.</span><span class="p">),</span><span class="o">...</span><span class="p">)</span>
+    <span class="c1"># add it to the simulation volume</span>
+    <span class="n">admin</span><span class="o">.</span><span class="n">add_substrate</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Alternatively, it can be produced by a <code class="docutils literal notranslate"><span class="pre">Front</span></code> that uses <code class="docutils literal notranslate"><span class="pre">constellation.add_substrate</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">sub</span> <span class="o">=</span> <span class="n">Substrate</span><span class="p">(</span><span class="s2">&quot;attractor&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">mid</span><span class="p">(),</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">constellation</span><span class="o">.</span><span class="n">add_substrate</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>though this is not enforced, the assumption is that the substrate is produced close to the front, in this case at its center.</p>
+<p>Either <code class="docutils literal notranslate"><span class="pre">add_substrate</span></code> can be called with a single <code class="docutils literal notranslate"><span class="pre">Substrate</span></code> or a list of <code class="docutils literal notranslate"><span class="pre">Susbstrate</span></code> as parameter. Multiple instantiations of <code class="docutils literal notranslate"><span class="pre">Substrate</span></code> with the same name at different locations can be created and added. Once registered by <code class="docutils literal notranslate"><span class="pre">add_substrate</span></code>, all substrate of a given name can be found with the <code class="docutils literal notranslate"><span class="pre">get_substrates</span></code> as described in the <a class="reference internal" href="environment.html#substratecue-label"><span class="std std-ref">Chemical cue using Substrate</span></a>.</p>
+<p>In addition to the simple definitions used till now, additional parameters can be supplied which allow for <strong>stochastic</strong> use of <code class="docutils literal notranslate"><span class="pre">Substrate</span></code> with the <code class="docutils literal notranslate"><span class="pre">diff_gradient_to</span></code> method described in <a class="reference internal" href="environment.html#substratecue-label"><span class="std std-ref">Chemical cue using Substrate</span></a> and illustrated in <a class="reference internal" href="examples.html#environmentnote-label"><span class="std std-ref">Environment notebook</span></a>. For this stochastic approach a diffusion constant <em>diff_c</em> in µm^2/cycle needs to provided:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sub</span> <span class="o">=</span> <span class="n">Substrate</span><span class="p">(</span><span class="s2">&quot;attractor&quot;</span><span class="p">,</span><span class="n">Point</span><span class="p">(</span><span class="mf">10.</span><span class="p">,</span><span class="mf">10.</span><span class="p">,</span><span class="mf">10.</span><span class="p">),</span><span class="n">constellation</span><span class="o">.</span><span class="n">cycle</span><span class="p">,</span><span class="mi">1000000000</span><span class="p">,</span><span class="n">diff_c</span><span class="o">=</span><span class="mf">30.</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This will place a point source of 1,000,000,000 molecules of attractor at the given location on the given cycle, which will then start to diffuse away. The computed gradient will evolve as the <em>cycle</em> parameter passed to <code class="docutils literal notranslate"><span class="pre">diff_gradient_to</span></code> increases.</p>
+<p>An alternative is to use a continuously producing point source. In that case the <em>amount</em> is ignored and, instead, an optional <em>rate</em> parameter is provided:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sub</span> <span class="o">=</span> <span class="n">Substrate</span><span class="p">(</span><span class="s2">&quot;attractor&quot;</span><span class="p">,</span><span class="n">Point</span><span class="p">(</span><span class="mf">10.</span><span class="p">,</span><span class="mf">10.</span><span class="p">,</span><span class="mf">10.</span><span class="p">),</span><span class="n">constellation</span><span class="o">.</span><span class="n">cycle</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">rate</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span><span class="n">diff_c</span><span class="o">=</span><span class="mf">30.</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For the continuously producing point source, stochastic concentratons can be queried by <code class="docutils literal notranslate"><span class="pre">diff_gradient_to</span></code> either some cycles after the start or using a steady state gradient, see <a class="reference internal" href="environment.html#substratecue-label"><span class="std std-ref">Chemical cue using Substrate</span></a>.</p>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/substrate.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Substrate</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-2022, OIST.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+  </body>
+</html>

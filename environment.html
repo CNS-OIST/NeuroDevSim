@@ -1,0 +1,219 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Environment cues &#8212; NeuroDevSim 1.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Environment cues</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="environment-cues">
+<span id="environment-label"></span><h1>Environment cues<a class="headerlink" href="#environment-cues" title="Permalink to this headline">¶</a></h1>
+<p>Querying the environment for cues that affect <code class="docutils literal notranslate"><span class="pre">Front</span></code> growth is an important component of a simulation. During a <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> call, the following data can be obtained:</p>
+<ul class="simple">
+<li><p>Location of all nearby <code class="docutils literal notranslate"><span class="pre">Front</span></code> of the same <code class="docutils literal notranslate"><span class="pre">Neuron</span></code>: <code class="docutils literal notranslate"><span class="pre">get_fronts</span></code> method, useful to model self-repulsion between dendrites.</p></li>
+<li><p>Location of all nearby <code class="docutils literal notranslate"><span class="pre">Front</span></code> of other <code class="docutils literal notranslate"><span class="pre">Neuron</span></code>: <code class="docutils literal notranslate"><span class="pre">get_fronts</span></code> method, useful to model attraction or repulsion by other neuron dendrites or axons.</p></li>
+<li><p>Location or local concentration of <code class="docutils literal notranslate"><span class="pre">Substrate</span></code>: <code class="docutils literal notranslate"><span class="pre">get_substrates</span></code> method, simulates chemical attraction independent of <code class="docutils literal notranslate"><span class="pre">Front</span></code> structures.</p></li>
+<li><p>a <a class="reference internal" href="tutorial.html#collisionerror-label"><span class="std std-ref">CollisionError</span></a>: contains information about the colliding <code class="docutils literal notranslate"><span class="pre">Front</span></code>, see <a class="reference internal" href="collisions.html#collisions-label"><span class="std std-ref">Preventing and dealing with collisions</span></a>.</p></li>
+</ul>
+<div class="section" id="get-fronts-method">
+<h2><code class="docutils literal notranslate"><span class="pre">get_fronts</span></code> method<a class="headerlink" href="#get-fronts-method" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">get_fronts</span></code> is a <code class="docutils literal notranslate"><span class="pre">Front</span></code> method, usually called by <em>self</em>. It returns a list of tuples: (<code class="docutils literal notranslate"><span class="pre">Front</span></code>, <em>distance</em>), where <em>distance</em> is the shortest distance between <em>self</em> (or the calling front) and <code class="docutils literal notranslate"><span class="pre">Front</span></code>. By default, this list will be sorted with nearest fronts first and only fronts within a range of 100 µm will be searched. With optional parameter <code class="docutils literal notranslate"><span class="pre">returnID=True</span></code> (<code class="docutils literal notranslate"><span class="pre">ID</span></code>, <em>distance</em>) tuples will be returned instead.</p>
+<p>The main parameter for <code class="docutils literal notranslate"><span class="pre">get_fronts</span></code> is the optional <em>what</em>, a string that determines which fronts will be returned:</p>
+<ul class="simple">
+<li><p>‘self’: get fronts belonging to same neuron as self, excluding all up to second order ancestors and descendents.</p></li>
+<li><p>‘self+’: get all fronts within <em>max_distance</em> belonging to self.</p></li>
+<li><p>‘name’: get fronts belonging to neurons with a <em>name</em> (wildcard), not including same neuron as self.</p></li>
+<li><p>‘other’: get fronts that do not belong to self (default).</p></li>
+<li><p>‘type’: get fronts belonging to a type of neuron specified in <em>name</em>, not including same neuron as self.</p></li>
+</ul>
+<p>See <a class="reference internal" href="simulator.html#simulator-label"><span class="std std-ref">simulator module</span></a> for complete documentation of the <code class="docutils literal notranslate"><span class="pre">get_fronts</span></code> method.</p>
+<p>A simple example of self-repulsion, only by nearby fronts within 20 µm:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="n">others</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fronts</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">what</span><span class="o">=</span><span class="s2">&quot;self&quot;</span><span class="p">,</span><span class="n">max_distance</span><span class="o">=</span><span class="mf">20.</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">others</span><span class="p">:</span> <span class="c1"># nearby fronts of same neuron found, excluding parent and children</span>
+        <span class="n">nearest</span> <span class="o">=</span> <span class="n">goals</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># get nearest front of same neuron</span>
+        <span class="n">dir_to_repel</span> <span class="o">=</span> <span class="n">nearest</span><span class="o">.</span><span class="n">mid</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="c1"># compute direction to nearest front</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c1"># no repelling fronts found</span>
+        <span class="n">dir_to_repel</span> <span class="o">=</span> <span class="n">Point</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">)</span> <span class="c1"># no repulsion</span>
+    <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mf">20.</span><span class="p">)</span> <span class="o">*</span> <span class="mf">5.</span> <span class="o">-</span> <span class="n">dir_to_repel</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span> <span class="o">*</span> <span class="mf">2.</span>
+</pre></div>
+</div>
+<p>A realistic self-repulsion model has of course to deal with all nearby fronts, not just the nearest one, which may not be trivial.</p>
+<p>An example of attraction to a named neuron, from the <a class="reference internal" href="examples.html#environmentnote-label"><span class="std std-ref">Environment notebook</span></a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="n">goals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fronts</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">what</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;attract_neuron&quot;</span><span class="p">)</span>
+    <span class="c1"># use first of the list</span>
+    <span class="k">if</span> <span class="n">goals</span><span class="p">:</span>
+        <span class="n">goal_front</span> <span class="o">=</span> <span class="n">goals</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># get nearest atract_neuron front</span>
+        <span class="n">dir_to_goal</span> <span class="o">=</span> <span class="n">goal_front</span><span class="o">.</span><span class="n">end</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="c1"># compute direction to nearest front</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c1"># deal with absence of attractor</span>
+        <span class="n">dir_to_goal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mf">10.</span><span class="p">)</span>
+    <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">dir_to_goal</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span> <span class="o">*</span> <span class="mf">5.0</span>
+</pre></div>
+</div>
+<p>The run-time of <code class="docutils literal notranslate"><span class="pre">get_fronts</span></code> scales with the number of neurons and fronts in the simulation and may become quite slow for very large simulations. Therefore, an alternative faster search method is implemented if only nearby fronts are desired, this method will be automatically used if optional parameter <code class="docutils literal notranslate"><span class="pre">max_distance</span> <span class="pre">&lt;=</span> <span class="pre">Admin_agent.grid_step</span></code>.</p>
+</div>
+<div class="section" id="inside-versus-outside-of-a-front">
+<h2>Inside versus outside of a front<a class="headerlink" href="#inside-versus-outside-of-a-front" title="Permalink to this headline">¶</a></h2>
+<p>The code examples above computed a direction to one of the <code class="docutils literal notranslate"><span class="pre">Front</span></code> coordinates, which is inside the target front. This is fine for repulsion, but if the goal is to grow close to the target front, for example to make a synapse, points on the surface of the front are more relevant. This can be obtained with the <code class="docutils literal notranslate"><span class="pre">surface_point_to</span></code> method that returns a point on the surface of the calling front in the direction of a given other point:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="c1"># find a front to grow toward</span>
+    <span class="n">goals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fronts</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">what</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;axons&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">goals</span><span class="p">:</span>
+        <span class="n">nearest</span> <span class="o">=</span> <span class="n">goals</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># get nearest axon front</span>
+        <span class="n">goal</span> <span class="o">=</span> <span class="n">nearest</span><span class="o">.</span><span class="n">surface_point_to</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="c1"># point on surface of nearest towards front calling manage_front</span>
+        <span class="n">direction</span> <span class="o">=</span> <span class="n">goal</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="c1"># direction to goal on nearest</span>
+        <span class="n">distance</span> <span class="o">=</span> <span class="n">direction</span><span class="o">.</span><span class="n">length</span><span class="p">()</span> <span class="c1"># distance to goal</span>
+</pre></div>
+</div>
+<p>By default <em>surface_point_to</em> returns a point halfway along the length of a cylindrical front (for a sphere it is the nearest surface point). This can be changed either to a random location (optional parameter <code class="docutils literal notranslate"><span class="pre">mid=False</span></code>) or to a specific location along the length (e.g. for first third, optional parameter <code class="docutils literal notranslate"><span class="pre">pos=0.33</span></code>).</p>
+<p>Finally, it is also possible to request a point some distance away from the front surface using the <em>offset</em> optional parameter. This may be helpful to prevent a collision with the target <em>nearest</em>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">goal</span> <span class="o">=</span> <span class="n">nearest</span><span class="o">.</span><span class="n">surface_point_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">offset</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">goal</span><span class="p">)</span> <span class="c1"># make a new front ending close to nearest</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="chemical-cue-using-substrate">
+<span id="substratecue-label"></span><h2>Chemical cue using <code class="docutils literal notranslate"><span class="pre">Substrate</span></code><a class="headerlink" href="#chemical-cue-using-substrate" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="substrate.html#substrate-label"><span class="std std-ref">Substrate</span></a> implements modeling of chemical cues that can be placed anywhere in the simulation volume. They can be found with the <code class="docutils literal notranslate"><span class="pre">get_substrates</span></code> method, always based on the name of the <code class="docutils literal notranslate"><span class="pre">Substrate</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">substrates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_substrates</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="s2">&quot;attractor&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">substrates</span><span class="p">:</span>
+        <span class="n">closest</span> <span class="o">=</span> <span class="n">substrates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">cdistance</span> <span class="o">=</span> <span class="n">substrates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p>Similar to <code class="docutils literal notranslate"><span class="pre">get_fronts</span></code>, this method returns a list of (<code class="docutils literal notranslate"><span class="pre">Front</span></code>, <em>distance</em>) or (<code class="docutils literal notranslate"><span class="pre">ID</span></code>, <em>distance</em>) tuples.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Substrate</span></code> can be used in two different ways, both are illustrated in the <a class="reference internal" href="examples.html#environmentnote-label"><span class="std std-ref">Environment notebook</span></a>.</p>
+<p>The simplest is to use it as a <strong>deterministic</strong> cue and compute the direction to it:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dir_to_sub</span> <span class="o">=</span> <span class="n">closest</span><span class="o">.</span><span class="n">orig</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="c1"># compute direction to attractor</span>
+<span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">dir_to_sub</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span> <span class="o">*</span> <span class="mf">5.0</span>
+</pre></div>
+</div>
+<p>A bit more sophisticated is to include a dependence on distance:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">cdistance</span> <span class="o">&lt;=</span> <span class="mf">2.</span><span class="p">:</span> <span class="c1"># go directly</span>
+    <span class="n">new_pos</span> <span class="o">=</span> <span class="n">closest</span><span class="o">.</span><span class="n">orig</span>
+<span class="k">elif</span> <span class="n">cdistance</span> <span class="o">&lt;=</span> <span class="mf">5.</span><span class="p">:</span> <span class="c1"># approach directly in small steps</span>
+    <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">dir_to_sub</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span> <span class="o">*</span> <span class="mf">2.0</span>
+<span class="k">else</span><span class="p">:</span> <span class="c1"># noisy approach</span>
+    <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">unit_sample_on_sphere</span><span class="p">()</span> <span class="o">*</span> <span class="mf">2.0</span> <span class="o">+</span> <span class="n">dir_to_sub</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span> <span class="o">*</span> <span class="mf">2.0</span>
+</pre></div>
+</div>
+<p>The above code assumes that <code class="docutils literal notranslate"><span class="pre">get_substrates</span></code> is called every cycle, a faster alternative is to store the <code class="docutils literal notranslate"><span class="pre">ID</span></code> as illustrated in the <a class="reference internal" href="examples.html#environmentnote-label"><span class="std std-ref">Environment notebook</span></a> but then <em>cdistance</em> has to be computed every cycle.</p>
+<p>A completely different approach to using <code class="docutils literal notranslate"><span class="pre">Substrate</span></code> is <strong>stochastic</strong>, this assumes that <a class="reference internal" href="substrate.html#substrate-label"><span class="std std-ref">Substrate</span></a> was initiated with the relevant parameters. This approach uses the <code class="docutils literal notranslate"><span class="pre">diff_gradient_to</span></code> method to compute a stochastic number of substrate molecules at a given <code class="docutils literal notranslate"><span class="pre">Point</span></code> and the direction towards the substrate at this point:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">substrates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_substrates</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="s2">&quot;attractor&quot;</span><span class="p">)</span>
+    <span class="c1"># nmols is stochastic integer number of molecules, sdir is a Point vector towards substrate</span>
+    <span class="n">n_mols</span><span class="p">,</span><span class="n">sdir</span> <span class="o">=</span> <span class="n">diff_gradient_to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">,</span><span class="n">substrates</span><span class="p">,</span><span class="n">constellation</span><span class="o">.</span><span class="n">cycle</span><span class="p">)</span>
+    <span class="c1"># stronger signal produces less noisy direction vector</span>
+    <span class="n">dir_to_attractor</span> <span class="o">=</span> <span class="n">sdir</span> <span class="o">*</span> <span class="n">n_mols</span> <span class="o">+</span> <span class="n">rnd_dir</span> <span class="o">*</span> <span class="mf">1.5</span>
+    <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">dir_to_attractor</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span> <span class="o">*</span> <span class="mf">3.</span>
+</pre></div>
+</div>
+<p>Depending on how <a class="reference internal" href="substrate.html#substrate-label"><span class="std std-ref">Substrate</span></a> was initiated, the stochastic number of molecules is either computed for a continuously producing point source in infinite medium (<code class="docutils literal notranslate"><span class="pre">substrate.rate</span> <span class="pre">&gt;</span> <span class="pre">0.</span></code>) or for an instantaneous point source in infinite medium (<code class="docutils literal notranslate"><span class="pre">substrate.rate</span> <span class="pre">=</span> <span class="pre">0.</span></code>). Note that these calculations make strong simplifying assumptions and may therefore not be very realistic, especially in small crowded environments or with multiple locations of the substrate. An example of the stochastic number of molecules returned at different locations by <em>diff_gradient_to</em> for the steady state of a continuously producing source in the upper right corner is shown in the figure:</p>
+<a class="reference internal image-reference" href="_images/diff_n_mols.png"><img alt="_images/diff_n_mols.png" class="align-center" src="_images/diff_n_mols.png" style="width: 500px;" /></a>
+<p>The steady state was obtained by passing -1 instead of the <em>cycle</em>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">n_mols</span><span class="p">,</span><span class="n">sdir</span> <span class="o">=</span> <span class="n">diff_gradient_to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">,</span><span class="n">substrates</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that the entire <em>substrates</em> list is passed to <em>diff_gradient_to</em>. If this list contains multiple substrate sources, by default <em>diff_gradient_to</em> will pick the nearest one, but there is also an option to compute an average location (optional parameter <code class="docutils literal notranslate"><span class="pre">what=&quot;average&quot;</span></code>). Note that <em>diff_gradient_to</em> always expects a list, but this can also be just a list of substrates (e.g. <code class="docutils literal notranslate"><span class="pre">[Sub1,Sub2]</span></code> or <code class="docutils literal notranslate"><span class="pre">[Sub1]</span></code>) instead of the list of tuples returned by <code class="docutils literal notranslate"><span class="pre">get_substrates</span></code>. The level of stochasticity can be controlled by the optional <em>size</em> parameter that controls the size of the sampling box.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Environment cues</a><ul>
+<li><a class="reference internal" href="#get-fronts-method"><code class="docutils literal notranslate"><span class="pre">get_fronts</span></code> method</a></li>
+<li><a class="reference internal" href="#inside-versus-outside-of-a-front">Inside versus outside of a front</a></li>
+<li><a class="reference internal" href="#chemical-cue-using-substrate">Chemical cue using <code class="docutils literal notranslate"><span class="pre">Substrate</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/environment.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Environment cues</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-2022, OIST.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+  </body>
+</html>

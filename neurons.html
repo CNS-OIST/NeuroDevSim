@@ -1,0 +1,109 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Neurons &#8212; NeuroDevSim 1.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neurons</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="neurons">
+<span id="neurons-label"></span><h1>Neurons<a class="headerlink" href="#neurons" title="Permalink to this headline">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">Neuron</span></code> is a class that contains information about all fronts belonging to the same neuron. It is automatically instantiated for each soma that is created by <code class="docutils literal notranslate"><span class="pre">Admin_agent.add_neurons</span></code> and keeps track of the number of fronts, retracted fronts and synapses (for <code class="docutils literal notranslate"><span class="pre">SynFront</span></code> only):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">neuron</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_neuron</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_neuron_name</span><span class="p">(</span><span class="n">constellation</span><span class="p">),</span><span class="s2">&quot;has&quot;</span><span class="p">,</span><span class="n">neuron</span><span class="o">.</span><span class="n">num_fronts</span><span class="p">,</span><span class="s2">&quot;fronts&quot;</span><span class="p">)</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p><em>num_fronts</em> and other similar <code class="docutils literal notranslate"><span class="pre">Neuron</span></code> attributes are updated at the end of each cycle, so the code above reports the number of fronts at the end of the previous cycle.</p>
+<p>Neurons also contain two modifiable attributes that control synaptic input at <a class="reference internal" href="synapses.html#synapses-label"><span class="std std-ref">Synapses</span></a>: <em>firing_rate</em> and <em>CV_ISI</em>. The first is the mean firing rate (over the duration of a cycle) and the second its variance, expressed as the coefficient of variation of the interspike intervals. These can be modified at any time with specific methods:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">neuron</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_neuron</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+    <span class="n">neuron</span><span class="o">.</span><span class="n">set_firing_rate</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="mf">5.</span><span class="p">)</span> <span class="c1"># increase firing_rate from default 1.</span>
+    <span class="n">neuron</span><span class="o">.</span><span class="n">set_CV_ISI</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="mf">1.</span><span class="p">)</span> <span class="c1"># increase CV_ISI from default 0.</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_neuron_name</span><span class="p">(</span><span class="n">constellation</span><span class="p">),</span><span class="s2">&quot;: firing rate&quot;</span><span class="p">,</span><span class="n">neuron</span><span class="o">.</span><span class="n">firing_rate</span><span class="p">,</span><span class="s2">&quot;with CV&quot;</span><span class="p">,</span><span class="n">neuron</span><span class="o">.</span><span class="n">CV_ISI</span><span class="p">)</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>Changing <em>firing_rate</em> or <em>CV_ISI</em> has effects only for the synaptic input as shown in <a class="reference internal" href="synapses.html#syn-input-label"><span class="std std-ref">Using syn_input</span></a>. Note that only the initial value of zero <em>firing_rate</em> and <em>CV_ISI</em> is automatically stored in the database, to store updated values <code class="docutils literal notranslate"><span class="pre">admin.attrib_to_db</span></code> should be used as described in <a class="reference internal" href="storage.html#storage-label"><span class="std std-ref">Storing additional attributes</span></a>.</p>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/neurons.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neurons</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-2022, OIST.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+  </body>
+</html>

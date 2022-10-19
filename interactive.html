@@ -1,0 +1,216 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interactive mode &#8212; NeuroDevSim 1.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Interactive mode</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="interactive-mode">
+<span id="interactive-label"></span><h1>Interactive mode<a class="headerlink" href="#interactive-mode" title="Permalink to this headline">¶</a></h1>
+<p>It is quite easy to run NeuroDevSim in interactive mode, either in a notebook with plotting or from the terminal. However, the interactive mode comes with severe restrictions:</p>
+<ul class="simple">
+<li><p>nothing is stored, all results are transient</p></li>
+<li><p>there is no parallel computing so only simple models can be simulated</p></li>
+<li><p>a complete simulation is either interactive or not, one cannot switch</p></li>
+</ul>
+<p>Nevertheless the interactive mode can be quite useful to gain intuition, explore ideas and, especially, debug complex models. These use cases are introduced in the <a class="reference internal" href="examples.html#interactivenote-label"><span class="std std-ref">Interactive Mode notebook</span></a>.</p>
+<div class="section" id="basic-interactive-simulation">
+<h2>Basic interactive simulation<a class="headerlink" href="#basic-interactive-simulation" title="Permalink to this headline">¶</a></h2>
+<p>All that is needed to run an interactive simulation is to instantiate <a class="reference internal" href="simulator.html#admin-agent-label"><span class="std std-ref">Admin_agent class</span></a> with zero <em>num_procs</em>. A <a class="reference internal" href="simulator.html#front-label"><span class="std std-ref">Front class</span></a> needs to be defined because a <em>neuron_type</em> is required. A minimal set-up taken from the notebook example is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">neurodevsim.simulator</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="k">class</span> <span class="nc">RandomFront</span><span class="p">(</span><span class="n">Front</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="c1"># initialize Admin_agent</span>
+    <span class="n">sim_volume</span> <span class="o">=</span> <span class="p">[[</span><span class="o">-</span><span class="mf">100.</span><span class="p">,</span> <span class="o">-</span><span class="mf">100.</span><span class="p">,</span> <span class="o">-</span><span class="mf">100.</span><span class="p">],</span> <span class="p">[</span><span class="mf">100.0</span><span class="p">,</span><span class="mf">100.0</span><span class="p">,</span><span class="mf">100.0</span><span class="p">]]</span>
+    <span class="n">neuron_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">RandomFront</span><span class="p">]</span>
+    <span class="n">admin</span> <span class="o">=</span> <span class="n">Admin_agent</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="n">sim_volume</span><span class="p">,</span><span class="n">neuron_types</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># interactive mode</span>
+    <span class="n">constellation</span> <span class="o">=</span> <span class="n">admin</span><span class="o">.</span><span class="n">constellation</span>
+</pre></div>
+</div>
+<p>Notice that the <a class="reference internal" href="tutorial.html#manage-front-label"><span class="std std-ref">manage_front method</span></a> is empty, it will not be used. If desired one can have the normal <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> present as reference, this may be useful while debugging. Because there is no database output no file name needs to be specified for <code class="docutils literal notranslate"><span class="pre">Admin_agent</span></code>.</p>
+<p>The <a class="reference internal" href="simulator.html#constellation-label"><span class="std std-ref">Constellation class</span></a> is obtained because this will be needed in many method calls.</p>
+<p>Now any NeuroDevSim method can be called. Because most of these depend on object instantiation, relevant objects should be made first. For example, one could call <code class="docutils literal notranslate"><span class="pre">admin.add_neurons</span></code> to make a soma:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fronts</span> <span class="o">=</span> <span class="n">admin</span><span class="o">.</span><span class="n">add_neurons</span><span class="p">(</span><span class="n">RandomFront</span><span class="p">,</span><span class="s2">&quot;rand_neuron&quot;</span><span class="p">,</span><span class="mi">1</span><span class="p">,[[</span><span class="o">-</span><span class="mf">30.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],[</span><span class="o">-</span><span class="mi">30</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">]],</span><span class="mf">5.</span><span class="p">)</span>
+<span class="n">soma</span> <span class="o">=</span> <span class="n">fronts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Notice that in this case we capture the return of <code class="docutils literal notranslate"><span class="pre">admin.add_neurons</span></code> so that the <em>soma</em> that was created can be accessed. Using <code class="docutils literal notranslate"><span class="pre">soma.add_child</span></code> more fronts can now be created to simulate simple growth or any other <code class="docutils literal notranslate"><span class="pre">Front</span></code> method can be called as desired. Remember that the fronts are <strong>not stored</strong> in the simulation database and if notebook plotting is enabled, new fronts need to plotted explicitly with <code class="docutils literal notranslate"><span class="pre">admin.plot_item</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">line</span> <span class="o">=</span> <span class="n">admin</span><span class="o">.</span><span class="n">plot_item</span><span class="p">(</span><span class="n">soma</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>There is no need to call <code class="docutils literal notranslate"><span class="pre">admin.destruction</span></code> because no extra processes were spawned.</p>
+</div>
+<div class="section" id="interactive-model-debugging">
+<h2>Interactive model debugging<a class="headerlink" href="#interactive-model-debugging" title="Permalink to this headline">¶</a></h2>
+<p>Because NeuroDevSim simulations are not reproducible they can be very difficult to debug in a traditional way. Instead the output of a buggy simulation can be loaded with the <code class="docutils literal notranslate"><span class="pre">import_simulation</span></code> method and interactive mode can be used to investigate what went wrong.</p>
+<p>To use this approach effectively it is important to identify “problem” fronts. This information can be obtained either by printing out relevant front IDs during the simulation or by analyzing the database content as explained in <a class="reference internal" href="database.html#database-label"><span class="std std-ref">Understanding the database</span></a>.</p>
+<p>Start an interactive session with the same <em>sim_volume</em> and <em>neuron_types</em> as used for the stored simulation, as shown above. Then import an existing simulation database:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">...</span>
+<span class="n">admin</span> <span class="o">=</span> <span class="n">Admin_agent</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="n">sim_volume</span><span class="p">,</span><span class="n">neuron_types</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># interactive mode</span>
+<span class="n">constellation</span> <span class="o">=</span> <span class="n">admin</span><span class="o">.</span><span class="n">constellation</span>
+
+<span class="n">admin</span><span class="o">.</span><span class="n">import_simulation</span><span class="p">(</span><span class="s2">&quot;simulation.db&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The complete simulation till the end will be loaded and because <code class="docutils literal notranslate"><span class="pre">plot=True</span></code> plotted. For large simulations, plotting takes a lot of time. This can be prevented by plotting only a relevant region of the simulation, using the <code class="docutils literal notranslate"><span class="pre">Admin_agent</span></code> <em>box</em> attribute:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">admin</span> <span class="o">=</span> <span class="n">Admin_agent</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="n">sim_volume</span><span class="p">,</span><span class="n">neuron_types</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">box</span><span class="o">=</span><span class="p">[[</span><span class="mf">60.</span><span class="p">,</span><span class="mf">60.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],[</span><span class="mf">90.</span><span class="p">,</span><span class="mf">90.</span><span class="p">,</span><span class="mf">30.</span><span class="p">]])</span>
+</pre></div>
+</div>
+<p>To use <em>box</em> effectively one should know which region to focus on, usually centered around the “problem” front. It is best to use an isometric box, with idential ax lengths for each dimension. Only when a <em>box</em> is defined, the list of <code class="docutils literal notranslate"><span class="pre">Front</span></code> plotted is available as <em>admin.plot_items</em>. If the number of fronts plotted is small, investigating this list is the fastest way to discover what is plotted.</p>
+<p>After <code class="docutils literal notranslate"><span class="pre">import_simulation</span></code> all fronts that existed at the end of the simulation are present in memory and can be accessed by their <code class="docutils literal notranslate"><span class="pre">ID</span></code>.</p>
+<p>If “problem” fronts were identified using print statements during the original simulation information like this will have been printed:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Front</span> <span class="n">ID</span><span class="p">:</span> <span class="n">neuron</span> <span class="nb">type</span> <span class="mi">1</span><span class="p">,</span> <span class="n">index</span> <span class="mi">4005</span>
+</pre></div>
+</div>
+<p>the corresponding front can now be obtained with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">my_front</span> <span class="o">=</span> <span class="n">constellation</span><span class="o">.</span><span class="n">front_by_id</span><span class="p">(</span><span class="n">ID</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">4005</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>If “problem” fronts were identified in the database, the procedure is a bit more complicated. Each front has two numerical identifiers in the database: a <em>neuron_id</em> and a <em>front_id</em>, see <a class="reference internal" href="database.html#database-label"><span class="std std-ref">Understanding the database</span></a>. Combined, these constitute a <code class="docutils literal notranslate"><span class="pre">DataID</span></code> which is unfortunately different from <code class="docutils literal notranslate"><span class="pre">ID</span></code>, but one can easily be converted into the other using <code class="docutils literal notranslate"><span class="pre">constellation.data_to_id</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">my_ID</span> <span class="o">=</span> <span class="n">constellation</span><span class="o">.</span><span class="n">data_to_id</span><span class="p">(</span><span class="n">DataID</span><span class="p">(</span><span class="n">neuron_id</span><span class="p">,</span><span class="n">front_id</span><span class="p">))</span>
+<span class="n">my_front</span> <span class="o">=</span> <span class="n">constellation</span><span class="o">.</span><span class="n">front_by_id</span><span class="p">(</span><span class="n">my_ID</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Where is <em>my_front</em> in the simulation plot? As this is often not easy to recognize, one can make any plotted front flash during an interactive session:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">admin</span><span class="o">.</span><span class="n">flash_front</span><span class="p">(</span><span class="n">my_front</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If the plot is crowded, it may have to be rotated before the flashes are visible. One can <code class="docutils literal notranslate"><span class="pre">flash_front</span></code> as often as necessary.</p>
+<p>The next steps depend on the type of problem to solve. Let’s, for example, look at a fatal collison during an <code class="docutils literal notranslate"><span class="pre">add_child</span></code> call:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">new_pos</span> <span class="o">=</span> <span class="o">...</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">new_front</span> <span class="o">=</span> <span class="n">my_front</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">)</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="n">new_front</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">CollisionError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="n">error</span><span class="p">)</span>
+    <span class="n">colerror</span> <span class="o">=</span> <span class="n">error</span> <span class="c1"># error is only defined within the except scope</span>
+</pre></div>
+</div>
+<p>Either a <em>new_front</em> will be created and printed or a <code class="docutils literal notranslate"><span class="pre">CollisionError</span></code> occurs and then this will be printed. If the error occurred, one could then try <code class="docutils literal notranslate"><span class="pre">solve_collision</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">points</span> <span class="o">=</span> <span class="n">my_front</span><span class="o">.</span><span class="n">solve_collision</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">colerror</span><span class="p">)</span>
+<span class="nb">print</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">),</span><span class="s2">&quot;points:&quot;</span><span class="p">,</span><span class="n">points</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">solve_collision</span></code> fails (it returns an empty list), maybe this is due to multiple colliding structures? By default only the first collision is detected as explained in <a class="reference internal" href="collisions.html#collisions-label"><span class="std std-ref">Preventing and dealing with collisions</span></a>, but this can be changed so that <strong>all</strong> collisions are detected:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">constellation</span><span class="o">.</span><span class="n">only_first_collision</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1"># report all collisions</span>
+<span class="n">colerror</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">new_front</span> <span class="o">=</span> <span class="n">my_front</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">)</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="n">new_front</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">CollisionError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="n">error</span><span class="p">)</span>
+    <span class="n">colerror</span> <span class="o">=</span> <span class="n">error</span> <span class="c1"># error is only defined within the except scope</span>
+<span class="k">if</span> <span class="n">colerror</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">colerror</span><span class="o">.</span><span class="n">collider</span><span class="p">:</span> <span class="c1"># print all the colliding structures</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The possibilities of the interactive mode are endless… One can test large sections of code, the behavior of specific methods, explore alternatives, etc. Just remember that nothing gets stored!</p>
+<p>Finally, when investigating <a class="reference internal" href="migration.html#migration-label"><span class="std std-ref">Modeling soma migration</span></a>, the interactive mode has an additional useful feature: it can provide a history of the migration of any migrating soma that was loaded by <code class="docutils literal notranslate"><span class="pre">import_simulation</span></code> with <code class="docutils literal notranslate"><span class="pre">get_migration_history</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">my_somaID</span> <span class="o">=</span> <span class="n">constellation</span><span class="o">.</span><span class="n">data_to_id</span><span class="p">(</span><span class="n">DataID</span><span class="p">(</span><span class="n">neuron_id</span><span class="p">,</span><span class="n">front_id</span><span class="p">))</span>
+<span class="n">my_soma</span> <span class="o">=</span> <span class="n">constellation</span><span class="o">.</span><span class="n">front_by_id</span><span class="p">(</span><span class="n">my_somaID</span><span class="p">)</span>
+<span class="n">coordinates</span><span class="p">,</span> <span class="n">cycles</span> <span class="o">=</span> <span class="n">my_soma</span><span class="o">.</span><span class="n">get_migration_history</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><em>coordinates</em> is a list of <code class="docutils literal notranslate"><span class="pre">Point</span></code> representing <em>my_soma.orig</em>, from the location where it was created up to the last cycle, and <em>cycles</em> contains the corresponding cycle for each entry in <em>coordinates</em>. One can print this information or plot it:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lines</span> <span class="o">=</span> <span class="n">admin</span><span class="o">.</span><span class="n">plot_item</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span><span class="n">line</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Interactive mode</a><ul>
+<li><a class="reference internal" href="#basic-interactive-simulation">Basic interactive simulation</a></li>
+<li><a class="reference internal" href="#interactive-model-debugging">Interactive model debugging</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/interactive.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Interactive mode</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-2022, OIST.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+  </body>
+</html>

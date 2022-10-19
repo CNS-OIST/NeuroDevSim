@@ -1,0 +1,170 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SWC types used in NeuroDevSim &#8212; NeuroDevSim 1.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SWC types used in NeuroDevSim</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="swc-types-used-in-neurodevsim">
+<span id="swc-label"></span><h1>SWC types used in NeuroDevSim<a class="headerlink" href="#swc-types-used-in-neurodevsim" title="Permalink to this headline">¶</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">Front.swc_type</span></code> refers to entries in a column of the SWC file format, which was defined in <a class="reference external" href="https://www.ncbi.nlm.nih.gov/pubmed/9821633">Cannon et al. 1998</a>. NeuroDevSim uses standard values defined in this paper and on <a class="reference external" href="http://NeuroMorpho.org">NeuroMorpho.org</a>, but also adds several custom defined SWC types:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 35%" />
+<col style="width: 54%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>type</p></th>
+<th class="head"><p>structure</p></th>
+<th class="head"><p>comment</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>undefined</p></td>
+<td><p>defined in Cannon et al.</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p>soma</p></td>
+<td><p>defined in Cannon et al.</p></td>
+</tr>
+<tr class="row-even"><td><p>2</p></td>
+<td><p>axon</p></td>
+<td><p>defined in Cannon et al.</p></td>
+</tr>
+<tr class="row-odd"><td><p>3</p></td>
+<td><p>(basal) dendrite</p></td>
+<td><p>defined in Cannon et al.</p></td>
+</tr>
+<tr class="row-even"><td><p>4</p></td>
+<td><p>apical dendrite</p></td>
+<td><p>defined in Cannon et al.</p></td>
+</tr>
+<tr class="row-odd"><td><p>5</p></td>
+<td><p>custom</p></td>
+<td><p>defined in Cannon et al.</p></td>
+</tr>
+<tr class="row-even"><td><p>6</p></td>
+<td><p>neurite</p></td>
+<td><p>defined by NeuroMorpho.org</p></td>
+</tr>
+<tr class="row-odd"><td><p>7</p></td>
+<td><p>glial process</p></td>
+<td><p>defined by NeuroMorpho.org</p></td>
+</tr>
+<tr class="row-even"><td><p>8</p></td>
+<td><p>oblique dendrite</p></td>
+<td><p>NeuroDevSim definition</p></td>
+</tr>
+<tr class="row-odd"><td><p>9</p></td>
+<td><p>tuft dendrite</p></td>
+<td><p>NeuroDevSim definition</p></td>
+</tr>
+<tr class="row-even"><td><p>10</p></td>
+<td><p>smooth dendrite</p></td>
+<td><p>NeuroDevSim definition</p></td>
+</tr>
+<tr class="row-odd"><td><p>11</p></td>
+<td><p>spiny dendrite</p></td>
+<td><p>NeuroDevSim definition</p></td>
+</tr>
+<tr class="row-even"><td><p>12</p></td>
+<td><p>filipodium</p></td>
+<td><p>NeuroDevSim definition</p></td>
+</tr>
+<tr class="row-odd"><td><p>13</p></td>
+<td><p>spine</p></td>
+<td><p>NeuroDevSim definition</p></td>
+</tr>
+<tr class="row-even"><td><p>14</p></td>
+<td><p>synaptic bouton</p></td>
+<td><p>NeuroDevSim definition</p></td>
+</tr>
+<tr class="row-odd"><td><p>15-19</p></td>
+<td><p>reserved</p></td>
+<td><p>NeuroDevSim definition</p></td>
+</tr>
+</tbody>
+</table>
+<p>Note that some of these definitions are required for NeuroDevSim to work properly. Somata automatically get <code class="docutils literal notranslate"><span class="pre">swc_type=1</span></code>, while some of <a class="reference internal" href="migration.html#migration-label"><span class="std std-ref">Modeling soma migration</span></a> depends on proper use of axon (2) and filipodium (12) swc_types.</p>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/swc.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SWC types used in NeuroDevSim</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-2022, OIST.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+  </body>
+</html>

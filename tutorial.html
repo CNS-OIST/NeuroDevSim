@@ -1,0 +1,977 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Beginner’s Tutorial &#8212; NeuroDevSim 1.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Classes and Methods" href="modules.html" />
+    <link rel="prev" title="NeuroDevSim Installation" href="install.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="modules.html" title="Classes and Methods"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="install.html" title="NeuroDevSim Installation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Beginner’s Tutorial</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="beginner-s-tutorial">
+<span id="tutorial-label"></span><h1>Beginner’s Tutorial<a class="headerlink" href="#beginner-s-tutorial" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<div class="section" id="getting-started">
+<span id="started-label"></span><h2>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="model-introduction">
+<h3>Model introduction<a class="headerlink" href="#model-introduction" title="Permalink to this headline">¶</a></h3>
+<p>NeuroDevSim uses an agent-based approach to modeling neural development, with <code class="docutils literal notranslate"><span class="pre">Front</span></code> objects as agents that can extend, branch, migrate, etc.</p>
+<p>Each NeuroDevSim model is described by a complete python program. Part of this program follows a standard template, specific model properties are minimally defined in three methods:</p>
+<ol class="arabic simple">
+<li><p>A method describing the behavior of a <code class="docutils literal notranslate"><span class="pre">Front</span></code>: <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> which is part of a new subclass of <a class="reference internal" href="simulator.html#front-label"><span class="std std-ref">Front class</span></a> defined for each type of neuron.</p></li>
+<li><p>The simulation volume that is specified in the <a class="reference internal" href="simulator.html#admin-agent-label"><span class="std std-ref">Admin_agent class</span></a> instantiation. <code class="docutils literal notranslate"><span class="pre">Admin_agent</span></code> takes care of running the simulation.</p></li>
+<li><p>Create a number of somata, each becomes the root of a growing neuron: use the <code class="docutils literal notranslate"><span class="pre">Admin_agent.add_neurons</span></code> method.</p></li>
+</ol>
+</div>
+<div class="section" id="model-template">
+<h3>Model template<a class="headerlink" href="#model-template" title="Permalink to this headline">¶</a></h3>
+<p>The general template of a simple model is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># STANDARD: import all classes, methods and functions needed</span>
+<span class="kn">from</span> <span class="nn">neurodevsim.simulator</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># declare a subclass of Front</span>
+<span class="k">class</span> <span class="nc">MyFront</span><span class="p">(</span><span class="n">Front</span><span class="p">):</span>
+
+    <span class="c1"># declare a customized growth method for the new subclass</span>
+    <span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+        <span class="o">...</span>
+
+<span class="c1"># STANDARD: initialize and run the simulation</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="c1"># declare parameters for Admin_agent</span>
+    <span class="n">num_processes</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="s2">&quot;filename.db&quot;</span>
+    <span class="n">sim_volume</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span> <span class="p">[</span><span class="mf">100.</span><span class="p">,</span> <span class="mf">100.</span><span class="p">,</span> <span class="mf">100.</span><span class="p">]]</span>
+    <span class="n">neuron_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">MyFront</span><span class="p">]</span>
+
+    <span class="c1"># instantiate Admin_agent</span>
+    <span class="n">admin</span> <span class="o">=</span> <span class="n">Admin_agent</span><span class="p">(</span><span class="n">num_processes</span><span class="p">,</span><span class="n">fname</span><span class="p">,</span><span class="n">sim_volume</span><span class="p">,</span><span class="n">neuron_types</span><span class="p">)</span>
+
+    <span class="c1"># declare parameters for add_neurons</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;a_neuron&quot;</span>
+    <span class="n">num_neurons</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">location</span> <span class="o">=</span> <span class="p">[</span><span class="mf">50.0</span><span class="p">,</span><span class="mf">50.0</span><span class="p">,</span><span class="mf">50.0</span><span class="p">]</span>
+    <span class="n">radius</span> <span class="o">=</span> <span class="mf">5.0</span>
+
+    <span class="c1"># make a soma and set the neuron name</span>
+    <span class="n">admin</span><span class="o">.</span><span class="n">add_neurons</span><span class="p">(</span><span class="n">MyFront</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">num_neurons</span><span class="p">,</span><span class="n">location</span><span class="p">,</span><span class="n">radius</span><span class="p">):</span>
+
+    <span class="c1"># STANDARD: run the simulation</span>
+    <span class="n">admin</span><span class="o">.</span><span class="n">simulation_loop</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+
+    <span class="c1"># STANDARD: clean up before quitting</span>
+    <span class="n">admin</span><span class="o">.</span><span class="n">destruction</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>We explain each part of the template briefly. Full descriptions of the classes and methods can be found in <a class="reference internal" href="simulator.html#simulator-label"><span class="std std-ref">simulator module</span></a>, while the <a class="reference internal" href="#manage-front-label"><span class="std std-ref">manage_front method</span></a> is explained in more detail later.</p>
+<p>First import the different NeuroMaC support functions and classes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">neurodevsim.simulator</span> <span class="kn">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+<p>Everything needed to run the simulation is imported at once from the <em>neurodevsim.simulator</em> module. There is an additional <em>neurodevsim.processing</em> module that has functions to <a class="reference internal" href="plots.html#plots-label"><span class="std std-ref">Plotting the simulation</span></a> and make movies from the simulation database. If random numbers are needed <a class="reference external" href="http://www.numpy.org/">NumPy</a> should also be imported.</p>
+<p>The model will simulate the behavior of growing neurons, with most of the growth processes encapsulated in fronts. First define <strong>for each different type of neuron</strong> in the model a new subclass derived from <code class="docutils literal notranslate"><span class="pre">Front</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyFront</span><span class="p">(</span><span class="n">Front</span><span class="p">):</span>
+</pre></div>
+</div>
+<p>The name, <em>MyFront</em>, can be chosen freely. The rest of the statement is fixed.</p>
+<p>An essential part of the new class definition is the <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> method:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyFront</span><span class="p">(</span><span class="n">Front</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">manage_front</span></code> defines the growth, migration etc. behavior of the neuron model and is explained in detail in <a class="reference internal" href="#manage-front-label"><span class="std std-ref">manage_front method</span></a>.</p>
+<p>After defining all the neuron classes, the main program is started:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="vm">__name__</span><span class="o">==</span><span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+</pre></div>
+</div>
+<p>This statement should never be changed.</p>
+<p>The first parts of the main part of the program initialize different structures needed for a NeuroDevSim simulation. Begin with instantiating an <a class="reference internal" href="simulator.html#admin-agent-label"><span class="std std-ref">Admin_agent class</span></a>, for clarity its parameters are defined first:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="c1"># declare parameters for Admin_agent</span>
+    <span class="n">num_processes</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="s2">&quot;filename.db&quot;</span>
+    <span class="n">sim_volume</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span> <span class="p">[</span><span class="mf">100.</span><span class="p">,</span> <span class="mf">100.</span><span class="p">,</span> <span class="mf">100.</span><span class="p">]]</span>
+    <span class="n">neuron_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">MyFront</span><span class="p">]</span>
+
+    <span class="c1"># instantiate Admin_agent</span>
+    <span class="n">admin</span> <span class="o">=</span> <span class="n">Admin_agent</span><span class="p">(</span><span class="n">num_processes</span><span class="p">,</span><span class="n">fname</span><span class="p">,</span><span class="n">sim_volume</span><span class="p">,</span><span class="n">neuron_types</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><em>Admin_agent</em> controls the overall simulation and manages the parallel processing using different cores.</p>
+<p>In this example 5 cores will used: one to run <em>Admin_agent</em> and 4 processes (<em>num_processes</em>) that compute the simulation.</p>
+<p><em>Admin_agent</em> also generates the model output, which is written to a sqlite database file with the user provided <em>fname</em> ‘filename.db’. All NeuroDevSim databases use the ‘.db’ suffix, it will be added if not provided. Most users do not need to worry about the structure or content of the database, but information is available in <a class="reference internal" href="database.html#database-label"><span class="std std-ref">Understanding the database</span></a>. Figures and movies can be produced with <code class="docutils literal notranslate"><span class="pre">nds_plot</span></code> or <code class="docutils literal notranslate"><span class="pre">nds_movie</span></code> respectively and other analysis routines are also available (<a class="reference internal" href="processing.html#processing-label"><span class="std std-ref">processing module</span></a>).</p>
+<p>NeuroDevSim simulations run in a rectangular volume with boundaries defined in <em>sim_volume</em>. These are defined as list of [<em>x</em>, <em>y</em>, <em>z</em>] coordinates in µm with <em>x</em> representing width, <em>y</em> depth and <em>z</em> height. The first list is therefore the left-front-bottom coordinate and the second list is the right-back-top coordinate. Coordinates can be negative.</p>
+<p>The final obligatory parameter to <em>Admin_agent</em> is a list of all <code class="docutils literal notranslate"><span class="pre">Front</span></code> subclass names that will be used in the simulation in <em>neuron_types</em>. These need to be declared in advance to allow for proper set-up of the shared memory.</p>
+<p>Other optional parameters to <em>Admin_agent</em> can set the level of verbosity, set the random seed or activate and control interactive plots.</p>
+<p>Now that <em>Admin_agent</em> is up and running, neurons can be added to the simulation. Each neuron in NeuroDevSim has to be declared and this results in the placement of a soma in the simulation volume. This soma will be the root of a growing tree.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Admin_agent.add_neurons</span></code> method is used to create somata:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># declare parameters for add_neurons</span>
+<span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;a_neuron&quot;</span>
+<span class="n">num_neurons</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">location</span> <span class="o">=</span> <span class="p">[</span><span class="mf">50.0</span><span class="p">,</span><span class="mf">50.0</span><span class="p">,</span><span class="mf">50.0</span><span class="p">]</span>
+<span class="n">radius</span> <span class="o">=</span> <span class="mf">5.0</span>
+
+<span class="c1"># make a soma and set the neuron name</span>
+<span class="n">admin</span><span class="o">.</span><span class="n">add_neurons</span><span class="p">(</span><span class="n">MyFront</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">num_neurons</span><span class="p">,</span><span class="n">location</span><span class="p">,</span><span class="n">radius</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In the example above only a single neuron is created. The parameters are respectively: the neuron <code class="docutils literal notranslate"><span class="pre">Front</span></code> subclass (that has been declared in <em>neuron_types</em> for <code class="docutils literal notranslate"><span class="pre">Admin_agent</span></code>), a name for the neuron (maximum 34 characters long), number of neurons to be created, location of the neuron somata and radius of the soma.</p>
+<p>The <em>add_neurons</em> call above creates a single instance of <em>MyFront</em> named <em>a_neuron_0_</em> with a soma of radius 5 µm at the location [50,50,50]. When multiple neurons are created, the location becomes a list defining a bounding box: [left,front,bottom] to [right,back,top]. The following example randomly distributes 10 soma instances of <em>MyFront</em> within a layer at the bottom of the simulation volume, somata are separated by at least their diameter:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># make a soma and set the neuron name</span>
+<span class="n">admin</span><span class="o">.</span><span class="n">add_neurons</span><span class="p">(</span><span class="n">MyFront</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="mi">10</span><span class="p">,[[</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">5</span><span class="p">],[</span><span class="mi">80</span><span class="p">,</span><span class="mi">80</span><span class="p">,</span><span class="mi">10</span><span class="p">]],</span><span class="n">radius</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The neurons will be numbered consecutively: <em>a_neuron_0_</em>, <em>a_neuron_1_</em>,… Instead of random placement, somata can also be placed on a grid by providing an optional <em>grid</em> parameter or their <em>origins</em> can be specified as a list. <em>add_neurons</em> can be called repeatedly to create complex distributions of soma locations or to mix different neuron classes in the simulation as will be shown in <a class="reference internal" href="#smallnetwork-label"><span class="std std-ref">A small network</span></a>.</p>
+<p>Now the initialization is complete and the simulation can be run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">admin</span><span class="o">.</span><span class="n">simulation_loop</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>One needs to specify the number of simulation cycles, i.e. number of growth events for each neuron, to be simulated. It is 50 in the example above. <em>simulation_loop</em> can be called repeatedly so that model settings can be changed in between.</p>
+<p>When the simulation is complete, it should be cleaned up properly:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">admin</span><span class="o">.</span><span class="n">destruction</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This is important because the simulation is multi-process: all running python processes need to be terminated explicitly.</p>
+</div>
+<div class="section" id="running-the-examples">
+<h3>Running the examples<a class="headerlink" href="#running-the-examples" title="Permalink to this headline">¶</a></h3>
+<p>There are two ways to run a NeuroDevSim simulation, including the examples:</p>
+<ol class="arabic simple">
+<li><p>Using <a class="reference external" href="http://jupyter.org/">jupyter notebook</a>. This is the preferred method for the <a class="reference internal" href="examples.html#examplesnote-label"><span class="std std-ref">Examples</span></a>, which are all available as notebooks in the examples directory.</p></li>
+<li><p>Run it as python program in a <a class="reference external" href="https://en.wikipedia.org/wiki/List_of_terminal_emulators">terminal</a> window. This is more convenient if a large number of simulations needs to be performed or if large models are simulated.</p></li>
+</ol>
+<p>There is no significant difference in run-time between either approach for an <em>Admin_agent</em> <code class="docutils literal notranslate"><span class="pre">verbose=0</span></code> setting.</p>
+<p><strong>Notebooks</strong> can also provide active 3D plots that are generated during the simulation. One turns on plotting during the <em>Admin_agent</em> instantiation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">...</span>
+<span class="c1"># STANDARD: initialize and run the simulation</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="o">...</span>
+    <span class="c1"># instantiate Admin_agent with plot=True</span>
+    <span class="n">admin</span> <span class="o">=</span> <span class="n">Admin_agent</span><span class="p">(</span><span class="n">num_processes</span><span class="p">,</span><span class="n">fname</span><span class="p">,</span><span class="n">sim_volume</span><span class="p">,</span><span class="n">neuron_types</span><span class="p">,</span><span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>When the simulation is finished the 3D plot can be rotated, zoomed in/out, etc. To draw the notebook plot an extra core is used, so the total cores used to run the simulation becomes <code class="docutils literal notranslate"><span class="pre">num_processes</span> <span class="pre">+</span> <span class="pre">2</span></code>. Note that even with the extra core drawing plots makes simulations run significantly slower: the motor_neuron example in <a class="reference internal" href="examples.html#realnote-label"><span class="std std-ref">Real Morphologies notebook</span></a> runs 10-30 times slower depending on hardware. Similarly, the text output generated with the default <code class="docutils literal notranslate"><span class="pre">verbose=1</span></code> <em>Admin_agent</em> setting makes this example run ~20% slower.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>if a notebook simulation crashes the python, processes on <em>num_processes</em> cores may still be running, shown by the filled circle top right in the notebook window. Use the <strong>restart the kernel</strong> button (the circular arrow) at the top of the notebook window to kill these processes.</p>
+</div>
+<p>To run a simulation in a <strong>terminal</strong> window the code should be saved in a file, e.g. <em>myfront.py</em>, and run as a python process:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">myfront</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<p>Use the functions in the <em>processing module</em> to analyze the simulation results, for example by plotting to a pdf file and making a movie:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">neurodevsim.processing</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># generate a pdf file &#39;myfront.pdf&#39; from the NeuroDevSim database &#39;myfront.db&#39;</span>
+<span class="n">nds_plot</span><span class="p">(</span><span class="s1">&#39;myfront.db&#39;</span><span class="p">)</span>
+<span class="c1"># generate a movie &#39;myfront.mp4&#39; from the NeuroDevSim database &#39;myfront.db&#39;</span>
+<span class="n">nds_movie</span><span class="p">(</span><span class="s1">&#39;myfront.db&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="neurons-as-a-tree">
+<h3>Neurons as a tree<a class="headerlink" href="#neurons-as-a-tree" title="Permalink to this headline">¶</a></h3>
+<p>Before delving deeper into  coding for growth, the properties of fronts will be explained in more detail. <a class="reference internal" href="intro.html#agent-label"><span class="std std-ref">Agent-based modeling</span></a> was introduced previously. Fronts act as agents, which means in practice that each active front calls the <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> method separately and during this call it is referred to as <em>self</em>.</p>
+<p>Fronts have several attributes that decide on their position and role, properties related to their place in the tree hierarchy are mostly accessed by methods:</p>
+<p><strong>Public read-only attributes:</strong></p>
+<ul class="simple">
+<li><p><em>self.orig</em>: a <code class="docutils literal notranslate"><span class="pre">Point</span></code> as coordinate, specifying the origin of a cylinder or center of a sphere.</p></li>
+<li><p><em>self.end</em>: a <code class="docutils literal notranslate"><span class="pre">Point</span></code> as coordinate, specifying the end of a cylinder.</p></li>
+<li><p><em>self.radius</em>: the radius of the front in µm.</p></li>
+<li><p><em>self.path_length</em>: distance in µm to soma center along the tree structure.</p></li>
+<li><p><em>self.num_children</em>: number of children of the front in the tree structure.</p></li>
+<li><p><em>self.birth</em>: simulation cycle when the front was created.</p></li>
+<li><p><em>self.order</em>: centripetal order of branching in the tree structure, soma has order 0.</p></li>
+<li><p><em>self.swc_type</em>: a code describing which part of the neuron is represented as defined in <a class="reference external" href="https://www.ncbi.nlm.nih.gov/pubmed/9821633">Cannon et al. 1998</a>, see <a class="reference internal" href="swc.html#swc-label"><span class="std std-ref">SWC types used in NeuroDevSim</span></a>.</p></li>
+</ul>
+<p><strong>Important methods:</strong></p>
+<ul class="simple">
+<li><p><em>self.get_id()</em>: returns the <code class="docutils literal notranslate"><span class="pre">ID</span></code> of <em>self</em>, the <code class="docutils literal notranslate"><span class="pre">ID</span></code> is a unique identifier for each front.</p></li>
+<li><p><em>self.is_cylinder()</em>: returns True if front is a cylinder, False if it is a sphere.</p></li>
+<li><p><em>self.get_parent(constellation)</em>: returns the parent of <em>self</em>.</p></li>
+<li><p><em>self.get_children(constellation)</em>: returns a list of all children of <em>self</em>.</p></li>
+<li><p><em>self.get_soma(constellation)</em>: returns the soma of the neuron <em>self</em> belongs to.</p></li>
+<li><p><em>self.get_neuron(constellation)</em>: returns the <code class="docutils literal notranslate"><span class="pre">Neuron</span></code> <em>self</em> belongs to.</p></li>
+<li><p><em>self.get_neuron_name(constellation)</em>: returns the name of the neuron <em>self</em> belongs to.</p></li>
+<li><p><em>self.get_branch_name()</em>: returns the optional branch name of <em>self</em>.</p></li>
+</ul>
+<p>Many more methods are available, see  <a class="reference internal" href="simulator.html#simulator-label"><span class="std std-ref">simulator module</span></a>. The <code class="docutils literal notranslate"><span class="pre">get_parent</span></code>, <code class="docutils literal notranslate"><span class="pre">get_children</span></code> and <code class="docutils literal notranslate"><span class="pre">get_soma</span></code> methods return by default a <code class="docutils literal notranslate"><span class="pre">Front</span></code> or list of <code class="docutils literal notranslate"><span class="pre">Front</span></code>, but with the optional parameter <code class="docutils literal notranslate"><span class="pre">returnID=True</span></code> they will return an <code class="docutils literal notranslate"><span class="pre">ID</span></code> or list of <code class="docutils literal notranslate"><span class="pre">ID</span></code> instead. They can in addition print the information.</p>
+<p>To illustrate how these attributes and methods reflect a real growing neuron they are shown for the example that was introduced previously in <a class="reference internal" href="intro.html#agent-label"><span class="std std-ref">Agent-based modeling</span></a>. Note that the numbers on the fronts symbolize their <code class="docutils literal notranslate"><span class="pre">ID</span></code>, but real <code class="docutils literal notranslate"><span class="pre">ID</span></code> are more complex.</p>
+<img alt="_images/front_agents2.png" src="_images/front_agents2.png" />
+</div>
+<div class="section" id="manage-front-method">
+<span id="manage-front-label"></span><h3><code class="docutils literal notranslate"><span class="pre">manage_front</span></code> method<a class="headerlink" href="#manage-front-method" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> method specifies all of the model specific growth, migration, etc. rules that act on <code class="docutils literal notranslate"><span class="pre">Front</span></code>.</p>
+<p>A very simple case will be described, based on the <code class="docutils literal notranslate"><span class="pre">RandomFront</span></code> subclass in  <a class="reference internal" href="examples.html#errorsnote-label"><span class="std std-ref">Errors and Exceptions notebook</span></a> and <a class="reference internal" href="examples.html#randomnote-label"><span class="std std-ref">Random Growth notebook</span></a>. <em>manage_front</em> takes 1 argument:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">RandomFront</span><span class="p">(</span><span class="n">Front</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constellation</span><span class="p">):</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">manage_front</span></code> is called by every active <code class="docutils literal notranslate"><span class="pre">RandomFront</span></code> at every simulation cycle. The calling front is <em>self</em>. The argument is the <a class="reference internal" href="simulator.html#constellation-label"><span class="std std-ref">Constellation class</span></a>, a complex data structure that contains information about all other fronts and substrates in the simulation and provides a few methods. The <em>constellation</em> is not used directly, it is passed to other NeuroDevSim methods.</p>
+<div class="section" id="basic-growth">
+<h4>Basic growth<a class="headerlink" href="#basic-growth" title="Permalink to this headline">¶</a></h4>
+<p>We’ll start with a very simple example: growth of a single branch from the soma:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">RandomFront</span><span class="p">(</span><span class="n">Front</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_length</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span> <span class="c1"># continue growth till close to border of simulation volume</span>
+            <span class="c1"># extend towards right with a bit of noise</span>
+            <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">Point</span><span class="p">(</span><span class="mf">10.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">)</span> <span class="o">+</span>  <span class="n">unit_sample_on_sphere</span><span class="p">()</span> <span class="o">*</span> <span class="mf">3.0</span>
+            <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span> <span class="c1"># make a new front</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># make calling front inactive: stops growing</span>
+</pre></div>
+</div>
+<p>This code will produce a single slightly wiggling red branch connected to the black soma:</p>
+<a class="reference internal image-reference" href="_images/random1.png"><img alt="_images/random1.png" class="align-center" src="_images/random1.png" style="width: 400px;" /></a>
+<p>Let’s look at each line of the code. The first line restricts the total length of the branch so that it stays within the simulation volume:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_length</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span> <span class="c1"># continue growth till close to border of simulation volume</span>
+</pre></div>
+</div>
+<p>only if the current front has a <em>path_length</em> shorter than 100 µm will it make a child to extend the branch. If this is the case then the end position <em>new_pos</em> of the new child front has to be computed:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">Point</span><span class="p">(</span><span class="mf">10.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">)</span> <span class="o">+</span>  <span class="n">unit_sample_on_sphere</span><span class="p">()</span> <span class="o">*</span> <span class="mf">3.0</span>
+</pre></div>
+</div>
+<p><em>new_pos</em> is computed relative to the end point <em>self.end</em> of the calling cylindrical front. Growth is to the right: the <code class="docutils literal notranslate"><span class="pre">Point</span></code> structure generates in this case a <em>x</em>, <em>y</em>, <em>z</em> vector with length 10 µm pointing towards the right (positive <em>x</em>). Finally a bit of noise is added: <code class="docutils literal notranslate"><span class="pre">unit_sample_on_sphere()</span></code> returns a <code class="docutils literal notranslate"><span class="pre">Point</span></code> representing a 1 µm long vector in a random direction and this is multiplied to make it a 3 µm long vector. Therefore, depending on the noise, the new_front will be 7 - 13 µm long. To avoid spurious errors it is best to make sure that new fronts are longer than their radius.</p>
+<p>Simple arithmetic operations with <code class="docutils literal notranslate"><span class="pre">Point</span></code> are supported, with the simple rule that for any such operation the first variable always should be a <code class="docutils literal notranslate"><span class="pre">Point</span></code>. This means that one can compute <code class="docutils literal notranslate"><span class="pre">a_point</span> <span class="pre">*</span> <span class="pre">15</span></code> but not <code class="docutils literal notranslate"><span class="pre">15</span> <span class="pre">*</span> <span class="pre">a_point</span></code>. In the code above, first two <code class="docutils literal notranslate"><span class="pre">Point</span></code> are added together, resulting in a new <code class="docutils literal notranslate"><span class="pre">Point</span></code>. Then the last <code class="docutils literal notranslate"><span class="pre">Point</span></code> is multiplied by 3, which results in another new <code class="docutils literal notranslate"><span class="pre">Point</span></code> that is added to the previous one to generate the result.</p>
+<p>With <em>new_pos</em> a new front can be generated with the <code class="docutils literal notranslate"><span class="pre">add_child</span></code> method:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span> <span class="c1"># make a new front</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">add_child</span></code> is the most common used growth method: it will immediately make the new front or generate an error (see further). In this simple example only a few parameters are provided to <code class="docutils literal notranslate"><span class="pre">add_child</span></code>: obigatory parameters <em>constellation</em> and <em>new_pos</em> and the optional parameter <em>radius</em>. Most <code class="docutils literal notranslate"><span class="pre">Front</span></code> method calls require <em>constellation</em> to be passed. <em>new_pos</em> was computed on the previous line and <em>radius</em> is required to change from the soma radius of 5 µm to 1 µm for the dendrite.</p>
+<p>Slightly more complex code could check whether <code class="docutils literal notranslate"><span class="pre">add_child</span></code> is called by a front different from the soma, and then <em>radius</em> no longer needs to be specified because it is automatically inherited from <em>self</em>. Similarly, the <em>swc_type</em> of <em>new_front</em> has automatically been switched from 1 for the soma to 3 for dendrites and is then inherited and its <em>order</em> was automatically increased from 0 for the soma to 1. Finally, <code class="docutils literal notranslate"><span class="pre">self.num_children</span></code> was increased from 0 to 1.</p>
+<p><code class="docutils literal notranslate"><span class="pre">add_child</span></code> returns the new front that was made. In a more advanced coding context this can be useful. Only <em>self</em> may call <code class="docutils literal notranslate"><span class="pre">add_child</span></code> in a <code class="docutils literal notranslate"><span class="pre">self.manage_front</span></code> method call.</p>
+<p>The final line of code is less intuitive but very important: once <em>self</em> has made a child it never should be called again because with the current code it would then try to make a second, third etc. child. This is achieved by the <code class="docutils literal notranslate"><span class="pre">disable</span></code> method that again takes <em>constellation</em> as obligatory parameter:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># make calling front inactive: stops growing</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">disable</span></code> makes the front inactive: its <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> method is never called again. As was shown in the figure in <a class="reference internal" href="intro.html#agent-label"><span class="std std-ref">Agent-based modeling</span></a> the normal sequence of front activity during growth is:</p>
+<ul class="simple">
+<li><p>a new front made by <code class="docutils literal notranslate"><span class="pre">Admin_agent.add_neurons</span></code> or <code class="docutils literal notranslate"><span class="pre">Front.add_child</span></code> is active.</p></li>
+<li><p>its <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> method will be called on the next cycle.</p></li>
+<li><p>if its growth is successful it is usually made inactive to prevent further growth.</p></li>
+</ul>
+</div>
+<div class="section" id="basic-error-catching">
+<h4>Basic error catching<a class="headerlink" href="#basic-error-catching" title="Permalink to this headline">¶</a></h4>
+<p>Error catching is an essential programming technique in NeuroDevSim models, the basic approach is introduced here. A more detailed description is given in the <a class="reference internal" href="examples.html#errorsnote-label"><span class="std std-ref">Errors and Exceptions notebook</span></a>.</p>
+<p>Every <code class="docutils literal notranslate"><span class="pre">Front</span></code> method that can cause solvable errors should be embedded in a <code class="docutils literal notranslate"><span class="pre">try:</span></code> statement followed by an <code class="docutils literal notranslate"><span class="pre">except:</span></code> statement (see <a class="reference external" href="https://docs.python.org/3/tutorial/errors.html">Python Errors and Exceptions</a>). For <code class="docutils literal notranslate"><span class="pre">add_child</span></code> in the above example this becomes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span> <span class="c1"># make a new front</span>
+    <span class="c1"># optionally execute other code if new front was made</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="c1"># no new front was made</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Unexpected error:&quot;</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">add_child</span></code> is successful the <code class="docutils literal notranslate"><span class="pre">except:</span></code> statement is ignored, but if an error occurred the <code class="docutils literal notranslate"><span class="pre">except:</span></code> will be executed and the error will be printed and then the simulation will continue. In the absence of <code class="docutils literal notranslate"><span class="pre">try:</span></code> and <code class="docutils literal notranslate"><span class="pre">except:</span></code> a similar error will cause the simulation to crash with a Traceback and an Error statement.</p>
+<p>This approach is useful because in a real simulation some errors, like the collision of a new front with an existing one (<a class="reference internal" href="#collisionerror-label"><span class="std std-ref">CollisionError</span></a>) or an attempt to grow out of the simulation volume (<a class="reference internal" href="#volumeerror-label"><span class="std std-ref">VolumeError</span></a>), are expected. The <code class="docutils literal notranslate"><span class="pre">except:</span></code> statement can be made more specific to  handle only such expected errors:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span> <span class="c1"># make a new front</span>
+    <span class="c1"># optionally execute other code if new front was made</span>
+<span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span><span class="n">GridCompetitionError</span><span class="p">,</span><span class="n">InsideParentError</span><span class="p">,</span><span class="n">VolumeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+    <span class="c1"># no new front was made</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;cycle&quot;</span><span class="p">,</span><span class="n">constellation</span><span class="o">.</span><span class="n">cycle</span><span class="p">,</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">error</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>These error types will be explained in <a class="reference internal" href="#usefulerrors-label"><span class="std std-ref">Useful Errors</span></a>. If another type of error occurs, like a <code class="docutils literal notranslate"><span class="pre">BugError</span></code> the simulation will still crash appropriately. Obviously, just printing the error is not very useful though for the extremely simple model simulated here nothing more can be done. In the next subsection a more complex model will be examined where the <code class="docutils literal notranslate"><span class="pre">except:</span></code> statements are used to try to overcome the error.</p>
+</div>
+<div class="section" id="more-advanced-growth">
+<span id="randomf-label"></span><h4>More advanced growth<a class="headerlink" href="#more-advanced-growth" title="Permalink to this headline">¶</a></h4>
+<p>Next we’ll simulate a simple branching neuron looking like (each simulation will be different):</p>
+<a class="reference internal image-reference" href="_images/random2.png"><img alt="_images/random2.png" class="align-center" src="_images/random2.png" style="width: 400px;" /></a>
+<p>The code for this example can be found in the <a class="reference internal" href="examples.html#randomnote-label"><span class="std std-ref">Random Growth notebook</span></a>.</p>
+<p>To simulate this effectively, different growth rules apply for the soma compared to other fronts. Therefore, the overall structure of this <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> method is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># self is the soma</span>
+        <span class="c1"># grow multiple branches</span>
+        <span class="o">...</span>
+    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_length</span> <span class="o">&lt;</span> <span class="mi">150</span><span class="p">:</span> <span class="c1"># self is a dendrite front</span>
+        <span class="c1"># extend or branch this front</span>
+        <span class="o">...</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c1"># self is a dendrite front</span>
+        <span class="c1"># this front stops growing</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p>The if statement is True only once, during the first simulation cycle when the neuron consists of a soma only. This condition is triggered by:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+</pre></div>
+</div>
+<p>Only a soma has <em>self.order</em> zero, order is increased automatically for each front sprouting from the soma and after each branch point. An alternative is to test for swc type, which is 1 for a soma: <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">self.swc_type</span> <span class="pre">==</span> <span class="pre">1</span></code>.</p>
+<p>In most models one or more dendrites will sprout from the soma, each of these dendrites starts as a single new <code class="docutils literal notranslate"><span class="pre">RandomFront</span></code>. In this example 5 fronts, each presenting the root of a dendrite, are made. First generate a number of random directions for growth of these dendrite roots:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># soma: make 5 dendrite roots</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_branching_sample</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="c1"># generate more points than needed</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">self.unit_branching_sample</span></code> returns a list of 1 µm directions that are well separated from each other. Note that 10 directions, more than the 5 needed, are generated. This is a simple way to solve errors: the code keeps trying till 5 dendrites are made:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># soma: make 5 dendrite roots</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_branching_sample</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="c1"># generate more points than needed</span>
+    <span class="n">num_dend</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># count number of dendrites</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">points</span><span class="p">:</span> <span class="c1"># make 5 dendrites</span>
+        <span class="o">...</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="o">...</span>
+            <span class="n">num_dend</span> <span class="o">+=</span> <span class="mi">1</span> <span class="c1"># success</span>
+            <span class="k">if</span> <span class="n">num_dend</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span> <span class="c1"># enough dendrites made</span>
+                <span class="o">...</span>
+                <span class="k">return</span> <span class="c1"># completed this call</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span> <span class="n">GridCompetitionError</span><span class="p">,</span> <span class="n">InsideParentError</span><span class="p">,</span> <span class="n">VolumeError</span><span class="p">):</span>
+            <span class="k">continue</span> <span class="c1"># pick another point, no attempt to correct the error</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>The complete code for somatic growth includes the <code class="docutils literal notranslate"><span class="pre">add_child</span></code> and <code class="docutils literal notranslate"><span class="pre">disable</span></code> methods that are used like in the code for the simple unbranching dendrite:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># soma: make 5 dendrite roots</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_branching_sample</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="c1"># generate more points than needed</span>
+    <span class="n">num_dend</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># count number of dendrites</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">points</span><span class="p">:</span> <span class="c1"># make 5 dendrites</span>
+        <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">orig</span> <span class="o">+</span> <span class="n">p</span> <span class="o">*</span> <span class="mf">15.</span> <span class="c1"># compute position of dendrite end</span>
+        <span class="c1"># check for possible collisions</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="mf">2.</span><span class="p">)</span> <span class="c1"># make a new front</span>
+            <span class="n">num_dend</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">num_dend</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span> <span class="c1"># enough dendrites made</span>
+                <span class="c1"># make soma inactive: stops growing -&gt; will not call this method again</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+                <span class="k">return</span> <span class="c1"># completed this call</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span> <span class="n">GridCompetitionError</span><span class="p">,</span> <span class="n">InsideParentError</span><span class="p">,</span> <span class="n">VolumeError</span><span class="p">):</span>
+            <span class="k">continue</span> <span class="c1"># pick another point, no attempt to correct the error</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Warning: less than 5 dendrites made for&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">get_neuron_name</span><span class="p">(</span><span class="n">constellation</span><span class="p">),</span><span class="n">num_dend</span><span class="p">)</span>
+    <span class="c1"># make soma inactive: stops growing -&gt; will not call this method again</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that <em>new_pos</em> is 15 µm away from the soma center <em>self.orig</em>. For fronts connecting to a spherical front, like the soma, it is important to ensure that the <em>new_front.end</em> coordinate falls outside the sphere otherwise an <code class="docutils literal notranslate"><span class="pre">InsideParentError</span></code> will occur. <em>new_front.orig</em> will automatically be placed on the surface of the soma sphere where the direction specified intersects it. <code class="docutils literal notranslate"><span class="pre">new_front.length()</span></code> will be 10 µm: <code class="docutils literal notranslate"><span class="pre">new_pos.length()</span> <span class="pre">-</span> <span class="pre">self.radius</span></code>.</p>
+<p>If 10 directions was not sufficient and less than 5 dendrites were made a warning is printed. Note that because <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">num_dend</span> <span class="pre">==</span> <span class="pre">5:</span></code> was never True, the <code class="docutils literal notranslate"><span class="pre">self.disable(constellation)</span></code> statement never got executed so this needs to be done now.</p>
+<p>The next part of the code governs growth of the dendrite provided the current branch is less than 150 µm long. It decides whether to continue current growth or rarely branch:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_length</span> <span class="o">&lt;</span> <span class="mi">150</span><span class="p">:</span> <span class="c1"># continue growth of a dendrite or branch it</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">0.06</span><span class="p">:</span> <span class="c1"># most probable: extend with a single front</span>
+        <span class="o">...</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c1"># branch with low probability</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p>In this model the branching probability is 6%, the branching decision is made using the <code class="docutils literal notranslate"><span class="pre">numpy</span></code> library to generate a uniform random number between 0 and 1.</p>
+<p>Front extension again needs to deal with <a class="reference internal" href="#collisionerror-label"><span class="std std-ref">CollisionError</span></a> etc. Here a very simple approach is used: a semi-random direction for extension is computed with the <code class="docutils literal notranslate"><span class="pre">self.unit_heading_sample</span></code> method and this direction is used to try to make a front 5 µm long. If this fails another semi-random direction is tried, till <code class="docutils literal notranslate"><span class="pre">add_child</span></code> succeeds:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_length</span> <span class="o">&lt;</span> <span class="mi">150</span><span class="p">:</span> <span class="c1"># continue growth of a dendrite or branch it</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">0.06</span><span class="p">:</span> <span class="c1"># most probable: extend with a single front</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># counts number of add_child trials</span>
+        <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="n">extension</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+            <span class="o">...</span>
+            <span class="c1"># check for possible collisions</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="o">...</span>
+                <span class="c1"># success</span>
+                <span class="k">return</span> <span class="c1"># done for this cycle</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span> <span class="n">GridCompetitionError</span><span class="p">,</span> <span class="n">InsideParentError</span><span class="p">,</span> <span class="n">VolumeError</span><span class="p">):</span>
+                <span class="c1"># failed</span>
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">continue</span> <span class="c1"># pick another new_pos, no attempt to correct the error</span>
+</pre></div>
+</div>
+<p>This is tried up to ten times, but usually only a few trials are needed. The <em>count</em> is incremented only if an error occurred, otherwise the <code class="docutils literal notranslate"><span class="pre">while</span></code> loop is left with the <code class="docutils literal notranslate"><span class="pre">return</span></code> statement.</p>
+<p><code class="docutils literal notranslate"><span class="pre">self.unit_heading_sample(width=20)</span></code> returns a <code class="docutils literal notranslate"><span class="pre">Point</span></code> representing a 1 µm direction vector, drawn from a normal distribution centered around the direction vector of <em>self</em> with a standard deviation of 20. As a result, the dendrite will grow in roughly the same direction as <em>self</em>. A biologically unrealistic abrupt change of direction could occur if a truly random direction was used, as generated with <code class="docutils literal notranslate"><span class="pre">unit_sample_on_sphere()</span></code>.</p>
+<p>The complete code for front extension is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_length</span> <span class="o">&lt;</span> <span class="mi">150</span><span class="p">:</span> <span class="c1"># continue growth of a dendrite or branch it</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">0.06</span><span class="p">:</span> <span class="c1"># most probable: extend with a single front</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># counts number of add_child trials</span>
+        <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="n">extension</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+            <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">extension</span> <span class="o">*</span> <span class="mf">5.</span> <span class="c1"># compute position of child end</span>
+            <span class="c1"># check for possible collisions</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">)</span> <span class="c1"># make a new front and store it</span>
+                <span class="c1"># make front inactive: stops growing -&gt; will not call this method again</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+                <span class="k">return</span> <span class="c1"># done for this cycle</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span> <span class="n">GridCompetitionError</span><span class="p">,</span> <span class="n">InsideParentError</span><span class="p">,</span> <span class="n">VolumeError</span><span class="p">):</span>
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">continue</span> <span class="c1"># pick another new_pos, no attempt to correct the error</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Warning: failed extension for dendrite of&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">get_neuron_name</span><span class="p">(</span><span class="n">constellation</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">constellation</span><span class="o">.</span><span class="n">cycle</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">birth</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span> <span class="c1"># this was second failed attempt:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># stop trying</span>
+</pre></div>
+</div>
+<p>Differences with the code for the soma are that because a cylindrical front is extended with another cylindrical front, <em>new_pos</em> is now computed relative to <em>self.end</em> and therefore the true length of the new front is specified: 5 µm. <em>new_front.orig</em> will be equal to <em>self.end</em> and <em>new_front.end</em> to <em>new_pos</em>. No <em>radius</em> is specified in <code class="docutils literal notranslate"><span class="pre">add_child</span></code> because it stays identical to <em>self.radius</em>.</p>
+<p>Finally, the end of the code deals with the unlikely case that no new front was made (<code class="docutils literal notranslate"><span class="pre">count</span> <span class="pre">==</span> <span class="pre">100</span></code>). Similar to the soma branching case a warning is printed, but the disabling of <em>self</em> is handled differently. <em>self</em> is only disabled if extension failed in two consecutive cycles, so after 200 trials in total. To check for this a public attribute of <em>constellation</em> is used: <em>constellation.cycle</em> which is the current simulation cycle. This is compared with the cycle during which <em>self</em> was created, stored in <em>self.birth</em>.</p>
+<p>The code for branching is quite similar to that for soma branching:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">else</span><span class="p">:</span> <span class="c1"># branch with low probability</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_branching_sample</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="c1"># generate more points than needed</span>
+    <span class="n">rad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">taper</span><span class="p">(</span><span class="mf">0.8</span><span class="p">)</span> <span class="c1"># decrease radius</span>
+    <span class="n">num_dend</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># count number of dendrite branches</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">points</span><span class="p">:</span> <span class="c1"># make 2 branches</span>
+        <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">p</span> <span class="o">*</span> <span class="mf">5.</span>  <span class="c1"># compute position of child end</span>
+        <span class="c1"># check for possible collisions</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="n">rad</span><span class="p">)</span> <span class="c1"># make a new front and store it</span>
+            <span class="n">num_dend</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">num_dend</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="c1"># enough dendrites made</span>
+                <span class="c1"># make front inactive: stops growing -&gt; will not call this method again</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+                <span class="k">return</span> <span class="c1"># done for this cycle</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span> <span class="n">GridCompetitionError</span><span class="p">,</span> <span class="n">InsideParentError</span><span class="p">,</span> <span class="n">VolumeError</span><span class="p">):</span>
+            <span class="k">continue</span> <span class="c1"># pick another new_pos, no attempt to correct the error</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Warning: failed branching for&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">get_neuron_name</span><span class="p">(</span><span class="n">constellation</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">num_children</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_children</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># single child made -&gt; make front inactive</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Differences with the soma branching are: only two branches are made (their <em>order</em> is increased again) and they also do not have a completely random direction because for cylindrical <em>self</em> <code class="docutils literal notranslate"><span class="pre">self.unit_branching_sample</span></code> draws directions at a default angle of 45 ± 33 degrees relative to the direction of <em>self</em>.  The <em>radius</em> of the branch fronts is decreased by 20% relative to that of <em>self</em> using <code class="docutils literal notranslate"><span class="pre">self.taper(0.8)</span></code>. <em>new_pos</em> is computed for cylindrical fronts with the real length, as explained for front extension.</p>
+<p>This part of the code can fail in two different ways: not a single dendrite was made due to errors or one instead of two dendrites was made. In the first case <code class="docutils literal notranslate"><span class="pre">self.num_children</span> <span class="pre">==</span> <span class="pre">0</span></code> and <em>self</em> is not disabled. In the next cycle it will try to grow again and mostly try extension instead of branching. If a single child was made, <code class="docutils literal notranslate"><span class="pre">self.num_children</span> <span class="pre">==</span> <span class="pre">1</span></code>, <em>self</em> is disabled after an extension at a sharp angle. If this happens a lot it would be best to generate more than 5 points with <code class="docutils literal notranslate"><span class="pre">self.unit_branching_sample</span></code>.</p>
+<p>Finally, the code to stop growth <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">self.path_length</span> <span class="pre">&gt;=</span> <span class="pre">150</span></code> is very simple:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">else</span><span class="p">:</span> <span class="c1"># reached maximum length -&gt; terminate growth</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="the-complete-example">
+<h3>The complete example<a class="headerlink" href="#the-complete-example" title="Permalink to this headline">¶</a></h3>
+<p>The complete code to run <em>RandomFront</em>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">neurodevsim.simulator</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="k">class</span> <span class="nc">RandomFront</span><span class="p">(</span><span class="n">Front</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># soma: make 5 dendrite roots</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_branching_sample</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="c1"># generate more points than needed</span>
+            <span class="n">num_dend</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># count number of dendrites</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">points</span><span class="p">:</span> <span class="c1"># make 5 dendrites</span>
+                <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">orig</span> <span class="o">+</span> <span class="n">p</span> <span class="o">*</span> <span class="mf">15.</span> <span class="c1"># compute position of dendrite end</span>
+                <span class="c1"># check for possible collisions</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="mf">2.</span><span class="p">)</span> <span class="c1"># make a new front</span>
+                    <span class="n">num_dend</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">num_dend</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span> <span class="c1"># enough dendrites made</span>
+                        <span class="c1"># make soma inactive: stops growing -&gt; will not call this method again</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="c1"># completed this call</span>
+                <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span> <span class="n">GridCompetitionError</span><span class="p">,</span> <span class="n">InsideParentError</span><span class="p">,</span> <span class="n">VolumeError</span><span class="p">):</span>
+                    <span class="k">continue</span> <span class="c1"># pick another point, no attempt to correct the error</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Warning: less than 5 dendrites made for&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">get_neuron_name</span><span class="p">(</span><span class="n">constellation</span><span class="p">),</span><span class="n">num_dend</span><span class="p">)</span>
+            <span class="c1"># make soma inactive: stops growing -&gt; will not call this method again</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_length</span> <span class="o">&lt;</span> <span class="mi">150</span><span class="p">:</span> <span class="c1"># continue growth of a dendrite or branch it</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">0.06</span><span class="p">:</span> <span class="c1"># most probable: extend with a single front</span>
+                <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># counts number of add_child trials</span>
+                <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">:</span>
+                    <span class="n">extension</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_heading_sample</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+                    <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">extension</span> <span class="o">*</span> <span class="mf">5.</span> <span class="c1"># compute position of child end</span>
+                    <span class="c1"># check for possible collisions</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">)</span> <span class="c1"># make a new front</span>
+                        <span class="c1"># make front inactive: stops growing -&gt; will not call this method again</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="c1"># done for this cycle</span>
+                    <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span> <span class="n">GridCompetitionError</span><span class="p">,</span> <span class="n">InsideParentError</span><span class="p">,</span> <span class="n">VolumeError</span><span class="p">):</span>
+                        <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="k">continue</span> <span class="c1"># pick another new_pos, no attempt to correct the error</span>
+                <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Warning: failed extension for dendrite of&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">get_neuron_name</span><span class="p">(</span><span class="n">constellation</span><span class="p">))</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">constellation</span><span class="o">.</span><span class="n">cycle</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">birth</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span> <span class="c1"># this was second failed attempt:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># stop trying</span>
+            <span class="k">else</span><span class="p">:</span> <span class="c1"># branch with low probability</span>
+                <span class="n">points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_branching_sample</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="c1"># generate more points than needed</span>
+                <span class="n">rad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">taper</span><span class="p">(</span><span class="mf">0.8</span><span class="p">)</span> <span class="c1"># decrease radius</span>
+                <span class="n">num_dend</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># count number of dendrite branches</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">points</span><span class="p">:</span> <span class="c1"># make 2 branches</span>
+                    <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">p</span> <span class="o">*</span> <span class="mf">5.</span>  <span class="c1"># compute position of child end</span>
+                    <span class="c1"># check for possible collisions</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="n">rad</span><span class="p">)</span> <span class="c1"># make a new front</span>
+                        <span class="n">num_dend</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="k">if</span> <span class="n">num_dend</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="c1"># enough dendrites made</span>
+                            <span class="c1"># make front inactive: stops growing -&gt; will not call this method again</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+                            <span class="k">return</span> <span class="c1"># done for this cycle</span>
+                    <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span> <span class="n">GridCompetitionError</span><span class="p">,</span> <span class="n">InsideParentError</span><span class="p">,</span> <span class="n">VolumeError</span><span class="p">):</span>
+                        <span class="k">continue</span> <span class="c1"># pick another new_pos, no attempt to correct the error</span>
+                <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Warning: failed branching for&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">get_neuron_name</span><span class="p">(</span><span class="n">constellation</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">num_children</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_children</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># single child made -&gt; make front inactive</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span> <span class="c1"># reached maximum length -&gt; terminate growth</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="c1"># initialize Admin_agent</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="s2">&quot;output/random.db&quot;</span>
+    <span class="n">sim_volume</span> <span class="o">=</span> <span class="p">[[</span><span class="o">-</span><span class="mf">100.</span><span class="p">,</span> <span class="o">-</span><span class="mf">100.</span><span class="p">,</span> <span class="o">-</span><span class="mf">100.</span><span class="p">],</span> <span class="p">[</span><span class="mf">100.0</span><span class="p">,</span><span class="mf">100.0</span><span class="p">,</span><span class="mf">100.0</span><span class="p">]]</span>
+    <span class="n">neuron_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">RandomFront</span><span class="p">]</span>
+    <span class="n">admin</span> <span class="o">=</span> <span class="n">Admin_agent</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">fname</span><span class="p">,</span><span class="n">sim_volume</span><span class="p">,</span><span class="n">neuron_types</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># make soma and set neuron name</span>
+    <span class="n">admin</span><span class="o">.</span><span class="n">add_neurons</span><span class="p">(</span><span class="n">RandomFront</span><span class="p">,</span><span class="s2">&quot;rand_neuron&quot;</span><span class="p">,</span><span class="mi">1</span><span class="p">,[[</span><span class="o">-</span><span class="mi">30</span><span class="p">,</span><span class="o">-</span><span class="mi">30</span><span class="p">,</span><span class="o">-</span><span class="mi">30</span><span class="p">],[</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">]],</span><span class="mf">10.</span><span class="p">)</span>
+    <span class="c1"># run the simulation</span>
+    <span class="n">admin</span><span class="o">.</span><span class="n">simulation_loop</span><span class="p">(</span><span class="mi">25</span><span class="p">)</span>
+
+    <span class="c1"># clean up</span>
+    <span class="n">admin</span><span class="o">.</span><span class="n">destruction</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>If you haven’t done so yet, open the <a class="reference internal" href="examples.html#randomnote-label"><span class="std std-ref">Random Growth notebook</span></a> in the ‘examples’ directory and run the above code in ‘Random_model’ twice: for each run the result looks completely different. NeuroDevSim is highly stochastic. The only way to get reprocuble results is to set <code class="docutils literal notranslate"><span class="pre">num_processes</span> <span class="pre">==</span> <span class="pre">1</span></code> and provide a  <em>seed</em> to the instantiation of <em>Admin_agent</em>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">admin</span> <span class="o">=</span> <span class="n">Admin_agent</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">fname</span><span class="p">,</span><span class="n">sim_volume</span><span class="p">,</span><span class="n">neuron_types</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">seed</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Any positive integer can be used as <em>seed</em> value, note also that <em>verbose</em> was set to zero to suppress printing of standard output. Run ‘Reproducible_random_model’ in the notebook repeatedly with different <em>seed</em> values to confirm that now the simulations produce always the same outcome for a given <em>seed</em>. This is achieved by running the model serially instead of in  parallel (<code class="docutils literal notranslate"><span class="pre">num_processes</span> <span class="pre">==</span> <span class="pre">1</span></code>). Parallel simulation will <strong>always</strong> result in different simulation outcomes because the scheduling of the different computing cores is not reproducible, but it is much faster especially for complex, large models. For parallel simulation the <em>seed</em> value will still control the initial placement of the somata.</p>
+</div>
+<div class="section" id="a-small-network">
+<span id="smallnetwork-label"></span><h3>A small network<a class="headerlink" href="#a-small-network" title="Permalink to this headline">¶</a></h3>
+<p>Till now all examples dealt with only a single type of neuron. In the ‘Small_network’ example in the <a class="reference internal" href="examples.html#randomnote-label"><span class="std std-ref">Random Growth notebook</span></a> two different neuron types are mixed: a large one with a few long dendrites and a small one with many short dendrites:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">BRandomFront</span><span class="p">(</span><span class="n">Front</span><span class="p">):</span> <span class="c1"># the large one</span>
+
+    <span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+        <span class="o">...</span>
+
+<span class="k">class</span> <span class="nc">SRandomFront</span><span class="p">(</span><span class="n">Front</span><span class="p">):</span> <span class="c1"># the small one: more dendrites of smaller length</span>
+
+    <span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+        <span class="o">...</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="c1"># initialize Admin_agent</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="s2">&quot;output/random_net.db&quot;</span>
+    <span class="n">sim_volume</span> <span class="o">=</span> <span class="p">[[</span><span class="o">-</span><span class="mf">100.</span><span class="p">,</span> <span class="o">-</span><span class="mf">100.</span><span class="p">,</span> <span class="o">-</span><span class="mf">100.</span><span class="p">],</span> <span class="p">[</span><span class="mf">100.0</span><span class="p">,</span><span class="mf">100.0</span><span class="p">,</span><span class="mf">100.0</span><span class="p">]]</span>
+    <span class="n">neuron_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">BRandomFront</span><span class="p">,</span><span class="n">SRandomFront</span><span class="p">]</span>
+    <span class="n">admin</span> <span class="o">=</span> <span class="n">Admin_agent</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">fname</span><span class="p">,</span><span class="n">sim_volume</span><span class="p">,</span><span class="n">neuron_types</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">azim</span><span class="o">=-</span><span class="mi">45</span><span class="p">)</span>
+
+    <span class="c1"># make somata and set neuron name for large neurons</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">admin</span><span class="o">.</span><span class="n">add_neurons</span><span class="p">(</span><span class="n">BRandomFront</span><span class="p">,</span><span class="s2">&quot;brand_neuron&quot;</span><span class="p">,</span><span class="mi">2</span><span class="p">,[[</span><span class="o">-</span><span class="mi">30</span><span class="p">,</span><span class="o">-</span><span class="mi">30</span><span class="p">,</span><span class="o">-</span><span class="mi">30</span><span class="p">],[</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">]],</span><span class="mf">10.</span><span class="p">):</span>
+        <span class="n">admin</span><span class="o">.</span><span class="n">destruction</span><span class="p">()</span>
+    <span class="c1"># make somata and set neuron name for small neurons</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">admin</span><span class="o">.</span><span class="n">add_neurons</span><span class="p">(</span><span class="n">SRandomFront</span><span class="p">,</span><span class="s2">&quot;srand_neuron&quot;</span><span class="p">,</span><span class="mi">2</span><span class="p">,[[</span><span class="o">-</span><span class="mi">60</span><span class="p">,</span><span class="o">-</span><span class="mi">60</span><span class="p">,</span><span class="o">-</span><span class="mi">60</span><span class="p">],[</span><span class="mi">60</span><span class="p">,</span><span class="mi">60</span><span class="p">,</span><span class="mi">60</span><span class="p">]],</span><span class="mf">5.</span><span class="p">):</span>
+        <span class="n">admin</span><span class="o">.</span><span class="n">destruction</span><span class="p">()</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>Each type of neuron is defined as a different subclass of <code class="docutils literal notranslate"><span class="pre">Front</span></code> with its own <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> method. There is not much difference between the respective <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> methods except that they instantiate a different subclass, look at the notebook for details. More important are the differences in the <em>main</em> part of the code:</p>
+<ul class="simple">
+<li><p>there are now two subclasses listed for the <em>neuron_types</em> parameter.</p></li>
+<li><p>two calls are made to <code class="docutils literal notranslate"><span class="pre">add_neuron</span></code>, one for each subclass.</p></li>
+</ul>
+<p>Have a good look at the outcome of this simulation in the notebook where each neuron has a different color: often the smaller neurons impede the growth of the larger ones, causing them to clearly grow around the small ones. This is a nice demonstration of how avoiding collisions with other neurons can steer growth in a crowded environment.</p>
+<a class="reference internal image-reference" href="_images/network.png"><img alt="_images/network.png" class="align-center" src="_images/network.png" style="width: 400px;" /></a>
+</div>
+</div>
+<div class="section" id="how-many-processors-to-use">
+<h2>How many processors to use<a class="headerlink" href="#how-many-processors-to-use" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Admin_agent</span></code> initialization requires specification of <em>num_processes</em> to control how many parallel processes will be used for the simulation. The minimum value is 1, in which case the simulation is serially, and an extra core is always required to run <code class="docutils literal notranslate"><span class="pre">Admin_agent</span></code> so the minimum cores used is 2. The maximum is determined by the hardware used. In general not more cores should be used than the number of physical cores available, so the maximum <em>num_processes</em> equals the number of cores available minus one (for <code class="docutils literal notranslate"><span class="pre">Admin_agent</span></code>).</p>
+<p>Any value can be chosen in the minimum-maximum range for <em>num_processes</em>, the optimal number depends on the model size and complexity and whether this will run on a personal laptop or a remote machine. A higher number of processors used will make the simulation run faster, but using all cores on a laptop may make it run quite hot with a lot of fan noise and using one a few less processes may not make a big difference in run time.</p>
+<p>These principles are demonstrated in the benchmarking of the <em>L5_pyramidal_neuron</em> model from the <a class="reference internal" href="examples.html#realnote-label"><span class="std std-ref">Real Morphologies notebook</span></a> on a Macbook Pro with the M1 Max chip:</p>
+<a class="reference internal image-reference" href="_images/L5_neuron_bm.png"><img alt="_images/L5_neuron_bm.png" class="align-center" src="_images/L5_neuron_bm.png" style="width: 400px;" /></a>
+<p>It is clear that for this simple model using more than 4 processors (5 cores) gives little speed-up. Notice also that run times are extremely variable as shown by the shaded region of the graph that shows minimum and maximum run times. This variability is primarily caused by random size differences of the resulting model, slower simulations correspond to neurons with more fronts and branch points.</p>
+<p>A forest of 100 of these neurons, as in the <em>L5_pyramidal_forest</em> model from the <a class="reference internal" href="examples.html#realnote-label"><span class="std std-ref">Real Morphologies notebook</span></a> provides more of a challenge:</p>
+<a class="reference internal image-reference" href="_images/L5_forest_bm.png"><img alt="_images/L5_forest_bm.png" class="align-center" src="_images/L5_forest_bm.png" style="width: 400px;" /></a>
+<p>Here the hardware limit becomes obvious: when more than 8 cores, the number of high performance cores on the M1 Max chip, are used run times actually increase! The optimal <em>num_processes</em> for this model on this hardware is 6 (7 cores). Although run times are still quite variable, the relative difference is much smaller than for the single neuron model.</p>
+</div>
+<div class="section" id="useful-errors">
+<span id="usefulerrors-label"></span><h2>Useful <code class="docutils literal notranslate"><span class="pre">Errors</span></code><a class="headerlink" href="#useful-errors" title="Permalink to this headline">¶</a></h2>
+<p>A complete listing of NeuroDevSim errors can be found in <a class="reference internal" href="simulator.html#simulator-label"><span class="std std-ref">simulator module</span></a>. Here errors that can easily be used to improve model code are described briefly.</p>
+<div class="section" id="collisionerror">
+<span id="collisionerror-label"></span><h3><code class="docutils literal notranslate"><span class="pre">CollisionError</span></code><a class="headerlink" href="#collisionerror" title="Permalink to this headline">¶</a></h3>
+<p>This is the most important error to catch because it is quite difficult to prevent collisions between a new front being made by, for example, <code class="docutils literal notranslate"><span class="pre">add_child</span></code> and existing fronts. If a <code class="docutils literal notranslate"><span class="pre">CollisionError</span></code> occurs a different <em>coordinate</em> should be tried for the method that triggered it. In most of the examples this is done randomly, but NeuroDevSim provides a <code class="docutils literal notranslate"><span class="pre">Front.solve_collision</span></code> method that can also help. This is explained in detail in <a class="reference internal" href="collisions.html#collisions-label"><span class="std std-ref">Preventing and dealing with collisions</span></a>. Examples can also be found in all notebooks.</p>
+<p>Often it is useful to know which existing front caused the collision. This information is available in <code class="docutils literal notranslate"><span class="pre">CollisionError</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+<span class="o">...</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">new_front</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">)</span>
+    <span class="o">...</span>
+<span class="k">except</span> <span class="n">CollisionError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;collides with&quot;</span><span class="p">,</span><span class="n">error</span><span class="o">.</span><span class="n">collider</span><span class="p">,</span><span class="s2">&quot;with distance&quot;</span><span class="p">,</span><span class="n">error</span><span class="o">.</span><span class="n">distance</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where <em>error.collider</em> is the offending front. Note that the standard behavior of all methods is to return a <code class="docutils literal notranslate"><span class="pre">CollisionError</span></code> upon the first collision detected. This behavior can be changed to detect all colliding fronts, see <a class="reference internal" href="collisions.html#collisions-label"><span class="std std-ref">Preventing and dealing with collisions</span></a>.</p>
+</div>
+<div class="section" id="gridcompetitionerror">
+<span id="gridcompetitionerror-label"></span><h3><code class="docutils literal notranslate"><span class="pre">GridCompetitionError</span></code><a class="headerlink" href="#gridcompetitionerror" title="Permalink to this headline">¶</a></h3>
+<p>This error is unique to the shared memory parallel computing implemented in NeuroDevSim. An important coding challenge is to prevent two different processes from trying to write to the same memory location at the same time and to prevent reading partial information because another process is writing. This prevention is done through transient locking of specific memory locations. In the context of <code class="docutils literal notranslate"><span class="pre">GridCompetitionError</span></code> locking of a <em>grid</em> location failed. The <em>grid</em> contains information about the location of all existing fronts, stored on a Cartesian 3D grid. It is used to detect collisions and needs to be accessed and updated frequently. A <code class="docutils literal notranslate"><span class="pre">GridCompetitionError</span></code> occurs when two or more processes try to access the same grid coordinate simultaneously. Because this happens frequently, the standard approach is for all processes except one to wait till the allowed one completes its task, but sometimes the competition is so fierce that this leads to excessive waiting times and then a <code class="docutils literal notranslate"><span class="pre">GridCompetitionError</span></code> occurs.</p>
+<p>One way in which NeuroDevSim tries to avoid this problem is by scheduling the order in which fronts call <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> so that growing or migrating fronts occupying the same grid coordinate are not processed simultaneously on different processes. To do this efficiently it is important that the <code class="docutils literal notranslate"><span class="pre">is_growing()</span></code> and <code class="docutils literal notranslate"><span class="pre">is_migrating()</span></code> <a class="reference internal" href="flags.html#flags-label"><span class="std std-ref">Front status flags</span></a> are set correctly. For simple simulations this is done automatically by <code class="docutils literal notranslate"><span class="pre">self.disable(constellation)</span></code> when growth or migration is finished. But in more complex models these <a class="reference internal" href="flags.html#flags-label"><span class="std std-ref">Front status flags</span></a> may have to be set explicitly.</p>
+<p>If a <code class="docutils literal notranslate"><span class="pre">GridCompetitionError</span></code> occurs the best strategy is often to try calling the method again a few times with the same or different parameters, this approach is taken in many examples. Alternatively, <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> can return without disabling <em>self</em> so that the same call is made again next cycle, but this may reduce the growth rate. Note that it is not wise to loop many times (more than 10) for a <code class="docutils literal notranslate"><span class="pre">GridCompetitionError</span></code> because this may significantly slow down the simulation.</p>
+</div>
+<div class="section" id="insideparenterror">
+<span id="insideparenterror-label"></span><h3><code class="docutils literal notranslate"><span class="pre">InsideParentError</span></code><a class="headerlink" href="#insideparenterror" title="Permalink to this headline">¶</a></h3>
+<p>The <em>coordinate</em> provided to <code class="docutils literal notranslate"><span class="pre">self.add_child</span></code> or similar method is inside the volume occupied by the future parent <em>self</em>. The obvious solution is to provide another value for <em>coordinate</em>.</p>
+</div>
+<div class="section" id="volumeerror">
+<span id="volumeerror-label"></span><h3><code class="docutils literal notranslate"><span class="pre">VolumeError</span></code><a class="headerlink" href="#volumeerror" title="Permalink to this headline">¶</a></h3>
+<p>The <em>coordinate</em> provided to <code class="docutils literal notranslate"><span class="pre">self.add_child</span></code> or similar method is outside the simulation volume. Because all growth and migration methods test for this condition anyway, it is more efficient to let the error happen and then deal with it instead of preventing it. In most cases growth should stop after this front is made with its <em>end</em> on the border.</p>
+<p>Because <strong>no</strong> collision detection occurs outside of the simulation volume, it is impossible to grow fronts outside of the volume.</p>
+<p>An example can be found in ‘Demo_attraction’ in the <a class="reference internal" href="examples.html#environmentnote-label"><span class="std std-ref">Environment notebook</span></a>.</p>
+</div>
+</div>
+<div class="section" id="important-dos-and-don-ts">
+<span id="dos-donts-label"></span><h2>Important dos and don’ts<a class="headerlink" href="#important-dos-and-don-ts" title="Permalink to this headline">¶</a></h2>
+<p>NeuroDevSim is fast thanks to two Python libraries: <em>multiprocessing</em> and its <em>sharedctypes</em>. The first supports parallel processing on a multicore computer and the second allows sharing of memory between the cores. Unfortunately the use of these methods imposes rules on how a NeuroDevSim model is coded.</p>
+<p>In general, fundamental model components of NeuroDevSim, <code class="docutils literal notranslate"><span class="pre">Front</span></code> and <code class="docutils literal notranslate"><span class="pre">Substrate</span></code>, act more like C language structures than like Python objects. Specifically:</p>
+<div class="section" id="no-instance-attributes">
+<h3>No instance attributes<a class="headerlink" href="#no-instance-attributes" title="Permalink to this headline">¶</a></h3>
+<p>The size of a <code class="docutils literal notranslate"><span class="pre">Front</span></code> and its subclasses is predefined and cannot be changed, consequently it is not possible to declare new attributes for specific instances inside methods. For example the following code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyFront</span><span class="p">(</span><span class="n">Front</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constellation</span><span class="p">):</span>
+        <span class="o">...</span>
+        <span class="c1"># do not do this</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">foo</span> <span class="o">=</span> <span class="mi">25</span>
+        <span class="c1"># but this is fine, though usable only within the scope of the current manage_front call</span>
+        <span class="n">foo</span> <span class="o">=</span> <span class="mi">25</span>
+</pre></div>
+</div>
+<p>will not result in a new attribute <em>foo</em> being stored in the <code class="docutils literal notranslate"><span class="pre">Front</span></code>. This code will not generate an error, but any attempt to access <em>self.foo</em> in subsequent <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> calls will generate a “‘Front’ object has no attribute ‘foo’” error.</p>
+</div>
+<div class="section" id="user-defined-attributes">
+<h3>User-defined attributes<a class="headerlink" href="#user-defined-attributes" title="Permalink to this headline">¶</a></h3>
+<p>Additional attributes can be declared in the <code class="docutils literal notranslate"><span class="pre">Front</span></code> subclass definition but special syntax is required:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyFront</span><span class="p">(</span><span class="n">Front</span><span class="p">):</span>
+    <span class="n">_fields_</span> <span class="o">=</span> <span class="n">Front</span><span class="o">.</span><span class="n">_fields_</span> <span class="o">+</span> <span class="p">[(</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="n">c_int</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constellation</span><span class="p">):</span>
+        <span class="o">...</span>
+        <span class="c1"># now it is safe to do this</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">foo</span> <span class="o">=</span> <span class="mi">25</span>
+</pre></div>
+</div>
+<p>Note that <em>foo</em> will be present in <strong>all</strong> instances of <em>MyFront</em>, as mentioned in the previous subsection it is not possible to have instance specific attributes. Only fixed size attributes can be declared, lists, dictionaries or strings are not possible. It is not advised to store other <code class="docutils literal notranslate"><span class="pre">Front</span></code> as an attribute, instead store its <code class="docutils literal notranslate"><span class="pre">ID</span></code> as the attribute.</p>
+<p>Defining additional attributes is explained in more detail in <a class="reference internal" href="subclassing.html#subclassing-label"><span class="std std-ref">Subclassing Front</span></a>.</p>
+</div>
+<div class="section" id="do-not-instantiate-front-or-synapse">
+<h3>Do not instantiate <code class="docutils literal notranslate"><span class="pre">Front</span></code> or <code class="docutils literal notranslate"><span class="pre">Synapse</span></code><a class="headerlink" href="#do-not-instantiate-front-or-synapse" title="Permalink to this headline">¶</a></h3>
+<p>While it is possible to instantiate <code class="docutils literal notranslate"><span class="pre">Front</span></code> or <code class="docutils literal notranslate"><span class="pre">Synapse</span></code>, those objects cannot interact with existing <code class="docutils literal notranslate"><span class="pre">Front</span></code> and they cannot be stored in the shared arrays, they will disappear after the <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> call is completed. Use the <code class="docutils literal notranslate"><span class="pre">Admin_agent.add_neurons</span></code>, <code class="docutils literal notranslate"><span class="pre">Front.add_child</span></code> or <code class="docutils literal notranslate"><span class="pre">Front.add_branch</span></code> methods to instantiate <code class="docutils literal notranslate"><span class="pre">Front</span></code>. See <a class="reference internal" href="synapses.html#synapses-label"><span class="std std-ref">Synapses</span></a> about the use of <code class="docutils literal notranslate"><span class="pre">add_synapse</span></code>.</p>
+</div>
+<div class="section" id="changing-attributes-of-front-or-substrate">
+<span id="attributes-label"></span><h3>Changing attributes of <code class="docutils literal notranslate"><span class="pre">Front</span></code> or <code class="docutils literal notranslate"><span class="pre">Substrate</span></code><a class="headerlink" href="#changing-attributes-of-front-or-substrate" title="Permalink to this headline">¶</a></h3>
+<p>The public predefined attributes of <code class="docutils literal notranslate"><span class="pre">Front</span></code> and <code class="docutils literal notranslate"><span class="pre">Substrate</span></code> are read-only. Their value is set when a new front or substrate is created and should not be changed. Doing so has unpredictable consequences, most likely the change will be ignored but it may also crash the simulation.</p>
+<p>User-defined attributes can be used freely for <em>self</em>. Changing such attributes for a target <code class="docutils literal notranslate"><span class="pre">Front</span></code> or <code class="docutils literal notranslate"><span class="pre">Substrate</span></code> other than <em>self</em> is risky but sometimes a useful short-cut. The challenge is to ensure that:</p>
+<ul class="simple">
+<li><p>there is no competition among different fronts that are trying to change the same attribute in a target front during the same cycle.</p></li>
+<li><p>have code that is robust to the unpredictable timing of the change: there is no way to control whether in the <em>cycle</em> of the change the target front will call its <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> method before or after the change was made.</p></li>
+</ul>
+<p>There are two approaches possible to dealing with the first challenge:</p>
+<ul class="simple">
+<li><p>unique pair-wise relation: avoid possible competition by making sure that only one front can make the change and that the target front does not use this attribute itself in the relevant time frame. This is the most robust approach if possible. An example can be found in the <a class="reference internal" href="examples.html#migrationnote-label"><span class="std std-ref">Migration notebook</span></a>: the growing tip of the filipod in Filipod migration uses <code class="docutils literal notranslate"><span class="pre">soma.set_status1()</span></code> to set the <em>status1</em> flag in the soma.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">constellation.lock(target)</span></code> the target front before changing the attribute. This approach is guaranteed safe if several fronts can make the change. Unfortunately, if several fronts try to do this during the same cycle it is easy to trigger a lock competition causing a <code class="docutils literal notranslate"><span class="pre">LockError</span></code>. Therefore this approach is not robust in many simulation contexts.</p></li>
+</ul>
+<p>An example of using <code class="docutils literal notranslate"><span class="pre">constellation.lock</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyFront</span><span class="p">(</span><span class="n">Front</span><span class="p">):</span>
+    <span class="n">_fields_</span> <span class="o">=</span> <span class="n">Front</span><span class="o">.</span><span class="n">_fields_</span> <span class="o">+</span> <span class="p">[(</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="n">c_int</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constellation</span><span class="p">):</span>
+        <span class="o">...</span>
+        <span class="c1"># code called by a front that is not the soma</span>
+        <span class="n">soma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_soma</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">constellation</span><span class="o">.</span><span class="n">lock</span><span class="p">(</span><span class="n">soma</span><span class="p">):</span> <span class="c1"># lock soma before changing its attribute</span>
+            <span class="n">soma</span><span class="o">.</span><span class="n">foo</span> <span class="o">=</span> <span class="mi">25</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">constellation</span><span class="o">.</span><span class="n">unlock</span><span class="p">(</span><span class="n">soma</span><span class="p">)</span>  <span class="c1"># and unlock it again</span>
+</pre></div>
+</div>
+<p>If two processes compete for access, one will need to wait till the lock of the other one is released. Therefore, it is important to <code class="docutils literal notranslate"><span class="pre">unlock</span></code> as soon as possible to avoid a <code class="docutils literal notranslate"><span class="pre">LockError</span></code>. Every front is locked automatically during its <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> call.</p>
+</div>
+<div class="section" id="no-direct-access-to-shared-arrays">
+<h3>No direct access to shared arrays<a class="headerlink" href="#no-direct-access-to-shared-arrays" title="Permalink to this headline">¶</a></h3>
+<p>The underlying shared memory structure is quite complex to be able to deal with issues like different sized <code class="docutils literal notranslate"><span class="pre">Front</span></code> (due to additional attributes) and variable sized data structures (like the children of a <code class="docutils literal notranslate"><span class="pre">Front</span></code>). Therefore direct user access is strongly discouraged, instead many access methods are provided. Most important:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Access other fronts by their ID</span>
+<span class="n">fid</span> <span class="o">=</span> <span class="n">a_front</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="c1"># obtain a front ID</span>
+<span class="o">...</span>
+<span class="n">a_front</span> <span class="o">=</span> <span class="n">constellation</span><span class="o">.</span><span class="n">front_by_id</span><span class="p">(</span><span class="n">fid</span><span class="p">)</span> <span class="c1"># get the front back in another context</span>
+
+<span class="c1"># Access substrate by their ID</span>
+<span class="n">sid</span> <span class="o">=</span> <span class="n">a_sub</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="c1"># obtain a substrate ID</span>
+<span class="o">...</span>
+<span class="n">a_sub</span> <span class="o">=</span> <span class="n">substrate_by_id</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span> <span class="c1"># get the substrate back in another context</span>
+
+<span class="c1"># Get the parent front</span>
+<span class="n">parent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parent</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+<span class="c1">#   or its ID</span>
+<span class="n">parent_ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parent</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">returnID</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1">#   or check whether a front is the parent</span>
+<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_child</span><span class="p">(</span><span class="n">parent</span><span class="p">):</span> <span class="c1"># True if self is a child of parent</span>
+    <span class="o">...</span>
+
+<span class="c1"># Get the child fronts as a list</span>
+<span class="n">children</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_children</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+<span class="n">always_True</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">children</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_children</span>
+<span class="c1">#   or get them as a list of IDs</span>
+<span class="n">child_IDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_children</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">returnID</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1">#   or check whether it is a child</span>
+<span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">children</span><span class="p">:</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_parent</span><span class="p">(</span><span class="n">child</span><span class="p">):</span> <span class="c1"># True if self is parent of child</span>
+        <span class="o">...</span>
+
+<span class="c1"># Get the soma front</span>
+<span class="n">soma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_soma</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+<span class="c1">#   or its ID</span>
+<span class="n">soma_ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_soma</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">returnID</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Get all fronts belonging to a neuron</span>
+<span class="n">all_fronts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_neuron</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+<span class="c1">#   or as IDs</span>
+<span class="n">all_IDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_neuron</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span> <span class="n">returnID</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="names-are-not-strings">
+<h3>Names are not strings<a class="headerlink" href="#names-are-not-strings" title="Permalink to this headline">¶</a></h3>
+<p>Both the <em>neuron_name</em> and the optional <em>branch_name</em> are stored as fixed length character sequences. This has two consequences:</p>
+<ol class="arabic simple">
+<li><p>They have a fixed length of 40 or 20 characters, respectively. For the <em>neuron_name</em> 6 characters are reserved for the ‘_0_’, ‘_1_’,… numbering so the <em>neuron_name</em> parameter in the  <em>Admin_agent.add_neurons</em> method can only be 34 characters long, longer names cause an error.</p></li>
+<li><p>Reading them directly does not return a <code class="docutils literal notranslate"><span class="pre">string</span></code> but a sequence of <code class="docutils literal notranslate"><span class="pre">bytes</span></code>. Instead use methods that returns the proper <code class="docutils literal notranslate"><span class="pre">string</span></code> value: <code class="docutils literal notranslate"><span class="pre">self.get_neuron_name(constellation)</span></code> or <code class="docutils literal notranslate"><span class="pre">self.get_branch_name()</span></code>.</p></li>
+</ol>
+</div>
+<div class="section" id="predefined-array-sizes">
+<h3>Predefined array sizes<a class="headerlink" href="#predefined-array-sizes" title="Permalink to this headline">¶</a></h3>
+<p>All the shared memory consists of fixed size arrays. The default <em>Admin_agent</em> initialization allows for both small and medium size simulations, but for very large ones it may be necessary to increase some of the optional preset array sizes. This may have to be done by trial and error: NeuroDevSim will generate a <code class="docutils literal notranslate"><span class="pre">OverflowError</span></code> error if a preset array size is too small and the error message will instruct which <em>Admin_agent</em> initialization parameter needs to be increased. Incrementally increase this parameter value at <em>Admin_agent</em> initialization till the model runs without errors. See <a class="reference internal" href="simulator.html#simulator-label"><span class="std std-ref">simulator module</span></a> for a complete listing of <em>Admin_agent</em> optional initialization parameters.</p>
+</div>
+</div>
+<div class="section" id="additional-growth-methods">
+<h2>Additional growth methods<a class="headerlink" href="#additional-growth-methods" title="Permalink to this headline">¶</a></h2>
+<p>Besides <code class="docutils literal notranslate"><span class="pre">add_child</span></code> other <code class="docutils literal notranslate"><span class="pre">Front</span></code> methods can be called by <em>self</em> inside <code class="docutils literal notranslate"><span class="pre">self.manage_front</span></code> to cause growth, migration or retraction of fronts. These methods should not be called for fronts other than <em>self</em>.</p>
+<div class="section" id="add-branch-method">
+<h3><code class="docutils literal notranslate"><span class="pre">add_branch</span></code> method<a class="headerlink" href="#add-branch-method" title="Permalink to this headline">¶</a></h3>
+<p>Sometimes growing a long cylindrical child front is not possible or useful because it cannot circumnavigate a blocking structure. A sequence of shorter fronts making, for example, an arc around the other structure may be a better solution. But with <code class="docutils literal notranslate"><span class="pre">add_child</span></code> these shorter fronts would have to be made during consecutive cycles, resulting in slower growth. <code class="docutils literal notranslate"><span class="pre">add_branch</span></code> solves this problem: it grows a series of connected cylindrical fronts specified as a list of <code class="docutils literal notranslate"><span class="pre">Point</span></code>, where each new front is the parent of the next one:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="c1"># self has self.end at 41.66, 77.08, 34.18</span>
+    <span class="c1"># points form a partial arc around a sphere centered at 41.01, 77.20, 31.49</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="p">[</span><span class="n">Point</span><span class="p">(</span><span class="mf">42.74</span><span class="p">,</span> <span class="mf">76.43</span><span class="p">,</span> <span class="mf">33.50</span><span class="p">),</span><span class="n">Point</span><span class="p">(</span><span class="mf">43.36</span><span class="p">,</span> <span class="mf">75.98</span><span class="p">,</span> <span class="mf">32.29</span><span class="p">),</span><span class="n">Point</span><span class="p">(</span><span class="mf">43.35</span><span class="p">,</span> <span class="mf">75.86</span><span class="p">,</span> <span class="mf">30.86</span><span class="p">)]</span>
+    <span class="n">new_fronts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_branch</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">points</span><span class="p">)</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>this code will, if successful, produce 3 new fronts that have consecutive parent-&gt;child relations as: <em>self</em> -&gt; <em>new_fronts[0]</em> -&gt; <em>new_fronts[1]</em> -&gt; <em>new_fronts[2]</em>. The result of the above code is shown below with blue <em>self</em>, <em>self.end</em> marked as the black dot, and the <em>new_fronts</em> colored green:</p>
+<a class="reference internal image-reference" href="_images/arc.png"><img alt="_images/arc.png" class="align-center" src="_images/arc.png" style="width: 500px;" /></a>
+<p>Like for <code class="docutils literal notranslate"><span class="pre">add_child</span></code> it is better to embed the <code class="docutils literal notranslate"><span class="pre">add_branch</span></code> call into a <code class="docutils literal notranslate"><span class="pre">try:</span></code> and <code class="docutils literal notranslate"><span class="pre">except:</span></code> sequence:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="c1"># self has self.end at 41.66, 77.08, 34.18</span>
+    <span class="c1"># points form a partial arc around a sphere centered at 41.01, 77.20, 31.49</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="p">[</span><span class="n">Point</span><span class="p">(</span><span class="mf">42.74</span><span class="p">,</span> <span class="mf">76.43</span><span class="p">,</span> <span class="mf">33.50</span><span class="p">),</span><span class="n">Point</span><span class="p">(</span><span class="mf">43.36</span><span class="p">,</span> <span class="mf">75.98</span><span class="p">,</span> <span class="mf">32.29</span><span class="p">),</span><span class="n">Point</span><span class="p">(</span><span class="mf">43.35</span><span class="p">,</span> <span class="mf">75.86</span><span class="p">,</span> <span class="mf">30.86</span><span class="p">)]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">new_fronts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_branch</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">points</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># success -&gt; disable self</span>
+        <span class="k">return</span> <span class="c1"># success</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span><span class="n">GridCompetitionError</span><span class="p">,</span><span class="n">InsideParentError</span><span class="p">,</span><span class="n">VolumeError</span><span class="p">):</span>
+        <span class="c1"># do something to solve the error, e.g. try different points</span>
+        <span class="o">...</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">add_branch</span></code> treats errors differently depending which of the points generates an error. If the first point triggers an error the method returns to the except statement. For later points <code class="docutils literal notranslate"><span class="pre">add_branch</span></code> will not throw an error but return with less fronts made than requested; this can be detected by <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">len(new_fronts)</span> <span class="pre">&lt;</span> <span class="pre">len(points)</span></code>.</p>
+<p>Examples of the use of <code class="docutils literal notranslate"><span class="pre">add_branch</span></code> can be found in the <a class="reference internal" href="examples.html#migrationnote-label"><span class="std std-ref">Migration notebook</span></a> and in <a class="reference internal" href="collisions.html#collisions-label"><span class="std std-ref">Preventing and dealing with collisions</span></a>.</p>
+</div>
+<div class="section" id="migrate-soma-method">
+<h3><code class="docutils literal notranslate"><span class="pre">migrate_soma</span></code> method<a class="headerlink" href="#migrate-soma-method" title="Permalink to this headline">¶</a></h3>
+<p>This method is called by migrating somata to simulate the behavior of neurons that are not born in their final place of growth. Examples of the use of this method can be found in the <a class="reference internal" href="examples.html#migrationnote-label"><span class="std std-ref">Migration notebook</span></a>.</p>
+<p>To prevent <a class="reference internal" href="#gridcompetitionerror-label"><span class="std std-ref">GridCompetitionError</span></a> the soma should have its <em>migrating</em> flag set when it is created:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">admin</span><span class="o">.</span><span class="n">add_neurons</span><span class="p">(</span><span class="n">MigrationFront</span><span class="p">,</span><span class="s2">&quot;neuron&quot;</span><span class="p">,</span><span class="mi">1</span><span class="p">,[[</span><span class="mi">10</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">20</span><span class="p">],[</span><span class="mi">10</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">20</span><span class="p">]],</span><span class="mf">5.</span><span class="p">,</span><span class="n">migrating</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The standard use of <code class="docutils literal notranslate"><span class="pre">migrate_soma</span></code> assumes that the soma has <strong>no children</strong> and moves it to a new coordinate <em>new_pos</em>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">migrate_soma</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">)</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>For example, to move to a random new coordinate with error checking:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">new_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">orig</span> <span class="o">+</span> <span class="n">unit_sample_on_sphere</span><span class="p">()</span> <span class="o">*</span> <span class="mf">5.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">migrate_soma</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">new_pos</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">CollisionError</span><span class="p">,</span><span class="n">GridCompetitionError</span><span class="p">,</span><span class="n">InsideParentError</span><span class="p">,</span><span class="n">VolumeError</span><span class="p">):</span>
+        <span class="c1"># deal with error</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>Note that because somata are spherical the <em>self.orig</em> attribute is used to compute new positions. A soma can only migrate to a free position, otherwise a collision will occur. NeuroDevSim does not check whether the entire path is collision free, instead it assumes that every migration step is smaller than the soma diameter.</p>
+<p><code class="docutils literal notranslate"><span class="pre">migrate_soma</span></code> also supports more sophisticated migration scenarios:</p>
+<ul class="simple">
+<li><p>migration <strong>following a filipodium</strong> with one filipodium child (<code class="docutils literal notranslate"><span class="pre">self.swc_type</span> <span class="pre">==</span> <span class="pre">12</span></code>) allowed: the soma moves to the position of the child filipodium, which must be inactive and will be deleted.</p></li>
+<li><p>continuous <strong>extension of a trailing axon</strong> (<code class="docutils literal notranslate"><span class="pre">self.swc_type</span> <span class="pre">==</span> <span class="pre">2</span></code>): an initial axon child needs to have been made and from then on a new, inactive axon front is inserted between the migrated soma and previous axon fronts to generate a continuous axon. A single axon child is allowed.</p></li>
+<li><p>a combination of both: two children are allowed of the correct <em>swc_type</em>.</p></li>
+</ul>
+<p>Note that these special migration scenarios are very restrictive: the rules should be followed exactly, for example use the correct <em>swc_type</em>, or errors will trigger. More details can be found in <a class="reference internal" href="migration.html#migration-label"><span class="std std-ref">Modeling soma migration</span></a>.</p>
+</div>
+<div class="section" id="retract-method">
+<span id="retract-label"></span><h3><code class="docutils literal notranslate"><span class="pre">retract</span></code> method<a class="headerlink" href="#retract-method" title="Permalink to this headline">¶</a></h3>
+<p>This method makes it possible to remove a single front that has <strong>no children</strong> from the simulation. This method is useful to simulate retraction of a small part of the neuron or to simulate gradual retraction of a branch, starting at its tip and removing more proximal fronts in following cycles. Examples can be found in the <a class="reference internal" href="examples.html#retractnote-label"><span class="std std-ref">Retraction notebook</span></a>. and <a class="reference internal" href="examples.html#migrationnote-label"><span class="std std-ref">Migration notebook</span></a>.</p>
+<p>It is simply called as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">retract</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># remove self from the simulation</span>
+    <span class="k">return</span> <span class="c1"># do not try to do anything else with self</span>
+</pre></div>
+</div>
+<p>This will remove <em>self</em> at the end of the current cycle, after all other <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> calls have completed. However, it is safest to <code class="docutils literal notranslate"><span class="pre">return</span></code> from the <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> call immediately after executing <code class="docutils literal notranslate"><span class="pre">self.retract</span></code>. Data about <em>self</em> will still be present in the simulation database with its <em>dead</em> value set to the cycle when the <code class="docutils literal notranslate"><span class="pre">retract</span></code> method was called.</p>
+</div>
+<div class="section" id="retract-branch-method">
+<span id="retractbranch-label"></span><h3><code class="docutils literal notranslate"><span class="pre">retract_branch</span></code> method<a class="headerlink" href="#retract-branch-method" title="Permalink to this headline">¶</a></h3>
+<p>This method is suited to instantaneously retract a large part of a neuron with a single call. It removes a <em>child</em> and all its descendants:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">retract_branch</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">child</span><span class="p">)</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p><em>child</em> should be a child of <em>self</em>. Because <em>self</em> is not affected it can continue its <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> call.</p>
+<p>Again, the removal is executed at the end of the current cycle, after other all <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> calls have completed. Therefore its effect will only be observed on the next cycle. An Example can be found in the <a class="reference internal" href="examples.html#retractnote-label"><span class="std std-ref">Retraction notebook</span></a>.</p>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Beginner’s Tutorial</a><ul>
+<li><a class="reference internal" href="#getting-started">Getting started</a><ul>
+<li><a class="reference internal" href="#model-introduction">Model introduction</a></li>
+<li><a class="reference internal" href="#model-template">Model template</a></li>
+<li><a class="reference internal" href="#running-the-examples">Running the examples</a></li>
+<li><a class="reference internal" href="#neurons-as-a-tree">Neurons as a tree</a></li>
+<li><a class="reference internal" href="#manage-front-method"><code class="docutils literal notranslate"><span class="pre">manage_front</span></code> method</a><ul>
+<li><a class="reference internal" href="#basic-growth">Basic growth</a></li>
+<li><a class="reference internal" href="#basic-error-catching">Basic error catching</a></li>
+<li><a class="reference internal" href="#more-advanced-growth">More advanced growth</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#the-complete-example">The complete example</a></li>
+<li><a class="reference internal" href="#a-small-network">A small network</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#how-many-processors-to-use">How many processors to use</a></li>
+<li><a class="reference internal" href="#useful-errors">Useful <code class="docutils literal notranslate"><span class="pre">Errors</span></code></a><ul>
+<li><a class="reference internal" href="#collisionerror"><code class="docutils literal notranslate"><span class="pre">CollisionError</span></code></a></li>
+<li><a class="reference internal" href="#gridcompetitionerror"><code class="docutils literal notranslate"><span class="pre">GridCompetitionError</span></code></a></li>
+<li><a class="reference internal" href="#insideparenterror"><code class="docutils literal notranslate"><span class="pre">InsideParentError</span></code></a></li>
+<li><a class="reference internal" href="#volumeerror"><code class="docutils literal notranslate"><span class="pre">VolumeError</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#important-dos-and-don-ts">Important dos and don’ts</a><ul>
+<li><a class="reference internal" href="#no-instance-attributes">No instance attributes</a></li>
+<li><a class="reference internal" href="#user-defined-attributes">User-defined attributes</a></li>
+<li><a class="reference internal" href="#do-not-instantiate-front-or-synapse">Do not instantiate <code class="docutils literal notranslate"><span class="pre">Front</span></code> or <code class="docutils literal notranslate"><span class="pre">Synapse</span></code></a></li>
+<li><a class="reference internal" href="#changing-attributes-of-front-or-substrate">Changing attributes of <code class="docutils literal notranslate"><span class="pre">Front</span></code> or <code class="docutils literal notranslate"><span class="pre">Substrate</span></code></a></li>
+<li><a class="reference internal" href="#no-direct-access-to-shared-arrays">No direct access to shared arrays</a></li>
+<li><a class="reference internal" href="#names-are-not-strings">Names are not strings</a></li>
+<li><a class="reference internal" href="#predefined-array-sizes">Predefined array sizes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#additional-growth-methods">Additional growth methods</a><ul>
+<li><a class="reference internal" href="#add-branch-method"><code class="docutils literal notranslate"><span class="pre">add_branch</span></code> method</a></li>
+<li><a class="reference internal" href="#migrate-soma-method"><code class="docutils literal notranslate"><span class="pre">migrate_soma</span></code> method</a></li>
+<li><a class="reference internal" href="#retract-method"><code class="docutils literal notranslate"><span class="pre">retract</span></code> method</a></li>
+<li><a class="reference internal" href="#retract-branch-method"><code class="docutils literal notranslate"><span class="pre">retract_branch</span></code> method</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="install.html"
+                          title="previous chapter">NeuroDevSim Installation</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="modules.html"
+                          title="next chapter">Classes and Methods</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/tutorial.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="modules.html" title="Classes and Methods"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="install.html" title="NeuroDevSim Installation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Beginner’s Tutorial</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-2022, OIST.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+  </body>
+</html>

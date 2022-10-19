@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modeling neuron pruning &#8212; NeuroDevSim 1.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Modeling neuron pruning</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="modeling-neuron-pruning">
+<span id="retraction-label"></span><h1>Modeling neuron pruning<a class="headerlink" href="#modeling-neuron-pruning" title="Permalink to this headline">¶</a></h1>
+<p>In development, pruning of neuronal structures can be as important as growth. This is supported by the <a class="reference internal" href="tutorial.html#retract-label"><span class="std std-ref">retract method</span></a> and <a class="reference internal" href="tutorial.html#retractbranch-label"><span class="std std-ref">retract_branch method</span></a>. Either can be called from <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> and will result in the retraction of one or more fronts at the end of the cycle, after all <code class="docutils literal notranslate"><span class="pre">manage_front</span></code> calls have completed. Data about the deleted fronts will still be present in the simulation database with their <em>dead</em> value set to the cycle when the retraction method was called. Examples can be found in the <a class="reference internal" href="examples.html#retractnote-label"><span class="std std-ref">Retraction notebook</span></a>.</p>
+<p>The simplest one to use is the <a class="reference internal" href="tutorial.html#retractbranch-label"><span class="std std-ref">retract_branch method</span></a>. It is called for one of the children of <em>self</em> and will remove that <em>child</em> and all its descendants:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">retract_branch</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">child</span><span class="p">)</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p><em>child</em> should be a child of <em>self</em>.</p>
+<p>Whether such an approach is sufficiently realistic depends on the implicit duration of a cycle. If it is very long, like days, then complete retraction of a neuronal branch may be biologically feasible in this period. But if it is on the order of hours or less, this is no longer realistic. Then it may be better to delete fronts gradually over consecutive cycles, using the <a class="reference internal" href="tutorial.html#retract-label"><span class="std std-ref">retract method</span></a>. This can only be called on <em>self</em>, with the condition that <em>self</em> has no children:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">retract</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># remove self from the simulation</span>
+    <span class="k">return</span> <span class="c1"># do not try to do anything else with self</span>
+</pre></div>
+</div>
+<p>If the <em>parent</em> is also to be retracted and while is not currently active, it should be activated:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">enable_parent</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># enable parent</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">retract</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># retract self</span>
+    <span class="k">return</span> <span class="c1"># do not do anything else with self</span>
+</pre></div>
+</div>
+<p>If instead, all to be retracted fronts are active anyway then  <code class="docutils literal notranslate"><span class="pre">self.has_child_retracted()</span></code> may be useful to detect that a child was retracted, see <a class="reference internal" href="flags.html#readflags-label"><span class="std std-ref">Read-only status flags</span></a>. Alternatively, one can just check for <code class="docutils literal notranslate"><span class="pre">self.num_children==0</span></code>.</p>
+<p>The <a class="reference internal" href="tutorial.html#retract-label"><span class="std std-ref">retract method</span></a> can also be used to remove a single front of a growing process that got stuck. But unless the <em>parent</em> is activated, growth will stop. To continue growth the <em>parent</em> of <em>self</em> should be enabled and set for growth, this can be done with a single method call:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">manage_front</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">constellation</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">enable_parent</span><span class="p">(</span><span class="n">constellation</span><span class="p">,</span><span class="n">growing</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># enable parent and flag for growth</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">retract</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span> <span class="c1"># retract self</span>
+    <span class="k">return</span> <span class="c1"># do not do anything else with self</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/retraction.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeuroDevSim 1.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Modeling neuron pruning</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019-2022, OIST.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    </div>
+  </body>
+</html>
